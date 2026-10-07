@@ -3,12 +3,12 @@ import { useRouter } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { addMonths } from 'date-fns';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { CustomizableCard, EmptyState, Screen } from '@/components/ui';
+import { CustomizableCard, EmptyState, LayoutScreen } from '@/components/ui';
+import { TaskTile } from '@/components/task/TaskTile';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
 import { MonthCalendar, DayMarker } from '@/components/calendar/MonthCalendar';
@@ -22,7 +22,6 @@ export function CalendarScreen() {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const tasks = useTaskStore((s) => s.tasks);
   const setStatus = useTaskStore((s) => s.setStatus);
   const expenses = useFinanceStore((s) => s.expenses);
@@ -71,10 +70,17 @@ export function CalendarScreen() {
   );
 
   const monthLabel = month.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' });
+  const selectedDateObj = new Date(`${selectedDate}T12:00:00`);
+  // Day items follow the layout: tiles in pairs (Bento), compact feed (Feed), big cards (Vertical).
+  const dayMode = theme.layout.expenses;
+  const dayPairs = useMemo(() => {
+    const pairs: DayItem[][] = [];
+    for (let i = 0; i < dayItems.length; i += 2) pairs.push(dayItems.slice(i, i + 2));
+    return pairs;
+  }, [dayItems]);
 
   return (
-    <Screen style={[styles.container, { paddingTop: insets.top }]}>
-      <Text style={[styles.header, { color: theme.colors.text }]}>{tr.calendarScreen.header}</Text>
+    <LayoutScreen title={tr.calendarScreen.header} count={dayItems.length}>
 
       <View style={styles.calendarWrapper}>
         <CustomizableCard widgetId="calendar-month">
@@ -92,34 +98,67 @@ export function CalendarScreen() {
       </View>
 
       <FlatList
-        data={dayItems}
-        keyExtractor={(item) => `${item.kind}-${item.id}`}
+        data={dayMode === 'tiles' ? dayPairs : dayItems.map((item) => [item])}
+        keyExtractor={(items) => items.map((i) => `${i.kind}-${i.id}`).join('|')}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          if (item.kind === 'task') {
-            const task = tasks.find((t) => t.id === item.id);
-            return task ? <TaskListItem task={task} onCycleStatus={setStatus} /> : null;
-          }
-          const expense = expenses.find((e) => e.id === item.id);
-          return expense ? (
-            <ExpenseListItem
-              expense={expense}
-              category={categoryById.get(expense.categoryId)}
-              currency={currency}
-              onPress={() => router.push(`/expense/${expense.id}`)}
-            />
-          ) : null;
-        }}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+        ListHeaderComponent={
+          theme.layout.tasks === 'focus' || theme.layout.tasks === 'timeline' ? (
+            // Vertical / Feed: the selected day as a big date heading above its items.
+            <View style={styles.dayHero}>
+              <Text style={[styles.dayHeroNumber, { color: theme.colors.primary }]}>{selectedDateObj.getDate()}</Text>
+              <View>
+                <Text style={[styles.dayHeroWeekday, { color: theme.colors.text }]}>
+                  {selectedDateObj.toLocaleDateString(tr.localeCode, { weekday: 'long' })}
+                </Text>
+                <Text style={[styles.dayHeroMonth, { color: theme.colors.textMuted }]}>
+                  {selectedDateObj.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' })}
+                </Text>
+              </View>
+            </View>
+          ) : null
+        }
+        renderItem={({ item: items }) => (
+          <View style={dayMode === 'tiles' ? styles.pairRow : undefined}>
+            {items.map((item) => {
+              if (item.kind === 'task') {
+                const task = tasks.find((t) => t.id === item.id);
+                if (!task) return null;
+                return dayMode === 'tiles' ? (
+                  <TaskTile key={item.id} task={task} onCycleStatus={setStatus} />
+                ) : (
+                  <TaskListItem key={item.id} task={task} onCycleStatus={setStatus} />
+                );
+              }
+              const expense = expenses.find((e) => e.id === item.id);
+              return expense ? (
+                <ExpenseListItem
+                  key={item.id}
+                  expense={expense}
+                  category={categoryById.get(expense.categoryId)}
+                  currency={currency}
+                  onPress={() => router.push(`/expense/${expense.id}`)}
+                  variant={dayMode === 'tiles' ? 'tile' : dayMode === 'timeline' ? 'compact' : dayMode === 'big' ? 'big' : 'row'}
+                />
+              ) : null;
+            })}
+            {dayMode === 'tiles' && items.length === 1 ? <View style={styles.pairSpacer} /> : null}
+          </View>
+        )}
+        ItemSeparatorComponent={() => <View style={{ height: dayMode === 'timeline' ? 0 : 8 }} />}
         ListEmptyComponent={<EmptyState icon="🗓️" title={tr.calendarScreen.emptyDay} />}
       />
-    </Screen>
+    </LayoutScreen>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { fontSize: 26, fontWeight: '700', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
+  dayHero: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 8, marginBottom: 6 },
+  dayHeroNumber: { fontSize: 56, fontWeight: '800', lineHeight: 60 },
+  dayHeroWeekday: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' },
+  dayHeroMonth: { fontSize: 13, textTransform: 'capitalize' },
+  pairRow: { flexDirection: 'row', gap: 10 },
+  pairSpacer: { flex: 1 },
   monthNav: {
     flexDirection: 'row',
     alignItems: 'center',

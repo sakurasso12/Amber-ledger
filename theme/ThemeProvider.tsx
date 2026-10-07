@@ -3,6 +3,7 @@ import { useColorScheme } from 'react-native';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { applyAccent, AppTheme, builtInThemes } from './theme';
 import { DESIGNS } from './designs';
+import { LAYOUTS } from './layouts';
 
 interface ThemeContextValue {
   theme: AppTheme;
@@ -20,6 +21,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const themeMode = useSettingsStore((s) => s.settings.themeMode);
   const accentColor = useSettingsStore((s) => s.settings.accentColor);
   const designId = useSettingsStore((s) => s.settings.designId);
+  const layoutId = useSettingsStore((s) => s.settings.layoutId);
   const systemScheme = useColorScheme();
 
   const theme = useMemo<AppTheme>(() => {
@@ -31,9 +33,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       dark,
       colors: dark ? design.palettes.dark : design.palettes.light,
       design,
+      layout: LAYOUTS[layoutId] ?? LAYOUTS.standard,
     };
     return applyAccent(base, accentColor);
-  }, [themeMode, systemScheme, accentColor, designId]);
+  }, [themeMode, systemScheme, accentColor, designId, layoutId]);
 
   const value = useMemo(() => ({ theme, availableThemes: builtInThemes }), [theme]);
 

@@ -1,4 +1,5 @@
 import type { DesignId } from '@/theme/designs';
+import type { LayoutId } from '@/theme/layouts';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -33,6 +34,9 @@ export interface AppSettings {
    * default solid background. Read directly from settings by the widget's headless task handler
    * (widget-task-handler.ts), which can't use React context. */
   homeWidgetBackgroundUri: string | null;
+  /** Background photos of the smaller home screen widgets, keyed by widget name
+   * ("AmberLedgerDayOff", "AmberLedgerNextTask"); the big one keeps homeWidgetBackgroundUri. */
+  homeWidgetBackgrounds: Record<string, string>;
   /** "Банк" is a manually-set cash-on-hand figure — the user sets it whenever they want to sync
    * with reality; every expense logged after that point is subtracted and every salary confirmed
    * after it is added. `bankBalanceSetAt` is null until the user sets it for the first
@@ -50,8 +54,10 @@ export interface AppSettings {
   salaryConfirmations: Record<string, { amount: number; confirmedAt: string }>;
   /** ISO time until which the salary prompt stays hidden after "remind me in a day". */
   salaryPromptSnoozedUntil: string | null;
-  /** Whole-app design (fonts, shapes, layout, palettes) — see theme/designs.ts. */
+  /** Theme style: palettes, fonts and shapes — see theme/designs.ts (Settings → Тема). */
   designId: DesignId;
+  /** Temporary while picking: arrangement of every screen — see theme/layouts.ts. */
+  layoutId: LayoutId;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -69,6 +75,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   budgetLimitMonth: null,
   backgroundImageUri: null,
   homeWidgetBackgroundUri: null,
+  homeWidgetBackgrounds: {},
   bankBalanceBase: 0,
   bankBalanceSetAt: null,
   lastSettledAt: null,
@@ -76,4 +83,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   salaryConfirmations: {},
   salaryPromptSnoozedUntil: null,
   designId: 'amber',
+  layoutId: 'standard',
 };

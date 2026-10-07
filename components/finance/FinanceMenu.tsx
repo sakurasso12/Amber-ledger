@@ -58,7 +58,7 @@ function useMenuItems(currency: string): MenuItem[] {
 /** Links in the Finance header row — "classic" text links, or the "⋯" button for the sheet style. */
 export function FinanceMenuHeader({ currency }: { currency: string }) {
   const theme = useTheme();
-  const menuStyle = theme.design.financeMenu;
+  const menuStyle = theme.layout.financeMenu;
   const router = useRouter();
   const items = useMenuItems(currency);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -96,7 +96,7 @@ export function FinanceMenuHeader({ currency }: { currency: string }) {
 /** Menu shown under the header — horizontal chips or a row of tiles with live figures. */
 export function FinanceMenuBody({ currency }: { currency: string }) {
   const theme = useTheme();
-  const menuStyle = theme.design.financeMenu;
+  const menuStyle = theme.layout.financeMenu;
   const router = useRouter();
   const items = useMenuItems(currency);
 

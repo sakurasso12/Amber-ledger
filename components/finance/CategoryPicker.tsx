@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Text } from '@/components/ui/Text';
+import { categoryLabel } from '@/lib/categoryLabel';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Chip } from '@/components/ui';
 import { Category } from '@/types';
@@ -20,7 +21,7 @@ export function CategoryPicker({ categories, value, onChange }: CategoryPickerPr
       <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.categoryPicker.label}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
         {categories.map((c) => (
-          <Chip key={c.id} label={c.name} selected={value === c.id} onPress={() => onChange(c.id)} color={c.color} />
+          <Chip key={c.id} label={categoryLabel(c, tr)} selected={value === c.id} onPress={() => onChange(c.id)} color={c.color} />
         ))}
       </ScrollView>
     </>

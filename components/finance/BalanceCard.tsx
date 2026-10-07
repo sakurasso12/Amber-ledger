@@ -39,7 +39,9 @@ export function BalanceCard({
   const theme = useTheme();
   const tr = useTranslation();
   const bankColor = bank >= 0 ? theme.colors.success : theme.colors.danger;
-  const total = bank + awaiting + accruing - plannedTotal;
+  // What will be on the card once the salary for the closed period arrives. The still-accruing
+  // current period is left out — that money isn't earned yet.
+  const total = bank + awaiting - plannedTotal;
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -81,25 +83,25 @@ export function BalanceCard({
     ) : null;
 
   let body: React.ReactNode;
-  switch (theme.design.balanceLayout) {
+  switch (theme.layout.balance) {
     // Neon: the projected total is the hero, bank and incoming sit underneath as two pills.
     case 'hero':
       body = (
         <View style={styles.heroWrap}>
           <Text style={[styles.header, { color: muted, textAlign: 'center' }]}>{tr.financeScreen.total}</Text>
-          <Text style={[styles.heroAmount, { color: totalColor }]}>{signed(total)}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.heroAmount, { color: totalColor }]}>{signed(total)}</Text>
           {plannedNote}
           <View style={styles.heroPills}>
             <Pressable onPress={openEditor} style={[styles.heroPill, { backgroundColor: theme.colors.surfaceAlt }]}>
               <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.bank} ✏️</Text>
-              <Text style={[styles.pillAmount, { color: bankColor }]}>{signed(bank)}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: bankColor }]}>{signed(bank)}</Text>
               {bankDetails}
             </Pressable>
             <View style={[styles.heroPill, { backgroundColor: theme.colors.surfaceAlt }]}>
               <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.incoming}</Text>
               {awaitingLabel ? (
                 <>
-                  <Text style={[styles.pillAmount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
                   <Text style={[styles.subline, { color: muted }]}>{awaitingLabel}</Text>
                 </>
               ) : null}
@@ -121,7 +123,7 @@ export function BalanceCard({
           <View style={styles.ledgerLine}>
             <Text style={[styles.ledgerLabel, { color: theme.colors.text }]}>{label}</Text>
             <View style={[styles.ledgerDots, { borderColor: muted }]} />
-            <Text style={[styles.ledgerValue, { color }]}>{value}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.ledgerValue, { color }]}>{value}</Text>
           </View>
           {sub ? <Text style={[styles.subline, { color: muted }]}>{sub}</Text> : null}
         </Pressable>
@@ -133,7 +135,7 @@ export function BalanceCard({
           {row(awaitingLabel ? tr.financeScreen.accruing : tr.financeScreen.incoming, money(accruing), muted, accruingLine)}
           <View style={[styles.ledgerTotal, { borderTopColor: theme.colors.border, borderBottomColor: theme.colors.border }]}>
             <Text style={[styles.ledgerLabel, { color: theme.colors.text, fontWeight: '700' }]}>{tr.financeScreen.total}</Text>
-            <Text style={[styles.ledgerTotalValue, { color: totalColor }]}>{signed(total)}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.ledgerTotalValue, { color: totalColor }]}>{signed(total)}</Text>
           </View>
           {plannedNote}
         </View>
@@ -147,7 +149,7 @@ export function BalanceCard({
         <View style={styles.blocksWrap}>
           <Pressable onPress={openEditor} style={[styles.block, { backgroundColor: theme.colors.primary }]}>
             <Text style={[styles.header, { color: theme.colors.primaryText }]}>{tr.financeScreen.bank} ✏️</Text>
-            <Text style={[styles.blockAmount, { color: theme.colors.primaryText }]}>{signed(bank)}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.blockAmount, { color: theme.colors.primaryText }]}>{signed(bank)}</Text>
             <Text style={[styles.subline, { color: theme.colors.primaryText }]}>
               {tr.financeScreen.spent.toLowerCase()}: {spentSinceSet.toFixed(0)}
               {creditedSinceSet > 0 ? ` · ${tr.financeScreen.salaryCredited}: +${creditedSinceSet.toFixed(0)}` : ''}
@@ -156,7 +158,7 @@ export function BalanceCard({
           <View style={styles.blocksRow}>
             <View style={[styles.block, styles.blockHalf, { backgroundColor: theme.colors.surfaceAlt, borderColor: theme.colors.border }]}>
               <Text style={[styles.header, { color: theme.colors.text }]}>{tr.financeScreen.incoming}</Text>
-              <Text style={[styles.pillAmount, { color: theme.colors.text }]}>{money(awaitingLabel ? awaiting : accruing)}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: theme.colors.text }]}>{money(awaitingLabel ? awaiting : accruing)}</Text>
               <Text style={[styles.subline, { color: muted }]}>{awaitingLabel ?? accruingLine}</Text>
               {awaitingLabel ? (
                 <Text style={[styles.subline, { color: muted }]}>
@@ -166,7 +168,7 @@ export function BalanceCard({
             </View>
             <View style={[styles.block, styles.blockHalf, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
               <Text style={[styles.header, { color: theme.colors.text }]}>{tr.financeScreen.total}</Text>
-              <Text style={[styles.pillAmount, { color: totalColor }]}>{signed(total)}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: totalColor }]}>{signed(total)}</Text>
               {plannedNote}
             </View>
           </View>
@@ -184,7 +186,7 @@ export function BalanceCard({
               <Text style={[styles.header, { color: muted }]}>
                 {tr.financeScreen.bank} <Text style={{ color: theme.colors.accent }}>✏️</Text>
               </Text>
-              <Text style={[styles.amount, { color: bankColor }]}>{signed(bank)}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: bankColor }]}>{signed(bank)}</Text>
               {bankDetails}
             </Pressable>
 
@@ -194,11 +196,11 @@ export function BalanceCard({
               <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.incoming}</Text>
               {awaitingLabel ? (
                 <>
-                  <Text style={[styles.amount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
                   <Text style={[styles.subline, { color: muted }]}>{awaitingLabel}</Text>
                 </>
               ) : null}
-              <Text style={[awaitingLabel ? styles.accruingAmount : styles.amount, { color: muted }]}>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={[awaitingLabel ? styles.accruingAmount : styles.amount, { color: muted }]}>
                 {awaitingLabel ? '+ ' : ''}
                 {money(accruing)}
               </Text>
@@ -208,7 +210,7 @@ export function BalanceCard({
 
           <View style={[styles.totalRow, { borderTopColor: theme.colors.border }]}>
             <Text style={[styles.totalLabel, { color: muted }]}>{tr.financeScreen.total}</Text>
-            <Text style={[styles.totalAmount, { color: totalColor }]}>{signed(total)}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.totalAmount, { color: totalColor }]}>{signed(total)}</Text>
           </View>
           {plannedNote}
         </>
@@ -255,8 +257,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  totalLabel: { fontSize: 12, fontWeight: '600' },
-  totalAmount: { fontSize: 19, fontWeight: '800' },
+  totalLabel: { fontSize: 12, fontWeight: '600', flexShrink: 1, marginRight: 10 },
+  totalAmount: { fontSize: 19, fontWeight: '800', flexShrink: 1, textAlign: 'right' },
   plannedNote: { fontSize: 11, textAlign: 'right', marginTop: 2 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
   dialog: { width: 280, borderRadius: 18, borderWidth: 1, padding: 18, gap: 12 },
@@ -273,9 +275,9 @@ const styles = StyleSheet.create({
 
   ledgerRow: { paddingVertical: 8, gap: 2 },
   ledgerLine: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
-  ledgerLabel: { fontSize: 15 },
+  ledgerLabel: { fontSize: 15, flexShrink: 1 },
   ledgerDots: { flex: 1, borderBottomWidth: 1, borderStyle: 'dotted', marginBottom: 5 },
-  ledgerValue: { fontSize: 16, fontWeight: '700' },
+  ledgerValue: { fontSize: 16, fontWeight: '700', flexShrink: 1 },
   ledgerTotal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -286,7 +288,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderStyle: 'solid',
   },
-  ledgerTotalValue: { fontSize: 22, fontWeight: '700' },
+  ledgerTotalValue: { fontSize: 22, fontWeight: '700', flexShrink: 1, textAlign: 'right' },
 
   blocksWrap: { gap: 10 },
   blocksRow: { flexDirection: 'row', gap: 10 },

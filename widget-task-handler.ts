@@ -9,6 +9,8 @@ import * as financeRepo from '@/db/financeRepo';
 import { getSetting } from '@/db/settingsRepo';
 import { todayKey } from '@/lib/dateRanges';
 import { DESIGNS, DesignId } from '@/theme/designs';
+import { LAYOUTS, LayoutId } from '@/theme/layouts';
+import type { WidgetPhoto } from './widget/WidgetFrame';
 import { translations } from '@/i18n/translations';
 import type { AppLanguage } from '@/types';
 import { TodayWidget, WidgetTask } from './widget/TodayWidget';
@@ -22,19 +24,22 @@ export const ALL_WIDGET_NAMES = [WIDGET_NAME, DAY_OFF_WIDGET_NAME, NEXT_TASK_WID
 
 interface WidgetSettings {
   currency: string;
-  backgroundImageUri: string | null;
+  /** Background photo per widget name. */
+  backgrounds: Record<string, string | null>;
   designId: DesignId;
+  layoutId: LayoutId;
   language: AppLanguage;
 }
 
 async function readWidgetSettings(): Promise<WidgetSettings> {
-  const fallback: WidgetSettings = { currency: 'zł', backgroundImageUri: null, designId: 'amber', language: 'ru' };
+  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'ru' };
   try {
     const raw = await getSetting('app-settings');
     const settings = raw ? JSON.parse(raw)?.state?.settings : null;
     return {
       currency: settings?.currency ?? fallback.currency,
-      backgroundImageUri: settings?.homeWidgetBackgroundUri ?? null,
+      backgrounds: { ...(settings?.homeWidgetBackgrounds ?? {}), [WIDGET_NAME]: settings?.homeWidgetBackgroundUri ?? null },
+      layoutId: settings?.layoutId && LAYOUTS[settings.layoutId as LayoutId] ? settings.layoutId : fallback.layoutId,
       designId: settings?.designId && DESIGNS[settings.designId as DesignId] ? settings.designId : fallback.designId,
       language: settings?.language && translations[settings.language as AppLanguage] ? settings.language : fallback.language,
     };
@@ -58,6 +63,23 @@ async function readBackgroundAsDataUri(uri: string | null): Promise<string | nul
   }
 }
 
+/** The widget's background photo at its pixel size, or null when it has none. */
+async function widgetPhoto(widgetInfo: WidgetInfo, settings: WidgetSettings): Promise<WidgetPhoto | null> {
+  const image = await readBackgroundAsDataUri(settings.backgrounds[widgetInfo.widgetName] ?? null);
+  if (!image) return null;
+  const { density } = widgetInfo.screenInfo;
+  return {
+    image,
+    width: Math.max(1, Math.round(widgetInfo.width * density)),
+    height: Math.max(1, Math.round(widgetInfo.height * density)),
+  };
+}
+
+/** Palette from the theme style, corners from the app design (layout). */
+function widgetLook(settings: WidgetSettings) {
+  return { palette: DESIGNS[settings.designId].widget, corners: LAYOUTS[settings.layoutId].widgetCorners };
+}
+
 async function upcomingTasks(): Promise<WidgetTask[]> {
   const tasks = await tasksRepo.listTasks();
   return tasks
@@ -70,22 +92,18 @@ export async function buildTodayWidget(widgetInfo: WidgetInfo) {
   const [tasks, expenses, settings] = await Promise.all([upcomingTasks(), financeRepo.listExpenses(), readWidgetSettings()]);
   const today = todayKey();
   const spentToday = expenses.filter((e) => e.date === today).reduce((sum, e) => sum + e.amount, 0);
-  const backgroundImage = await readBackgroundAsDataUri(settings.backgroundImageUri);
-  const { density } = widgetInfo.screenInfo;
 
   return React.createElement(TodayWidget, {
     upcomingTasks: tasks,
     spentToday,
     currency: settings.currency,
-    palette: DESIGNS[settings.designId].widget,
+    ...widgetLook(settings),
+    photo: await widgetPhoto(widgetInfo, settings),
     tr: translations[settings.language].homeWidgets,
-    backgroundImage,
-    imageWidth: Math.max(1, Math.round(widgetInfo.width * density)),
-    imageHeight: Math.max(1, Math.round(widgetInfo.height * density)),
   });
 }
 
-export async function buildDayOffWidget() {
+export async function buildDayOffWidget(widgetInfo: WidgetInfo) {
   const [workDays, settings] = await Promise.all([financeRepo.listWorkDays(), readWidgetSettings()]);
   const today = todayKey();
   const future = workDays.filter((w) => w.date >= today).sort((a, b) => a.date.localeCompare(b.date));
@@ -98,12 +116,15 @@ export async function buildDayOffWidget() {
     daysUntil,
     shiftsBefore,
     localeCode: translations[settings.language].localeCode,
-    palette: DESIGNS[settings.designId].widget,
+    ...widgetLook(settings),
+    photo: await widgetPhoto(widgetInfo, settings),
+    width: widgetInfo.width,
+    height: widgetInfo.height,
     tr: translations[settings.language].homeWidgets,
   });
 }
 
-export async function buildNextTaskWidget() {
+export async function buildNextTaskWidget(widgetInfo: WidgetInfo) {
   const [tasks, settings] = await Promise.all([upcomingTasks(), readWidgetSettings()]);
   const task = tasks[0] ?? null;
   const todayString = new Date().toDateString();
@@ -112,15 +133,18 @@ export async function buildNextTaskWidget() {
   return React.createElement(NextTaskWidget, {
     task,
     moreToday,
-    palette: DESIGNS[settings.designId].widget,
+    ...widgetLook(settings),
+    photo: await widgetPhoto(widgetInfo, settings),
+    width: widgetInfo.width,
+    height: widgetInfo.height,
     tr: translations[settings.language].homeWidgets,
   });
 }
 
 /** Builds whichever of the app's home screen widgets `widgetInfo` refers to. */
 export async function buildWidget(widgetInfo: WidgetInfo) {
-  if (widgetInfo.widgetName === DAY_OFF_WIDGET_NAME) return buildDayOffWidget();
-  if (widgetInfo.widgetName === NEXT_TASK_WIDGET_NAME) return buildNextTaskWidget();
+  if (widgetInfo.widgetName === DAY_OFF_WIDGET_NAME) return buildDayOffWidget(widgetInfo);
+  if (widgetInfo.widgetName === NEXT_TASK_WIDGET_NAME) return buildNextTaskWidget(widgetInfo);
   return buildTodayWidget(widgetInfo);
 }
 
