@@ -5,10 +5,10 @@ import type { ThemeColors } from './theme';
  * text scale, shapes, the tab bar and how key blocks are laid out. Picked in Settings → design.
  * Fonts are Android system families, so no font files need to ship with the app.
  */
-export type DesignId = 'amber' | 'neon' | 'paper' | 'bold';
+export type DesignId = 'amber' | 'neon' | 'paper';
 
-export type CardStyle = 'outlined' | 'elevated' | 'flat' | 'brutal';
-export type TabBarStyle = 'classic' | 'floating' | 'underline' | 'blocks';
+export type CardStyle = 'outlined' | 'elevated' | 'flat';
+export type TabBarStyle = 'classic' | 'floating' | 'underline';
 export type BalanceLayout = 'columns' | 'hero';
 export type FinanceMenuStyle = 'classic' | 'chips';
 
@@ -194,57 +194,5 @@ const paper: Design = {
   widget: { background: '#FFFDF7', text: '#14110D', textMuted: '#5C5346', accent: '#C2361F', danger: '#C2361F', radius: 4 },
 };
 
-/** Loud and chunky: condensed bold type, thick black outlines with a hard offset shadow, acid accents. */
-const bold: Design = {
-  id: 'bold',
-  palettes: {
-    light: {
-      background: '#FFF8E1',
-      surface: '#FFFFFF',
-      surfaceAlt: '#FFE98A',
-      border: '#111111',
-      text: '#111111',
-      textMuted: '#4A4A4A',
-      primary: '#111111',
-      primaryText: '#FFE14D',
-      accent: '#FF4F1F',
-      success: '#0E9F4F',
-      warning: '#E0A100',
-      danger: '#E8261C',
-      priorityLow: '#0E9F4F',
-      priorityMedium: '#E0A100',
-      priorityHigh: '#E8261C',
-    },
-    dark: {
-      background: '#0B0B0B',
-      surface: '#161616',
-      surfaceAlt: '#232323',
-      border: '#C6FF3D',
-      text: '#F5F5F5',
-      textMuted: '#A8A8A8',
-      primary: '#C6FF3D',
-      primaryText: '#0B0B0B',
-      accent: '#FF5FA2',
-      success: '#C6FF3D',
-      warning: '#FFD23F',
-      danger: '#FF4D4D',
-      priorityLow: '#C6FF3D',
-      priorityMedium: '#FFD23F',
-      priorityHigh: '#FF4D4D',
-    },
-  },
-  fonts: { regular: 'sans-serif-condensed', medium: 'sans-serif-condensed', bold: 'sans-serif-condensed', heading: 'sans-serif-condensed' },
-  fontScale: 1.12,
-  headingScale: 1.3,
-  headingLetterSpacing: 0.4,
-  uppercaseLabels: true,
-  radius: { card: 4, control: 4 },
-  borderWidth: 2.5,
-  cardStyle: 'brutal',
-  cardPadding: 16,
-  tabBar: 'blocks',
-  widget: { background: '#FFE14D', text: '#111111', textMuted: '#3A3A3A', accent: '#111111', danger: '#E8261C', radius: 6 },
-};
-
-export const DESIGNS: Record<DesignId, Design> = { amber, neon, paper, bold };
-export const DESIGN_ORDER: DesignId[] = ['amber', 'neon', 'paper', 'bold'];
+export const DESIGNS: Record<DesignId, Design> = { amber, neon, paper };
+export const DESIGN_ORDER: DesignId[] = ['amber', 'neon', 'paper'];

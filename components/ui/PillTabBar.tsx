@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { SPRING } from '@/theme/motion';
@@ -35,6 +35,9 @@ const LABEL_MAX_WIDTH = 96;
 export function PillTabBar({ state, descriptors, navigation }: TabBarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  // Keep clear of Android's navigation buttons even if the live inset arrives as 0 (it can inside
+  // the tab pager); the window metrics measured at launch are the fallback.
+  const bottomInset = Math.max(insets.bottom, initialWindowMetrics?.insets.bottom ?? 0);
   const { colors } = theme;
   const count = state.routes.length;
   const position = useRef(new Animated.Value(state.index)).current;
@@ -60,7 +63,7 @@ export function PillTabBar({ state, descriptors, navigation }: TabBarProps) {
     position.interpolate({ inputRange: [i - 1, i, i + 1], outputRange: [0, 1, 0], extrapolate: 'clamp' });
 
   return (
-    <View style={[styles.wrap, { paddingBottom: insets.bottom + 8 }]}>
+    <View style={[styles.wrap, { paddingBottom: bottomInset + 8, backgroundColor: colors.background }]}>
       <View style={[styles.bar, cardSurface(theme)]} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}>
         {unit > 0 ? (
           <Animated.View

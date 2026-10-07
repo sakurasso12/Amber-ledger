@@ -41,7 +41,7 @@ export default function TabsLayout() {
   const { design, colors } = theme;
   const labelStyle = { ...styles.label, ...designTextStyle({ fontSize: 11, fontWeight: '700' }, design) };
 
-  // Each design brings its own tab bar: classic strip, floating pill, ink underline, or solid blocks.
+  // Each design brings its own tab bar: classic strip, floating pill or ink underline.
   const barByStyle: Record<typeof design.tabBar, object> = {
     classic: {
       backgroundColor: colors.surface,
@@ -79,26 +79,15 @@ export default function TabsLayout() {
       height: 50 + insets.bottom,
       paddingBottom: insets.bottom,
     },
-    blocks: {
-      backgroundColor: colors.surface,
-      borderTopWidth: design.borderWidth,
-      borderTopColor: colors.border,
-      elevation: 0,
-      shadowOpacity: 0,
-      height: 58 + insets.bottom,
-      paddingBottom: insets.bottom,
-    },
   };
   const indicatorByStyle: Record<typeof design.tabBar, object> = {
     classic: styles.hiddenIndicator,
     floating: styles.hiddenIndicator,
     underline: { height: 3, top: 0, backgroundColor: colors.text },
-    blocks: { height: '100%', backgroundColor: colors.primary },
   };
   // The layout (Settings → App design) can replace the theme's tab bar with its own navigation.
   const layoutBar = theme.layout.tabBar;
   const barStyle = design.tabBar;
-  const blocks = barStyle === 'blocks';
 
   return (
     <TopTabs
@@ -109,7 +98,7 @@ export default function TabsLayout() {
         swipeEnabled: true,
         tabBarShowIcon: barStyle !== 'underline',
         tabBarShowLabel: barStyle !== 'floating',
-        tabBarActiveTintColor: blocks ? colors.primaryText : barStyle === 'underline' ? colors.text : colors.primary,
+        tabBarActiveTintColor: barStyle === 'underline' ? colors.text : colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarIndicatorStyle: indicatorByStyle[barStyle],
         tabBarLabelStyle: labelStyle,

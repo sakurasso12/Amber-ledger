@@ -47,9 +47,9 @@ export const useSettingsStore = create<SettingsState>()(
       merge: (persisted, current) => {
         const persistedSettings = (persisted as Partial<SettingsState> | null)?.settings;
         const settings = { ...DEFAULT_SETTINGS, ...persistedSettings };
-        // Layouts and themes that were tried and dropped fall back to Vertical / Amber.
-        if (!LAYOUTS[settings.layoutId]) settings.layoutId = 'v3';
-        if (!DESIGNS[settings.designId]) settings.designId = 'amber';
+        // Layouts and themes that were tried and dropped fall back to the defaults.
+        if (!LAYOUTS[settings.layoutId]) settings.layoutId = DEFAULT_SETTINGS.layoutId;
+        if (!DESIGNS[settings.designId]) settings.designId = DEFAULT_SETTINGS.designId;
         return { ...current, settings };
       },
       onRehydrateStorage: () => () => {
