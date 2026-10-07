@@ -9,9 +9,10 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { Task, TaskStatus } from '@/types';
 import { useTranslation } from '@/i18n';
 import { Translation } from '@/i18n/translations';
-import { SwipeableRow } from '@/components/ui';
+import { PressableScale, SwipeableRow } from '@/components/ui';
 import { deletePersistedImage } from '@/lib/imagePicker';
 import { haptics } from '@/lib/haptics';
+import { SPRING } from '@/theme/motion';
 import { PriorityBadge } from './PriorityBadge';
 
 const STATUS_CYCLE: Record<TaskStatus, TaskStatus> = {
@@ -64,7 +65,7 @@ export function TaskListItem({ task, onCycleStatus, selectionMode, selected, onT
   useEffect(() => {
     if (!isDone) return;
     checkScale.setValue(0.6);
-    Animated.spring(checkScale, { toValue: 1, useNativeDriver: true, friction: 4 }).start();
+    Animated.spring(checkScale, { toValue: 1, ...SPRING, damping: 14, useNativeDriver: true }).start();
   }, [isDone, checkScale]);
 
   async function handleDelete() {
@@ -80,7 +81,7 @@ export function TaskListItem({ task, onCycleStatus, selectionMode, selected, onT
   }
 
   const content = (
-    <Pressable
+    <PressableScale
       onPress={selectionMode ? onToggleSelect : () => router.push(`/task/${task.id}`)}
       onLongPress={onLongPress}
       style={[
@@ -146,7 +147,7 @@ export function TaskListItem({ task, onCycleStatus, selectionMode, selected, onT
       </View>
 
       {task.imageUri ? <Image source={{ uri: task.imageUri }} style={styles.thumbnail} /> : null}
-    </Pressable>
+    </PressableScale>
   );
 
   if (selectionMode) return content;

@@ -5,7 +5,7 @@
  */
 import type { BalanceLayout, FinanceMenuStyle } from './designs';
 
-export type LayoutId = 'standard' | 'v3' | 'glow';
+export type LayoutId = 'standard' | 'v3';
 
 export interface Corners {
   tl: number;
@@ -16,9 +16,8 @@ export interface Corners {
 
 export interface AppLayout {
   id: LayoutId;
-  /** classic: plain title · accent: big glowing title in the accent colour · vertical: letters
-   * stacked in a rail down the left edge. */
-  header: 'classic' | 'accent' | 'vertical';
+  /** classic: plain title · vertical: letters stacked in a rail down the left edge. */
+  header: 'classic' | 'vertical';
   /** Per-corner card radii; null keeps the theme's uniform radius. */
   corners: Corners | null;
   /** null keeps the theme's tab bar; otherwise the layout's own navigation. */
@@ -66,25 +65,9 @@ export const LAYOUTS: Record<LayoutId, AppLayout> = {
     financeMenu: 'chips',
     widgetCorners: { tl: 44, tr: 8, br: 44, bl: 8 },
   },
-  // Glow: the plum/pink neon mockups — big glowing pink titles, plain lists, cards with a soft
-  // neon edge (the glow itself comes from the Plum theme, which picking this layout switches to).
-  glow: {
-    id: 'glow',
-    header: 'accent',
-    corners: null,
-    tabBar: null,
-    tasks: 'rows',
-    expenses: 'rows',
-    stats: 'standard',
-    settings: 'list',
-    fab: 'round',
-    balance: 'columns',
-    financeMenu: 'classic',
-    widgetCorners: null,
-  },
 };
 
-export const LAYOUT_ORDER: LayoutId[] = ['standard', 'v3', 'glow'];
+export const LAYOUT_ORDER: LayoutId[] = ['standard', 'v3'];
 
 /** Style object for per-corner radii. */
 export function cornerStyle(c: Corners) {

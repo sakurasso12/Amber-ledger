@@ -54,19 +54,6 @@ export function LayoutScreen({ title, count, right, headerOverride, children, st
   let header: React.ReactNode;
   if (headerOverride) {
     header = headerOverride;
-  } else if (layout.header === 'accent') {
-    header = (
-      <View style={styles.accentRow}>
-        <Text
-          style={[styles.accentTitle, { color: colors.primary, textShadowColor: `${colors.primary}AA` }]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-        >
-          {title}
-        </Text>
-        {right}
-      </View>
-    );
   } else {
     header = (
       <View style={styles.classicRow}>
@@ -96,17 +83,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   classicTitle: { fontSize: 26, fontWeight: '700' },
-
-  accentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    paddingBottom: 16,
-  },
-  accentTitle: { fontSize: 36, fontWeight: '800', letterSpacing: -0.5, flexShrink: 1, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 14 },
 
   railRow: { flex: 1, flexDirection: 'row' },
   rail: { width: 36, alignItems: 'center', paddingTop: 14 },

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -24,7 +25,7 @@ export function FocusTaskCard({ task, onDone }: { task: Task; onDone: () => void
         : tr.homeWidgets.dueIn(formatDuration(ms, tr.homeWidgets));
 
   return (
-    <Pressable onPress={() => router.push(`/task/${task.id}`)} style={[styles.card, cardSurface(theme)]}>
+    <PressableScale onPress={() => router.push(`/task/${task.id}`)} style={[styles.card, cardSurface(theme)]}>
       <View style={styles.kickerRow}>
         <View style={[styles.dot, { backgroundColor: priorityColor(theme, task.priority) }]} />
         <Text style={[styles.kicker, { color: theme.colors.textMuted }]}>{tr.layoutText.focus}</Text>
@@ -44,7 +45,7 @@ export function FocusTaskCard({ task, onDone }: { task: Task; onDone: () => void
       >
         <Text style={[styles.doneText, { color: theme.colors.primaryText }]}>✓ {tr.layoutText.done}</Text>
       </Pressable>
-    </Pressable>
+    </PressableScale>
   );
 }
 

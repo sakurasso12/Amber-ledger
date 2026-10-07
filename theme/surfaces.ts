@@ -43,15 +43,6 @@ function themeCardSurface(theme: AppTheme): ViewStyle {
         borderBottomWidth: design.borderWidth + 3,
         borderColor: colors.border,
       };
-    case 'glow':
-      return {
-        backgroundColor: colors.surface,
-        borderRadius: design.radius.card,
-        borderWidth: design.borderWidth,
-        borderColor: `${colors.primary}${theme.dark ? '88' : '66'}`,
-        // Soft neon halo around the edge.
-        boxShadow: `0 0 12px 0 ${colors.primary}${theme.dark ? '55' : '33'}`,
-      };
     case 'outlined':
     default:
       return {
@@ -88,6 +79,5 @@ export function fabShape(theme: AppTheme): ViewStyle {
     };
   }
   if (design.cardStyle === 'flat') return { borderRadius: design.radius.control };
-  if (design.cardStyle === 'glow') return { boxShadow: `0 0 18px 2px ${colors.primary}88` };
   return {};
 }

@@ -21,7 +21,7 @@ export function Chip({ label, selected, onPress, color }: ChipProps) {
       style={[
         styles.base,
         controlSurface(theme),
-        theme.design.cardStyle === 'outlined' || theme.design.cardStyle === 'elevated' || theme.design.cardStyle === 'glow' ? { borderRadius: 100 } : null,
+        theme.design.cardStyle === 'outlined' || theme.design.cardStyle === 'elevated' ? { borderRadius: 100 } : null,
         {
           backgroundColor: selected ? activeColor : theme.colors.surfaceAlt,
           borderColor: selected ? activeColor : theme.colors.border,

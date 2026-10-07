@@ -214,18 +214,11 @@ export interface Translation {
     styleLabel: string;
   };
   layouts: {
-    settingsTitle: string;
-    settingsHint: string;
+    label: string;
     standard: string;
-    standardDescription: string;
     v3: string;
-    v3Description: string;
-    glow: string;
-    glowDescription: string;
   };
   designs: {
-    settingsTitle: string;
-    settingsHint: string;
     amber: string;
     amberDescription: string;
     neon: string;
@@ -234,8 +227,6 @@ export interface Translation {
     paperDescription: string;
     bold: string;
     boldDescription: string;
-    plum: string;
-    plumDescription: string;
   };
   salaryPrompt: {
     title: string;
@@ -516,18 +507,11 @@ const ru: Translation = {
     styleLabel: 'Стиль темы',
   },
   layouts: {
-    settingsTitle: 'Дизайн приложения (тест)',
-    settingsHint: 'Временная вкладка: меняет расположение всего на всех вкладках. Цвета и шрифты — в «Тема», сочетается с любой.',
+    label: 'Расположение',
     standard: 'Стандарт',
-    standardDescription: 'Как было: обычные заголовки, списки, панель снизу.',
-    v3: 'Вариант 1 · Вертикаль',
-    v3Description: 'Названия экранов буквами вниз по левой полосе, карточки-листья 40/6, одна задача в фокусе, крупные цифры, навигация-таблетка.',
-    glow: 'Вариант 2 · Неон-слива',
-    glowDescription: 'Сливовый фон, светящиеся розовые заголовки, карточки с неоновой обводкой, круглая розовая кнопка «+». Включает тему «Слива».',
+    v3: 'Вертикаль',
   },
   designs: {
-    settingsTitle: 'Дизайн приложения (тест)',
-    settingsHint: 'Временная вкладка: переключай дизайны и пройдись по всем экранам. Работает и со светлой, и с тёмной темой. Потом оставим один.',
     amber: 'Янтарь',
     amberDescription: 'Как было: тёплые цвета, системный шрифт, карточки с рамкой.',
     neon: 'Неон',
@@ -536,8 +520,6 @@ const ru: Translation = {
     paperDescription: 'Блокнот: шрифт с засечками, светлая бумага, чернильные линии вместо коробок, красный и синий акценты.',
     bold: 'Брутал',
     boldDescription: 'Громко и крупно: узкий жирный шрифт, толстые чёрные рамки с жёсткой тенью, кислотные акценты.',
-    plum: 'Слива',
-    plumDescription: 'Тёмная слива и розовый неон: светящиеся рамки карточек, розовые акценты.',
   },
   salaryPrompt: {
     title: 'Зарплата уже пришла?',
@@ -817,18 +799,11 @@ const uk: Translation = {
     styleLabel: 'Стиль теми',
   },
   layouts: {
-    settingsTitle: 'Дизайн застосунку (тест)',
-    settingsHint: 'Тимчасова вкладка: змінює розташування всього на всіх вкладках. Кольори й шрифти — у «Тема», поєднується з будь-якою.',
+    label: 'Розташування',
     standard: 'Стандарт',
-    standardDescription: 'Як було: звичайні заголовки, списки, панель знизу.',
-    v3: 'Варіант 1 · Вертикаль',
-    v3Description: 'Назви екранів літерами вниз по лівій смузі, картки-листки 40/6, одна задача у фокусі, великі цифри, навігація-пігулка.',
-    glow: 'Варіант 2 · Неон-слива',
-    glowDescription: 'Сливовий фон, світні рожеві заголовки, картки з неоновим обведенням, кругла рожева кнопка «+». Вмикає тему «Слива».',
+    v3: 'Вертикаль',
   },
   designs: {
-    settingsTitle: 'Дизайн застосунку (тест)',
-    settingsHint: 'Тимчасова вкладка: перемикай дизайни й пройдись усіма екранами. Працює і зі світлою, і з темною темою. Потім залишимо один.',
     amber: 'Бурштин',
     amberDescription: 'Як було: теплі кольори, системний шрифт, картки з рамкою.',
     neon: 'Неон',
@@ -837,8 +812,6 @@ const uk: Translation = {
     paperDescription: 'Блокнот: шрифт із засічками, світлий папір, чорнильні лінії замість коробок, червоний і синій акценти.',
     bold: 'Брутал',
     boldDescription: 'Гучно й великими: вузький жирний шрифт, товсті чорні рамки з жорсткою тінню, кислотні акценти.',
-    plum: 'Слива',
-    plumDescription: 'Темна слива й рожевий неон: світні рамки карток, рожеві акценти.',
   },
   salaryPrompt: {
     title: 'Зарплата вже прийшла?',
@@ -1118,18 +1091,11 @@ const en: Translation = {
     styleLabel: 'Theme style',
   },
   layouts: {
-    settingsTitle: 'App design (test)',
-    settingsHint: 'Temporary tab: changes where everything goes on every tab. Colours and fonts live in Theme — any combination works.',
+    label: 'Layout',
     standard: 'Standard',
-    standardDescription: 'As before: plain titles, lists, bottom bar.',
-    v3: 'Variant 1 · Vertical',
-    v3Description: 'Screen names spelled down a left rail, 40/6 leaf cards, one task in focus, big numbers, pill navigation.',
-    glow: 'Variant 2 · Neon plum',
-    glowDescription: 'Plum background, glowing pink titles, cards with a neon edge, round pink "+" button. Switches on the Plum theme.',
+    v3: 'Vertical',
   },
   designs: {
-    settingsTitle: 'App design (test)',
-    settingsHint: 'Temporary tab: switch designs and walk through every screen. Works with both light and dark mode. We will keep one later.',
     amber: 'Amber',
     amberDescription: 'As before: warm colours, system font, outlined cards.',
     neon: 'Neon',
@@ -1138,8 +1104,6 @@ const en: Translation = {
     paperDescription: 'Notebook: serif type, bright paper, ink lines instead of boxes, red and blue accents.',
     bold: 'Bold',
     boldDescription: 'Loud and chunky: condensed bold type, thick black outlines with a hard shadow, acid accents.',
-    plum: 'Plum',
-    plumDescription: 'Dark plum and pink neon: glowing card edges, pink accents.',
   },
   salaryPrompt: {
     title: 'Did you get your salary yet?',

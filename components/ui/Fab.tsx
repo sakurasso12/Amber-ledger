@@ -1,8 +1,9 @@
 import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fabShape } from '@/theme/surfaces';
+import { PressableScale } from './PressableScale';
 
 interface FabProps {
   onPress: () => void;
@@ -17,7 +18,8 @@ export function Fab({ onPress, onLongPress, bottom }: FabProps) {
 
   const big = layout.fab === 'big';
   return (
-    <Pressable
+    <PressableScale
+      scaleTo={0.9}
       onPress={onPress}
       onLongPress={onLongPress}
       style={[
@@ -29,7 +31,7 @@ export function Fab({ onPress, onLongPress, bottom }: FabProps) {
       ]}
     >
       <Ionicons name="add" size={big ? 34 : 28} color={colors.primaryText} />
-    </Pressable>
+    </PressableScale>
   );
 }
 

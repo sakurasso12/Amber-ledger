@@ -1,12 +1,12 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { LayoutScreen } from '@/components/ui';
+import { LayoutScreen, PressableScale } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 
 interface Row {
@@ -67,13 +67,6 @@ export function SettingsScreen() {
       value: settings.homeWidgetBackgroundUri ? tr.settingsScreen.backgroundSet : tr.settingsScreen.notSet,
       route: '/settings/home-widget',
     },
-    // Temporary: remove once one of the app designs is picked.
-    {
-      icon: '🧪',
-      title: tr.layouts.settingsTitle,
-      value: tr.layouts[settings.layoutId],
-      route: '/settings/design',
-    },
   ];
 
   const mode = theme.layout.settings;
@@ -85,7 +78,7 @@ export function SettingsScreen() {
     body = (
       <View style={styles.list}>
         {rows.map((row) => (
-          <Pressable key={row.route} onPress={() => open(row)} style={[styles.bigRow, cardSurface(theme)]}>
+          <PressableScale key={row.route} onPress={() => open(row)} style={[styles.bigRow, cardSurface(theme)]}>
             <View style={[styles.bigIcon, { backgroundColor: `${theme.colors.primary}22` }]}>
               <Text style={styles.bigIconText}>{row.icon}</Text>
             </View>
@@ -95,7 +88,7 @@ export function SettingsScreen() {
                 {row.value}
               </Text>
             </View>
-          </Pressable>
+          </PressableScale>
         ))}
       </View>
     );
@@ -103,14 +96,14 @@ export function SettingsScreen() {
     body = (
       <View style={styles.list}>
         {rows.map((row) => (
-          <Pressable key={row.route} onPress={() => open(row)} style={[styles.row, cardSurface(theme)]}>
+          <PressableScale key={row.route} onPress={() => open(row)} style={[styles.row, cardSurface(theme)]}>
             <Text style={styles.icon}>{row.icon}</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>{row.title}</Text>
             <Text style={[styles.value, { color: theme.colors.textMuted }]} numberOfLines={1}>
               {row.value}
             </Text>
             <Text style={{ color: theme.colors.textMuted, fontSize: 18 }}>›</Text>
-          </Pressable>
+          </PressableScale>
         ))}
       </View>
     );

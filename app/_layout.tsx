@@ -17,6 +17,9 @@ import {
 import { useTranslation } from '@/i18n';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 
+/** Editors and lists open as sheets sliding up from the bottom, like iOS modals. */
+const MODAL = { presentation: 'modal', animation: 'slide_from_bottom' } as const;
+
 function RootStack() {
   const theme = useTheme();
   return (
@@ -26,16 +29,18 @@ function RootStack() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: theme.colors.background },
+          // iOS-style push (parallax slide) for settings sub-screens on Android too.
+          animation: 'ios_from_right',
         }}
       >
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="task/new" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="task/[id]" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="expense/new" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="expense/[id]" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="expense/planned" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="expense/recurring" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="category/manage" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="task/new" options={MODAL} />
+        <Stack.Screen name="task/[id]" options={MODAL} />
+        <Stack.Screen name="expense/new" options={MODAL} />
+        <Stack.Screen name="expense/[id]" options={MODAL} />
+        <Stack.Screen name="expense/planned" options={MODAL} />
+        <Stack.Screen name="expense/recurring" options={MODAL} />
+        <Stack.Screen name="category/manage" options={MODAL} />
       </Stack>
     </>
   );

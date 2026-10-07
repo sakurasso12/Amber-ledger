@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleProp, Pressable, StyleSheet, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { PressableScale } from './PressableScale';
 import { Text } from './Text';
 import { useTheme } from '@/theme/ThemeProvider';
 import { controlSurface } from '@/theme/surfaces';
@@ -24,18 +25,14 @@ export function Button({ title, onPress, variant = 'primary', disabled, style }:
   const textColor = variant === 'secondary' ? theme.colors.text : theme.colors.primaryText;
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [
-        styles.base,
-        controlSurface(theme),
-        { backgroundColor, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
-        style,
-      ]}
+      scaleTo={0.96}
+      style={[styles.base, controlSurface(theme), { backgroundColor, opacity: disabled ? 0.5 : 1 }, style]}
     >
       <Text style={[styles.text, { color: textColor }]}>{title}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
