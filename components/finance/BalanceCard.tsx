@@ -116,66 +116,6 @@ export function BalanceCard({
       );
       break;
 
-    // Paper: ledger rows with dotted leaders, total underlined twice like in an account book.
-    case 'ledger': {
-      const row = (label: string, value: string, color: string, sub?: string, onPress?: () => void) => (
-        <Pressable onPress={onPress} disabled={!onPress} style={styles.ledgerRow}>
-          <View style={styles.ledgerLine}>
-            <Text style={[styles.ledgerLabel, { color: theme.colors.text }]}>{label}</Text>
-            <View style={[styles.ledgerDots, { borderColor: muted }]} />
-            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.ledgerValue, { color }]}>{value}</Text>
-          </View>
-          {sub ? <Text style={[styles.subline, { color: muted }]}>{sub}</Text> : null}
-        </Pressable>
-      );
-      body = (
-        <View>
-          {row(`${tr.financeScreen.bank} ✎`, signed(bank), bankColor, `${tr.financeScreen.spent.toLowerCase()}: ${spentSinceSet.toFixed(0)}${creditedSinceSet > 0 ? ` · ${tr.financeScreen.salaryCredited}: +${creditedSinceSet.toFixed(0)}` : ''}`, openEditor)}
-          {awaitingLabel ? row(tr.financeScreen.incoming, money(awaiting), theme.colors.accent, awaitingLabel) : null}
-          {row(awaitingLabel ? tr.financeScreen.accruing : tr.financeScreen.incoming, money(accruing), muted, accruingLine)}
-          <View style={[styles.ledgerTotal, { borderTopColor: theme.colors.border, borderBottomColor: theme.colors.border }]}>
-            <Text style={[styles.ledgerLabel, { color: theme.colors.text, fontWeight: '700' }]}>{tr.financeScreen.total}</Text>
-            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.ledgerTotalValue, { color: totalColor }]}>{signed(total)}</Text>
-          </View>
-          {plannedNote}
-        </View>
-      );
-      break;
-    }
-
-    // Bold: stacked solid blocks — bank in the inverted colour, incoming and total below.
-    case 'blocks':
-      body = (
-        <View style={styles.blocksWrap}>
-          <Pressable onPress={openEditor} style={[styles.block, { backgroundColor: theme.colors.primary }]}>
-            <Text style={[styles.header, { color: theme.colors.primaryText }]}>{tr.financeScreen.bank} ✏️</Text>
-            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.blockAmount, { color: theme.colors.primaryText }]}>{signed(bank)}</Text>
-            <Text style={[styles.subline, { color: theme.colors.primaryText }]}>
-              {tr.financeScreen.spent.toLowerCase()}: {spentSinceSet.toFixed(0)}
-              {creditedSinceSet > 0 ? ` · ${tr.financeScreen.salaryCredited}: +${creditedSinceSet.toFixed(0)}` : ''}
-            </Text>
-          </Pressable>
-          <View style={styles.blocksRow}>
-            <View style={[styles.block, styles.blockHalf, { backgroundColor: theme.colors.surfaceAlt, borderColor: theme.colors.border }]}>
-              <Text style={[styles.header, { color: theme.colors.text }]}>{tr.financeScreen.incoming}</Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: theme.colors.text }]}>{money(awaitingLabel ? awaiting : accruing)}</Text>
-              <Text style={[styles.subline, { color: muted }]}>{awaitingLabel ?? accruingLine}</Text>
-              {awaitingLabel ? (
-                <Text style={[styles.subline, { color: muted }]}>
-                  + {money(accruing)} · {tr.financeScreen.accruing}
-                </Text>
-              ) : null}
-            </View>
-            <View style={[styles.block, styles.blockHalf, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-              <Text style={[styles.header, { color: theme.colors.text }]}>{tr.financeScreen.total}</Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: totalColor }]}>{signed(total)}</Text>
-              {plannedNote}
-            </View>
-          </View>
-        </View>
-      );
-      break;
-
     // Amber (classic): bank | incoming columns, total underneath.
     case 'columns':
     default:
@@ -272,27 +212,4 @@ const styles = StyleSheet.create({
   heroPills: { flexDirection: 'row', gap: 10, marginTop: 14 },
   heroPill: { flex: 1, borderRadius: 18, padding: 12, gap: 3 },
   pillAmount: { fontSize: 19, fontWeight: '700' },
-
-  ledgerRow: { paddingVertical: 8, gap: 2 },
-  ledgerLine: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
-  ledgerLabel: { fontSize: 15, flexShrink: 1 },
-  ledgerDots: { flex: 1, borderBottomWidth: 1, borderStyle: 'dotted', marginBottom: 5 },
-  ledgerValue: { fontSize: 16, fontWeight: '700', flexShrink: 1 },
-  ledgerTotal: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginTop: 8,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderBottomWidth: 3,
-    borderStyle: 'solid',
-  },
-  ledgerTotalValue: { fontSize: 22, fontWeight: '700', flexShrink: 1, textAlign: 'right' },
-
-  blocksWrap: { gap: 10 },
-  blocksRow: { flexDirection: 'row', gap: 10 },
-  block: { borderRadius: 4, padding: 14, gap: 4 },
-  blockHalf: { flex: 1, borderWidth: 2 },
-  blockAmount: { fontSize: 34, fontWeight: '800' },
 });

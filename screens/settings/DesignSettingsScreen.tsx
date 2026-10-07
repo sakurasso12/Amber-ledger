@@ -18,7 +18,8 @@ export function DesignSettingsScreen() {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
 
   function select(layoutId: LayoutId) {
-    updateSettings({ layoutId });
+    // Neon plum is drawn for the Plum theme, so picking it switches the theme too.
+    updateSettings(layoutId === 'glow' ? { layoutId, designId: 'plum' } : { layoutId });
     // Home screen widgets take their corner shape from the layout too.
     setTimeout(() => refreshHomeWidget(), 300);
   }

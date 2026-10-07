@@ -5,7 +5,7 @@
  */
 import type { BalanceLayout, FinanceMenuStyle } from './designs';
 
-export type LayoutId = 'standard' | 'v1' | 'v2' | 'v3';
+export type LayoutId = 'standard' | 'v3' | 'glow';
 
 export interface Corners {
   tl: number;
@@ -16,18 +16,18 @@ export interface Corners {
 
 export interface AppLayout {
   id: LayoutId;
-  /** classic: plain title · giant: huge title + accent dot + counter · magazine: date kicker +
-   * title with a thick underline · vertical: letters stacked in a rail down the left edge. */
-  header: 'classic' | 'giant' | 'magazine' | 'vertical';
+  /** classic: plain title · accent: big glowing title in the accent colour · vertical: letters
+   * stacked in a rail down the left edge. */
+  header: 'classic' | 'accent' | 'vertical';
   /** Per-corner card radii; null keeps the theme's uniform radius. */
   corners: Corners | null;
   /** null keeps the theme's tab bar; otherwise the layout's own navigation. */
-  tabBar: null | 'floating' | 'top' | 'pill';
-  tasks: 'rows' | 'sections' | 'timeline' | 'focus';
-  expenses: 'rows' | 'tiles' | 'timeline' | 'big';
-  stats: 'standard' | 'tiles' | 'list' | 'big';
-  settings: 'list' | 'grid' | 'grouped' | 'big';
-  fab: 'round' | 'wide' | 'corner' | 'big';
+  tabBar: null | 'pill';
+  tasks: 'rows' | 'focus';
+  expenses: 'rows' | 'big';
+  stats: 'standard' | 'big';
+  settings: 'list' | 'big';
+  fab: 'round' | 'big';
   /** Arrangement of the Bank / Incoming / total card on Finance. */
   balance: BalanceLayout;
   /** How the Recurring / Planned / Categories links on Finance are shown. */
@@ -51,36 +51,6 @@ export const LAYOUTS: Record<LayoutId, AppLayout> = {
     financeMenu: 'classic',
     widgetCorners: null,
   },
-  // Bento: giant titles, cards with diagonal 5/36 corners, sections of tiles, floating pill nav.
-  v1: {
-    id: 'v1',
-    header: 'giant',
-    corners: { tl: 5, tr: 36, br: 5, bl: 36 },
-    tabBar: 'floating',
-    tasks: 'sections',
-    expenses: 'tiles',
-    stats: 'tiles',
-    settings: 'grid',
-    fab: 'wide',
-    balance: 'blocks',
-    financeMenu: 'tiles',
-    widgetCorners: { tl: 6, tr: 40, br: 6, bl: 40 },
-  },
-  // Feed: magazine headers, speech-bubble cards, everything as a dated timeline, text tabs on top.
-  v2: {
-    id: 'v2',
-    header: 'magazine',
-    corners: { tl: 22, tr: 22, br: 22, bl: 4 },
-    tabBar: 'top',
-    tasks: 'timeline',
-    expenses: 'timeline',
-    stats: 'list',
-    settings: 'grouped',
-    fab: 'corner',
-    balance: 'ledger',
-    financeMenu: 'sheet',
-    widgetCorners: { tl: 28, tr: 28, br: 28, bl: 4 },
-  },
   // Vertical: titles spelled down a left rail, leaf-shaped cards, one task in focus, expanding pill nav.
   v3: {
     id: 'v3',
@@ -96,9 +66,25 @@ export const LAYOUTS: Record<LayoutId, AppLayout> = {
     financeMenu: 'chips',
     widgetCorners: { tl: 44, tr: 8, br: 44, bl: 8 },
   },
+  // Glow: the plum/pink neon mockups — big glowing pink titles, plain lists, cards with a soft
+  // neon edge (the glow itself comes from the Plum theme, which picking this layout switches to).
+  glow: {
+    id: 'glow',
+    header: 'accent',
+    corners: null,
+    tabBar: null,
+    tasks: 'rows',
+    expenses: 'rows',
+    stats: 'standard',
+    settings: 'list',
+    fab: 'round',
+    balance: 'columns',
+    financeMenu: 'classic',
+    widgetCorners: null,
+  },
 };
 
-export const LAYOUT_ORDER: LayoutId[] = ['standard', 'v1', 'v2', 'v3'];
+export const LAYOUT_ORDER: LayoutId[] = ['standard', 'v3', 'glow'];
 
 /** Style object for per-corner radii. */
 export function cornerStyle(c: Corners) {

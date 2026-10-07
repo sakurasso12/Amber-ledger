@@ -80,42 +80,7 @@ export function SettingsScreen() {
   const open = (row: Row) => router.push(row.route as never);
 
   let body: React.ReactNode;
-  if (mode === 'grid') {
-    // Bento: two-column tiles.
-    body = (
-      <View style={styles.grid}>
-        {rows.map((row) => (
-          <Pressable key={row.route} onPress={() => open(row)} style={[styles.gridTile, cardSurface(theme)]}>
-            <Text style={styles.gridIcon}>{row.icon}</Text>
-            <Text style={[styles.gridTitle, { color: theme.colors.text }]} numberOfLines={2}>
-              {row.title}
-            </Text>
-            <Text style={[styles.value, { color: theme.colors.textMuted }]} numberOfLines={1}>
-              {row.value}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-    );
-  } else if (mode === 'grouped') {
-    // Feed: plain rows divided by lines, no boxes.
-    body = (
-      <View style={[styles.grouped, { borderTopColor: theme.colors.border }]}>
-        {rows.map((row) => (
-          <Pressable key={row.route} onPress={() => open(row)} style={[styles.groupedRow, { borderBottomColor: theme.colors.border }]}>
-            <Text style={styles.icon}>{row.icon}</Text>
-            <View style={styles.flex}>
-              <Text style={[styles.title, { color: theme.colors.text }]}>{row.title}</Text>
-              <Text style={[styles.value, { color: theme.colors.textMuted, maxWidth: undefined }]} numberOfLines={1}>
-                {row.value}
-              </Text>
-            </View>
-            <Text style={{ color: theme.colors.textMuted, fontSize: 18 }}>›</Text>
-          </Pressable>
-        ))}
-      </View>
-    );
-  } else if (mode === 'big') {
+  if (mode === 'big') {
     // Vertical: big rows with the icon in a circle.
     body = (
       <View style={styles.list}>
@@ -160,12 +125,6 @@ export function SettingsScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, gap: 2 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 10 },
-  gridTile: { width: '48%', flexGrow: 1, padding: 14, gap: 6, minHeight: 112 },
-  gridIcon: { fontSize: 28 },
-  gridTitle: { fontSize: 15, fontWeight: '700' },
-  grouped: { marginHorizontal: 16, borderTopWidth: StyleSheet.hairlineWidth },
-  groupedRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth },
   bigRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14 },
   bigIcon: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
   bigIconText: { fontSize: 24 },

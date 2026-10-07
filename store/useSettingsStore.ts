@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { sqliteStateStorage } from '@/db/settingsRepo';
 import { AppSettings, DEFAULT_SETTINGS } from '@/types';
+import { LAYOUTS } from '@/theme/layouts';
 
 interface SettingsState {
   settings: AppSettings;
@@ -44,7 +45,10 @@ export const useSettingsStore = create<SettingsState>()(
       // the app (missing fields added later) doesn't leave `settings` with undefined properties.
       merge: (persisted, current) => {
         const persistedSettings = (persisted as Partial<SettingsState> | null)?.settings;
-        return { ...current, settings: { ...DEFAULT_SETTINGS, ...persistedSettings } };
+        const settings = { ...DEFAULT_SETTINGS, ...persistedSettings };
+        // Layouts that were tried and dropped (Bento, Feed) fall back to Vertical, the one kept.
+        if (!LAYOUTS[settings.layoutId]) settings.layoutId = 'v3';
+        return { ...current, settings };
       },
       onRehydrateStorage: () => () => {
         useSettingsStore.setState({ hasHydrated: true });
