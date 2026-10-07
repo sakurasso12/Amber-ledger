@@ -8,6 +8,7 @@ import * as tasksRepo from '@/db/tasksRepo';
 import * as financeRepo from '@/db/financeRepo';
 import { getSetting } from '@/db/settingsRepo';
 import { todayKey } from '@/lib/dateRanges';
+import { imageSizeFromBase64 } from '@/lib/imageSize';
 import { DESIGNS, DesignId } from '@/theme/designs';
 import { LAYOUTS, LayoutId } from '@/theme/layouts';
 import type { WidgetPhoto } from './widget/WidgetFrame';
@@ -63,15 +64,27 @@ async function readBackgroundAsDataUri(uri: string | null): Promise<string | nul
   }
 }
 
-/** The widget's background photo at its pixel size, or null when it has none. */
+/**
+ * The widget's background photo, sized to cover the widget while keeping its proportions. The
+ * widget library first scales the bitmap to exactly imageWidth × imageHeight and only then
+ * centre-crops it, so passing the widget's own size squashed every photo whose shape differed;
+ * passing the photo's aspect ratio, scaled up to cover the widget, gives a proper centred crop.
+ * Sizes are in dp (the library converts them to pixels).
+ */
 async function widgetPhoto(widgetInfo: WidgetInfo, settings: WidgetSettings): Promise<WidgetPhoto | null> {
   const image = await readBackgroundAsDataUri(settings.backgrounds[widgetInfo.widgetName] ?? null);
   if (!image) return null;
-  const { density } = widgetInfo.screenInfo;
+  const widgetWidth = Math.max(1, widgetInfo.width);
+  const widgetHeight = Math.max(1, widgetInfo.height);
+  const source = imageSizeFromBase64(image.slice(image.indexOf(',') + 1));
+  if (!source || source.width <= 0 || source.height <= 0) {
+    return { image, width: widgetWidth, height: widgetHeight };
+  }
+  const scale = Math.max(widgetWidth / source.width, widgetHeight / source.height);
   return {
     image,
-    width: Math.max(1, Math.round(widgetInfo.width * density)),
-    height: Math.max(1, Math.round(widgetInfo.height * density)),
+    width: Math.max(widgetWidth, Math.round(source.width * scale)),
+    height: Math.max(widgetHeight, Math.round(source.height * scale)),
   };
 }
 

@@ -5,6 +5,7 @@ import { WidgetCorners, widgetCornerStyle, WidgetPalette } from './widgetShared'
 export interface WidgetPhoto {
   /** data: URI — RemoteViews can't load app-private file:// paths (see widget-task-handler.ts). */
   image: string;
+  /** Size in dp to scale the photo to before the centre crop — keeps its proportions. */
   width: number;
   height: number;
 }
