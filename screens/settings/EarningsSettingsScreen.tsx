@@ -45,7 +45,7 @@ export function EarningsSettingsScreen() {
   return (
     <Screen style={{ paddingTop: insets.top }}>
       <SubScreenHeader title={tr.earningsSettings.title} />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
         <Field label={tr.earningsSettings.hourlyRate}>
           <TextField value={hourlyRate} onChangeText={(t) => commitNumber(t, setHourlyRate, 'hourlyRate')} keyboardType="decimal-pad" />
         </Field>

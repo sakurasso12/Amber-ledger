@@ -39,7 +39,7 @@ export function BudgetSettingsScreen() {
   return (
     <Screen style={{ paddingTop: insets.top }}>
       <SubScreenHeader title={tr.budgetSettings.title} />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
         <Field label={tr.budgetSettings.weekLimit}>
           <TextField
             value={budgetWeek}
