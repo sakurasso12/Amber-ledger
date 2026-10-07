@@ -82,7 +82,8 @@ export interface Translation {
     total: string;
     editBankTitle: string;
     editBankHint: string;
-    paydayBanner: string;
+    salaryCredited: string;
+    accruing: string;
     plannedIncluded: string;
     plannedLink: string;
     recurringLink: string;
@@ -185,6 +186,18 @@ export interface Translation {
   notificationsSettings: { title: string; enabled: string; disabled: string; reminderLabel: string; note: string };
   backgroundSettings: { title: string; notSet: string; pick: string; replace: string; remove: string };
   homeWidgetSettings: { title: string; hint: string };
+  salaryPrompt: {
+    title: string;
+    expected: (amount: string, period: string) => string;
+    yes: string;
+    otherAmount: string;
+    snooze: string;
+    amountLabel: string;
+    save: string;
+    cancel: string;
+    notificationTitle: string;
+    notificationBody: (amount: string, period: string) => string;
+  };
   notificationsContent: {
     permissionTitle: string;
     permissionMessage: string;
@@ -290,8 +303,9 @@ const ru: Translation = {
     incoming: 'Должно прийти',
     total: 'Останется после дохода и трат',
     editBankTitle: 'Сколько у тебя на руках?',
-    editBankHint: 'Задай текущую сумму — дальше траты будут вычитаться из неё автоматически.',
-    paydayBanner: 'Похоже, пора обновить Банк — зарплата должна была прийти',
+    editBankHint: 'Задай текущую сумму — дальше траты будут вычитаться из неё, а подтверждённая зарплата добавляться.',
+    salaryCredited: 'зарплата',
+    accruing: 'набирается',
     plannedIncluded: 'уже минус плановые',
     plannedLink: 'Планы',
     recurringLink: 'Повторы',
@@ -389,7 +403,7 @@ const ru: Translation = {
     payPeriodStartDay: 'День начала расчётного периода',
     payPeriodHint: 'Например, 15 — период считается с 15 числа по 14-е следующего месяца. Именно от этого зависит «Должно прийти» и когда старые отметки в календаре становятся серыми. По умолчанию 1 — обычный календарный месяц.',
     paydayDay: 'День зарплаты',
-    paydayHint: 'Число месяца, когда обычно приходит зарплата — просто для напоминания обновить Банк. Само обновление всегда делаешь вручную, тапнув по Банку.',
+    paydayHint: 'С этого числа приложение спрашивает, пришла ли зарплата за закрытый период. Пока не подтвердишь, сумма висит в «Должно прийти», а после — уходит в Банк.',
   },
   budgetSettings: {
     title: 'Бюджет',
@@ -419,6 +433,18 @@ const ru: Translation = {
   homeWidgetSettings: {
     title: 'Виджет на главном экране',
     hint: 'Фото для фона виджета «Amber Ledger» на домашнем экране Android. Обновится сразу после сохранения.',
+  },
+  salaryPrompt: {
+    title: 'Зарплата уже пришла?',
+    expected: (amount, period) => `Ожидается ${amount} за ${period}`,
+    yes: 'Да',
+    otherAmount: 'Другая сумма',
+    snooze: 'Отложить на день',
+    amountLabel: 'Сколько пришло на карту?',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    notificationTitle: 'Зарплата уже пришла?',
+    notificationBody: (amount, period) => `Ожидается ${amount} за ${period}. Открой «Финансы», чтобы подтвердить.`,
   },
   notificationsContent: {
     permissionTitle: 'Разрешение на уведомления',
@@ -526,8 +552,9 @@ const uk: Translation = {
     incoming: 'Має надійти',
     total: 'Залишиться після доходу і витрат',
     editBankTitle: 'Скільки у тебе на руках?',
-    editBankHint: 'Задай поточну суму — далі витрати будуть автоматично віднімати з неї.',
-    paydayBanner: 'Схоже, час оновити Банк — зарплата мала прийти',
+    editBankHint: 'Задай поточну суму — далі витрати відніматимуться з неї, а підтверджена зарплата додаватиметься.',
+    salaryCredited: 'зарплата',
+    accruing: 'набирається',
     plannedIncluded: 'вже мінус планові',
     plannedLink: 'Плани',
     recurringLink: 'Повтори',
@@ -623,7 +650,7 @@ const uk: Translation = {
     payPeriodStartDay: 'День початку розрахункового періоду',
     payPeriodHint: 'Наприклад, 15 — період рахується з 15 числа по 14-те наступного місяця. Саме від цього залежить «Має надійти» і коли старі позначки в календарі стають сірими. За замовчуванням 1 — звичайний календарний місяць.',
     paydayDay: 'День зарплати',
-    paydayHint: 'Число місяця, коли зазвичай приходить зарплата — просто нагадування оновити Банк. Саме оновлення завжди робиш вручну, тапнувши по Банку.',
+    paydayHint: 'З цього числа застосунок питає, чи прийшла зарплата за закритий період. Поки не підтвердиш, сума висить у «Має надійти», а після — йде в Банк.',
   },
   budgetSettings: {
     title: 'Бюджет',
@@ -653,6 +680,18 @@ const uk: Translation = {
   homeWidgetSettings: {
     title: 'Віджет на головному екрані',
     hint: 'Фото для фону віджета «Amber Ledger» на домашньому екрані Android. Оновиться одразу після збереження.',
+  },
+  salaryPrompt: {
+    title: 'Зарплата вже прийшла?',
+    expected: (amount, period) => `Очікується ${amount} за ${period}`,
+    yes: 'Так',
+    otherAmount: 'Інша сума',
+    snooze: 'Відкласти на день',
+    amountLabel: 'Скільки прийшло на картку?',
+    save: 'Зберегти',
+    cancel: 'Скасувати',
+    notificationTitle: 'Зарплата вже прийшла?',
+    notificationBody: (amount, period) => `Очікується ${amount} за ${period}. Відкрий «Фінанси», щоб підтвердити.`,
   },
   notificationsContent: {
     permissionTitle: 'Дозвіл на сповіщення',
@@ -760,8 +799,9 @@ const en: Translation = {
     incoming: 'Incoming',
     total: 'Left after income and expenses',
     editBankTitle: 'How much do you have on hand?',
-    editBankHint: 'Set your current amount — expenses will be subtracted from it automatically after that.',
-    paydayBanner: 'Looks like it might be time to update Bank — payday was expected',
+    editBankHint: 'Set your current amount — after that, expenses are subtracted from it and confirmed salary is added.',
+    salaryCredited: 'salary',
+    accruing: 'accruing',
     plannedIncluded: 'already minus planned',
     plannedLink: 'Planned',
     recurringLink: 'Recurring',
@@ -857,7 +897,7 @@ const en: Translation = {
     payPeriodStartDay: 'Pay period start day',
     payPeriodHint: "E.g. 15 — the period runs from the 15th through the 14th of the next month. This drives \"Incoming\" and when past calendar marks turn gray. Default 1 = plain calendar month.",
     paydayDay: 'Payday',
-    paydayHint: "Day of the month salary usually arrives — just a reminder to update Bank. The update itself is always manual, by tapping Bank.",
+    paydayHint: "From this day the app asks whether the salary for the closed period has arrived. Until you confirm, it stays in \"Incoming\"; after that it moves into Bank.",
   },
   budgetSettings: {
     title: 'Budget',
@@ -887,6 +927,18 @@ const en: Translation = {
   homeWidgetSettings: {
     title: 'Home screen widget',
     hint: 'Background photo for the "Amber Ledger" Android home screen widget. Updates immediately after saving.',
+  },
+  salaryPrompt: {
+    title: 'Did you get your salary yet?',
+    expected: (amount, period) => `Expected ${amount} for ${period}`,
+    yes: 'Yes',
+    otherAmount: 'Different amount',
+    snooze: 'Remind me in a day',
+    amountLabel: 'How much arrived?',
+    save: 'Save',
+    cancel: 'Cancel',
+    notificationTitle: 'Did you get your salary yet?',
+    notificationBody: (amount, period) => `Expected ${amount} for ${period}. Open Finance to confirm.`,
   },
   notificationsContent: {
     permissionTitle: 'Notification permission',

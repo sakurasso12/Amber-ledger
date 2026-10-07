@@ -5,23 +5,40 @@ import { CustomizableCard, Button, TextField } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 
 interface BalanceCardProps {
-  /** Manually-set cash on hand — see lib/expenses.ts computeBankBalance. */
+  /** Cash on hand: manual base − expenses + salaries credited since (see FinanceScreen). */
   bank: number;
   spentSinceSet: number;
+  /** Salary added to Bank automatically on paydays since it was last set by hand. */
+  creditedSinceSet: number;
   onEditBank: (newBase: number) => void;
-  /** Expected earnings for the current pay period (see Settings → Заработок → период). */
-  incoming: number;
-  incomingLabel: string;
+  /** Closed pay periods waiting for their salary to be confirmed. */
+  awaiting: number;
+  /** Date range of the awaiting periods, or null when nothing is waiting. */
+  awaitingLabel: string | null;
+  /** Earnings of the current (still open) period — shown greyed out, not editable. */
+  accruing: number;
+  accruingLabel: string;
   /** Known future expenses not yet paid — subtracted from the projected total. */
   plannedTotal: number;
   currency: string;
 }
 
-export function BalanceCard({ bank, spentSinceSet, onEditBank, incoming, incomingLabel, plannedTotal, currency }: BalanceCardProps) {
+export function BalanceCard({
+  bank,
+  spentSinceSet,
+  creditedSinceSet,
+  onEditBank,
+  awaiting,
+  awaitingLabel,
+  accruing,
+  accruingLabel,
+  plannedTotal,
+  currency,
+}: BalanceCardProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const bankColor = bank >= 0 ? theme.colors.success : theme.colors.danger;
-  const total = bank + incoming - plannedTotal;
+  const total = bank + awaiting + accruing - plannedTotal;
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -51,16 +68,32 @@ export function BalanceCard({ bank, spentSinceSet, onEditBank, incoming, incomin
           <Text style={[styles.subline, { color: theme.colors.textMuted }]}>
             {tr.financeScreen.spent.toLowerCase()}: {spentSinceSet.toFixed(0)}
           </Text>
+          {creditedSinceSet > 0 ? (
+            <Text style={[styles.subline, { color: theme.colors.textMuted }]}>
+              {tr.financeScreen.salaryCredited}: +{creditedSinceSet.toFixed(0)}
+            </Text>
+          ) : null}
         </Pressable>
 
         <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
 
         <View style={styles.column}>
           <Text style={[styles.header, { color: theme.colors.textMuted }]}>{tr.financeScreen.incoming}</Text>
-          <Text style={[styles.amount, { color: theme.colors.accent }]}>
-            {incoming.toFixed(0)} {currency}
+          {awaitingLabel ? (
+            <>
+              <Text style={[styles.amount, { color: theme.colors.accent }]}>
+                {awaiting.toFixed(0)} {currency}
+              </Text>
+              <Text style={[styles.subline, { color: theme.colors.textMuted }]}>{awaitingLabel}</Text>
+            </>
+          ) : null}
+          <Text style={[awaitingLabel ? styles.accruingAmount : styles.amount, { color: theme.colors.textMuted }]}>
+            {awaitingLabel ? '+ ' : ''}
+            {accruing.toFixed(0)} {currency}
           </Text>
-          <Text style={[styles.subline, { color: theme.colors.textMuted }]}>{incomingLabel}</Text>
+          <Text style={[styles.subline, { color: theme.colors.textMuted }]}>
+            {accruingLabel} · {tr.financeScreen.accruing}
+          </Text>
         </View>
       </View>
 
@@ -104,6 +137,7 @@ const styles = StyleSheet.create({
   header: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
   amount: { fontSize: 22, fontWeight: '700' },
   subline: { fontSize: 11 },
+  accruingAmount: { fontSize: 15, fontWeight: '700', marginTop: 6 },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

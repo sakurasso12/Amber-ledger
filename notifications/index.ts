@@ -21,5 +21,6 @@ export function setupNotifications() {
 export { ensureNotificationPermission, hasNotificationPermission } from './permissions';
 export { cancelTaskReminder, scheduleTaskReminder, syncTaskReminder } from './scheduler';
 export { checkBudgetAlerts } from './budgetAlerts';
+export { syncSalaryReminder } from './salary';
 export { clearStickyNotification, syncStickyNotification } from './sticky';
 export { registerNotificationCategories, listenForSnoozeActions, TASK_REMINDER_CATEGORY } from './actions';

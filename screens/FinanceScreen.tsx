@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,19 +7,12 @@ import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { CustomizableCard, EmptyState, ProgressBar, QuickAddBar, Screen } from '@/components/ui';
 import { BalanceCard } from '@/components/finance/BalanceCard';
+import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
 import { WorkCalendar } from '@/components/finance/WorkCalendar';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
-import {
-  formatRangeLabel,
-  formatShortDate,
-  monthRange,
-  mostRecentMonthlyDay,
-  payPeriodRange,
-  toDateKey,
-  todayKey,
-  weekRange,
-} from '@/lib/dateRanges';
-import { totalEarnings } from '@/lib/earnings';
+import { formatRangeLabel, monthRange, todayKey, weekRange } from '@/lib/dateRanges';
+import { payrollState } from '@/lib/earnings';
+import { syncSalaryReminder } from '@/notifications';
 import { computeBankBalance, totalExpenses } from '@/lib/expenses';
 import { useTranslation } from '@/i18n';
 
@@ -49,27 +42,44 @@ export function FinanceScreen() {
 
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
-  // "Банк" — manually-set cash on hand, auto-reduced by every expense logged since it was set.
-  const { bank, spentSinceSet } = useMemo(
+  // Re-evaluated every minute so the salary prompt appears on payday / after a snooze ends
+  // even if the app stays open.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Closed periods wait in "Должно прийти" until their salary is confirmed; the current one accrues.
+  const payroll = useMemo(() => payrollState(workDays, settings, now), [workDays, settings, now]);
+  const awaitingTotal = payroll.awaiting.reduce((sum, p) => sum + p.amount, 0);
+  const awaitingLabel =
+    payroll.awaiting.length > 0
+      ? formatRangeLabel(
+          { start: payroll.awaiting[0].period.start, end: payroll.awaiting[payroll.awaiting.length - 1].period.end },
+          tr.localeCode
+        )
+      : null;
+
+  const snoozedUntil = settings.salaryPromptSnoozedUntil ? new Date(settings.salaryPromptSnoozedUntil) : null;
+  const showSalaryPrompt = !!payroll.due && (!snoozedUntil || snoozedUntil <= now);
+
+  useEffect(() => {
+    syncSalaryReminder(payroll, settings);
+  }, [payroll.due?.key, payroll.awaiting[0]?.key, settings.salaryPromptSnoozedUntil, settings.paydayDay, settings.language]);
+
+  // "Банк" — manually-set cash on hand, minus every expense logged since it was set, plus every
+  // salary confirmed since then.
+  const { bank: bankBeforeSalary, spentSinceSet } = useMemo(
     () => computeBankBalance(expenses, settings.bankBalanceBase, settings.bankBalanceSetAt),
     [expenses, settings.bankBalanceBase, settings.bankBalanceSetAt]
   );
-  // Editing the Bank number is the real-world "payday happened" moment — it also dismisses the
-  // payday reminder banner below, until the next one comes around.
+  const bank = bankBeforeSalary + payroll.creditedSinceSet;
+
   function handleEditBank(newBase: number) {
-    const now = new Date().toISOString();
-    updateSettings({ bankBalanceBase: newBase, bankBalanceSetAt: now, lastSettledAt: todayKey() });
+    const setAt = new Date().toISOString();
+    updateSettings({ bankBalanceBase: newBase, bankBalanceSetAt: setAt, lastSettledAt: todayKey() });
   }
-
-  // "Должно прийти" — earnings within the current pay period (Settings → Заработок → период).
-  const currentPeriod = useMemo(() => payPeriodRange(new Date(), settings.payPeriodStartDay), [settings.payPeriodStartDay]);
-  const incoming = useMemo(() => totalEarnings(workDays, settings, currentPeriod), [workDays, settings, currentPeriod]);
-  const incomingLabel = useMemo(() => formatRangeLabel(currentPeriod, tr.localeCode), [currentPeriod, tr.localeCode]);
-
-  // Reminder banner: has a payday passed since the last settlement?
-  const lastPayday = useMemo(() => mostRecentMonthlyDay(new Date(), settings.paydayDay), [settings.paydayDay]);
-  const paydayKey = useMemo(() => toDateKey(lastPayday), [lastPayday]);
-  const showPaydayBanner = !settings.lastSettledAt || paydayKey > settings.lastSettledAt;
 
   const spentThisWeek = useMemo(() => totalExpenses(expenses, weekRange(new Date())), [expenses]);
   const spentThisMonth = useMemo(() => totalExpenses(expenses, monthRange(new Date())), [expenses]);
@@ -98,19 +108,16 @@ export function FinanceScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.topSection}>
-            {showPaydayBanner ? (
-              <View style={[styles.banner, { backgroundColor: `${theme.colors.accent}26`, borderColor: theme.colors.accent }]}>
-                <Text style={[styles.bannerText, { color: theme.colors.text }]}>
-                  💰 {tr.financeScreen.paydayBanner} ({formatShortDate(lastPayday, tr.localeCode)})
-                </Text>
-              </View>
-            ) : null}
+            {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
             <BalanceCard
               bank={bank}
               spentSinceSet={spentSinceSet}
+              creditedSinceSet={payroll.creditedSinceSet}
               onEditBank={handleEditBank}
-              incoming={incoming}
-              incomingLabel={incomingLabel}
+              awaiting={awaitingTotal}
+              awaitingLabel={awaitingLabel}
+              accruing={payroll.accruing.amount}
+              accruingLabel={formatRangeLabel(payroll.accruing.range, tr.localeCode)}
               plannedTotal={plannedTotal}
               currency={settings.currency}
             />
@@ -196,8 +203,6 @@ const styles = StyleSheet.create({
   header: { fontSize: 26, fontWeight: '700' },
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   topSection: { gap: 14, marginBottom: 14 },
-  banner: { borderRadius: 14, borderWidth: 1, padding: 12 },
-  bannerText: { fontSize: 13, fontWeight: '600', lineHeight: 18 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 4 },
   budgetTitle: { marginTop: 0, marginBottom: 2 },
   budgetRow: { gap: 6, marginTop: 8 },
