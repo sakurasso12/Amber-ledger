@@ -5,7 +5,7 @@ Offline todo-organizer with an earnings/expense tracker, built with React Native
 
 ## Download (Android)
 
-Grab **[Amber-ledger.apk](https://github.com/sakurasso12/Amber-ledger/releases/latest/download/Amber-ledger.apk)**
+Grab **[Amber-Ledger.apk](https://github.com/sakurasso12/Amber-ledger/releases/latest/download/Amber-Ledger.apk)**
 from the [latest release](https://github.com/sakurasso12/Amber-ledger/releases/latest), open it
 on your phone and allow installing from this source when Android asks. Updates install over the
 previous version and keep your data.
