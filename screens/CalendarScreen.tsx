@@ -8,7 +8,6 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { CustomizableCard, EmptyState, LayoutScreen } from '@/components/ui';
-import { TaskTile } from '@/components/task/TaskTile';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
 import { MonthCalendar, DayMarker } from '@/components/calendar/MonthCalendar';
@@ -71,13 +70,8 @@ export function CalendarScreen() {
 
   const monthLabel = month.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' });
   const selectedDateObj = new Date(`${selectedDate}T12:00:00`);
-  // Day items follow the layout: tiles in pairs (Bento), compact feed (Feed), big cards (Vertical).
+  // Day items follow the layout: big cards in Vertical, plain rows otherwise.
   const dayMode = theme.layout.expenses;
-  const dayPairs = useMemo(() => {
-    const pairs: DayItem[][] = [];
-    for (let i = 0; i < dayItems.length; i += 2) pairs.push(dayItems.slice(i, i + 2));
-    return pairs;
-  }, [dayItems]);
 
   return (
     <LayoutScreen title={tr.calendarScreen.header} count={dayItems.length}>
@@ -98,12 +92,12 @@ export function CalendarScreen() {
       </View>
 
       <FlatList
-        data={dayMode === 'tiles' ? dayPairs : dayItems.map((item) => [item])}
-        keyExtractor={(items) => items.map((i) => `${i.kind}-${i.id}`).join('|')}
+        data={dayItems}
+        keyExtractor={(item) => `${item.kind}-${item.id}`}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          theme.layout.tasks === 'focus' || theme.layout.tasks === 'timeline' ? (
-            // Vertical / Feed: the selected day as a big date heading above its items.
+          theme.layout.tasks === 'focus' ? (
+            // Vertical: the selected day as a big date heading above its items.
             <View style={styles.dayHero}>
               <Text style={[styles.dayHeroNumber, { color: theme.colors.primary }]}>{selectedDateObj.getDate()}</Text>
               <View>
@@ -117,34 +111,23 @@ export function CalendarScreen() {
             </View>
           ) : null
         }
-        renderItem={({ item: items }) => (
-          <View style={dayMode === 'tiles' ? styles.pairRow : undefined}>
-            {items.map((item) => {
-              if (item.kind === 'task') {
-                const task = tasks.find((t) => t.id === item.id);
-                if (!task) return null;
-                return dayMode === 'tiles' ? (
-                  <TaskTile key={item.id} task={task} onCycleStatus={setStatus} />
-                ) : (
-                  <TaskListItem key={item.id} task={task} onCycleStatus={setStatus} />
-                );
-              }
-              const expense = expenses.find((e) => e.id === item.id);
-              return expense ? (
-                <ExpenseListItem
-                  key={item.id}
-                  expense={expense}
-                  category={categoryById.get(expense.categoryId)}
-                  currency={currency}
-                  onPress={() => router.push(`/expense/${expense.id}`)}
-                  variant={dayMode === 'tiles' ? 'tile' : dayMode === 'timeline' ? 'compact' : dayMode === 'big' ? 'big' : 'row'}
-                />
-              ) : null;
-            })}
-            {dayMode === 'tiles' && items.length === 1 ? <View style={styles.pairSpacer} /> : null}
-          </View>
-        )}
-        ItemSeparatorComponent={() => <View style={{ height: dayMode === 'timeline' ? 0 : 8 }} />}
+        renderItem={({ item }) => {
+          if (item.kind === 'task') {
+            const task = tasks.find((t) => t.id === item.id);
+            return task ? <TaskListItem task={task} onCycleStatus={setStatus} /> : null;
+          }
+          const expense = expenses.find((e) => e.id === item.id);
+          return expense ? (
+            <ExpenseListItem
+              expense={expense}
+              category={categoryById.get(expense.categoryId)}
+              currency={currency}
+              onPress={() => router.push(`/expense/${expense.id}`)}
+              variant={dayMode === 'big' ? 'big' : 'row'}
+            />
+          ) : null;
+        }}
+        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         ListEmptyComponent={<EmptyState icon="🗓️" title={tr.calendarScreen.emptyDay} />}
       />
     </LayoutScreen>
@@ -157,8 +140,6 @@ const styles = StyleSheet.create({
   dayHeroNumber: { fontSize: 56, fontWeight: '800', lineHeight: 60 },
   dayHeroWeekday: { fontSize: 18, fontWeight: '800', textTransform: 'capitalize' },
   dayHeroMonth: { fontSize: 13, textTransform: 'capitalize' },
-  pairRow: { flexDirection: 'row', gap: 10 },
-  pairSpacer: { flex: 1 },
   monthNav: {
     flexDirection: 'row',
     alignItems: 'center',

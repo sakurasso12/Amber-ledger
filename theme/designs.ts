@@ -5,12 +5,12 @@ import type { ThemeColors } from './theme';
  * text scale, shapes, the tab bar and how key blocks are laid out. Picked in Settings → design.
  * Fonts are Android system families, so no font files need to ship with the app.
  */
-export type DesignId = 'amber' | 'neon' | 'paper' | 'bold';
+export type DesignId = 'amber' | 'neon' | 'paper' | 'bold' | 'plum';
 
-export type CardStyle = 'outlined' | 'elevated' | 'flat' | 'brutal';
+export type CardStyle = 'outlined' | 'elevated' | 'flat' | 'brutal' | 'glow';
 export type TabBarStyle = 'classic' | 'floating' | 'underline' | 'blocks';
-export type BalanceLayout = 'columns' | 'hero' | 'ledger' | 'blocks';
-export type FinanceMenuStyle = 'classic' | 'chips' | 'tiles' | 'sheet';
+export type BalanceLayout = 'columns' | 'hero';
+export type FinanceMenuStyle = 'classic' | 'chips';
 
 export interface Design {
   id: DesignId;
@@ -246,5 +246,57 @@ const bold: Design = {
   widget: { background: '#FFE14D', text: '#111111', textMuted: '#3A3A3A', accent: '#111111', danger: '#E8261C', radius: 6 },
 };
 
-export const DESIGNS: Record<DesignId, Design> = { amber, neon, paper, bold };
-export const DESIGN_ORDER: DesignId[] = ['amber', 'neon', 'paper', 'bold'];
+/** Plum neon (the user's mockups): deep plum, hot-pink accent, cards outlined with a soft pink glow. */
+const plum: Design = {
+  id: 'plum',
+  palettes: {
+    light: {
+      background: '#FFF4F8',
+      surface: '#FFFFFF',
+      surfaceAlt: '#FBE4EE',
+      border: '#F2BDD3',
+      text: '#2B0F25',
+      textMuted: '#8C5F7F',
+      primary: '#E0306E',
+      primaryText: '#FFFFFF',
+      accent: '#C2267F',
+      success: '#1FA672',
+      warning: '#D98A0B',
+      danger: '#E0304A',
+      priorityLow: '#3F7BE0',
+      priorityMedium: '#D98A0B',
+      priorityHigh: '#E0304A',
+    },
+    dark: {
+      background: '#1A0B1E',
+      surface: '#26112B',
+      surfaceAlt: '#331838',
+      border: '#6B2F5F',
+      text: '#F7E8F2',
+      textMuted: '#B48DAA',
+      primary: '#FF4F8B',
+      primaryText: '#FFFFFF',
+      accent: '#FF7AB0',
+      success: '#3DDC97',
+      warning: '#F5B841',
+      danger: '#FF4D6A',
+      priorityLow: '#5B8CFF',
+      priorityMedium: '#F5B841',
+      priorityHigh: '#FF4D6A',
+    },
+  },
+  fonts: {},
+  fontScale: 1,
+  headingScale: 1,
+  headingLetterSpacing: 0,
+  uppercaseLabels: false,
+  radius: { card: 14, control: 12 },
+  borderWidth: 1,
+  cardStyle: 'glow',
+  cardPadding: 14,
+  tabBar: 'classic',
+  widget: { background: '#26112B', text: '#F7E8F2', textMuted: '#B48DAA', accent: '#FF4F8B', danger: '#FF4D6A', radius: 16 },
+};
+
+export const DESIGNS: Record<DesignId, Design> = { amber, neon, paper, bold, plum };
+export const DESIGN_ORDER: DesignId[] = ['amber', 'neon', 'paper', 'bold', 'plum'];

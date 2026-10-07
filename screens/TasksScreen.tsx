@@ -10,9 +10,7 @@ import { EmptyState, Fab, LayoutScreen, QuickAddBar, ReorderableList } from '@/c
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { ReorderableTaskRow, REORDER_ROW_HEIGHT } from '@/components/task/ReorderableTaskRow';
 import { TaskFilterBar } from '@/components/task/TaskFilterBar';
-import { TaskTile } from '@/components/task/TaskTile';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
-import { groupTasksByBucket, groupTasksByDay } from '@/lib/taskGroups';
 import { applyTaskFilters, uniqueTags } from '@/lib/taskFilters';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
@@ -112,53 +110,6 @@ export function TasksScreen() {
         />
       </ScrollView>
     );
-  } else if (layout.tasks === 'sections') {
-    // Bento: "when" sections, tasks as tiles in two columns.
-    list = (
-      <ScrollView contentContainerStyle={styles.listContent}>
-        {groupTasksByBucket(visibleTasks).map(({ bucket, tasks: group }) => (
-          <View key={bucket} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: bucket === 'overdue' ? theme.colors.danger : theme.colors.text }]}>
-                {tr.layoutText.buckets[bucket]}
-              </Text>
-              <Text style={[styles.sectionCount, { color: theme.colors.textMuted }]}>{group.length}</Text>
-            </View>
-            {Array.from({ length: Math.ceil(group.length / 2) }, (_, row) => (
-              <View key={row} style={styles.tileRow}>
-                <TaskTile {...rowProps(group[row * 2])} />
-                {group[row * 2 + 1] ? <TaskTile {...rowProps(group[row * 2 + 1])} /> : <View style={styles.tileSpacer} />}
-              </View>
-            ))}
-          </View>
-        ))}
-      </ScrollView>
-    );
-  } else if (layout.tasks === 'timeline') {
-    // Feed: grouped by deadline day — date on the left, a vertical line, tasks on the right.
-    list = (
-      <ScrollView contentContainerStyle={styles.listContent}>
-        {groupTasksByDay(visibleTasks).map(({ day, tasks: group }) => {
-          const date = day ? new Date(`${day}T12:00:00`) : null;
-          return (
-            <View key={day ?? 'none'} style={styles.timelineGroup}>
-              <View style={styles.timelineDate}>
-                <Text style={[styles.timelineDay, { color: theme.colors.text }]}>{date ? date.getDate() : '∞'}</Text>
-                <Text style={[styles.timelineWeekday, { color: theme.colors.textMuted }]}>
-                  {date ? date.toLocaleDateString(tr.localeCode, { weekday: 'short' }) : tr.layoutText.noDeadline}
-                </Text>
-              </View>
-              <View style={[styles.timelineLine, { backgroundColor: theme.colors.primary }]} />
-              <View style={styles.timelineItems}>
-                {group.map((task) => (
-                  <TaskListItem key={task.id} {...rowProps(task)} />
-                ))}
-              </View>
-            </View>
-          );
-        })}
-      </ScrollView>
-    );
   } else if (layout.tasks === 'focus' && focusTask) {
     // Vertical: one task in focus, the rest as a compact list below.
     list = (
@@ -224,7 +175,6 @@ export function TasksScreen() {
 
       {!selectionMode ? (
         <Fab
-          label={tr.layoutText.add}
           onPress={() => router.push('/task/new')}
           onLongPress={() => setQuickAddOpen(true)}
           bottom={insets.bottom + 16}
@@ -248,17 +198,6 @@ const styles = StyleSheet.create({
   selectionAction: { padding: 2 },
   filterWrapper: { paddingHorizontal: 16, marginBottom: 8 },
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
-  section: { marginBottom: 18, gap: 10 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   sectionTitle: { fontSize: 18, fontWeight: '800' },
-  sectionCount: { fontSize: 14, fontWeight: '700' },
-  tileRow: { flexDirection: 'row', gap: 10 },
-  tileSpacer: { flex: 1 },
-  timelineGroup: { flexDirection: 'row', gap: 12, marginBottom: 18 },
-  timelineDate: { width: 46, alignItems: 'center', paddingTop: 4 },
-  timelineDay: { fontSize: 26, fontWeight: '800', lineHeight: 28 },
-  timelineWeekday: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', textAlign: 'center' },
-  timelineLine: { width: 3, borderRadius: 2 },
-  timelineItems: { flex: 1, gap: 8 },
   focusHeader: { gap: 14, marginBottom: 10 },
 });

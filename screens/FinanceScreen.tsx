@@ -88,35 +88,9 @@ export function FinanceScreen() {
   const spentThisMonth = useMemo(() => totalExpenses(expenses, monthRange(new Date())), [expenses]);
   const hasBudgetLimits = !!settings.budgetLimitWeek || !!settings.budgetLimitMonth;
 
-  // How the expense list is arranged depends on the layout (Settings → App design).
-  type Row =
-    | { kind: 'expense'; expense: (typeof expenses)[number] }
-    | { kind: 'pair'; left: (typeof expenses)[number]; right?: (typeof expenses)[number] }
-    | { kind: 'day'; day: string; total: number };
   const expenseMode = theme.layout.expenses;
-  const rows: Row[] = useMemo(() => {
-    if (expenseMode === 'tiles') {
-      const pairs: Row[] = [];
-      for (let i = 0; i < expenses.length; i += 2) pairs.push({ kind: 'pair', left: expenses[i], right: expenses[i + 1] });
-      return pairs;
-    }
-    if (expenseMode === 'timeline') {
-      const out: Row[] = [];
-      let currentDay: string | null = null;
-      for (const expense of expenses) {
-        if (expense.date !== currentDay) {
-          currentDay = expense.date;
-          const total = expenses.filter((e) => e.date === currentDay).reduce((sum, e) => sum + e.amount, 0);
-          out.push({ kind: 'day', day: currentDay, total });
-        }
-        out.push({ kind: 'expense', expense });
-      }
-      return out;
-    }
-    return expenses.map((expense) => ({ kind: 'expense', expense }));
-  }, [expenses, expenseMode]);
 
-  const renderExpense = (expense: (typeof expenses)[number], variant: 'row' | 'tile' | 'compact' | 'big') => (
+  const renderExpense = (expense: (typeof expenses)[number], variant: 'row' | 'big') => (
     <ExpenseListItem
       key={expense.id}
       expense={expense}
@@ -130,7 +104,7 @@ export function FinanceScreen() {
   const listHeader = (
           <View style={styles.topSection}>
             {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
-            <FinanceMenuBody currency={settings.currency} />
+            <FinanceMenuBody />
             <BalanceCard
               bank={bank}
               spentSinceSet={spentSinceSet}
@@ -143,8 +117,8 @@ export function FinanceScreen() {
               plannedTotal={plannedTotal}
               currency={settings.currency}
             />
-            {expenseMode === 'tiles' || expenseMode === 'big' ? (
-              // Bento / Vertical: this week and this month at a glance.
+            {expenseMode === 'big' ? (
+              // Vertical: this week and this month at a glance.
               <View style={styles.pairRow}>
                 {[
                   { label: tr.notificationsContent.perWeek, value: spentThisWeek },
@@ -204,34 +178,14 @@ export function FinanceScreen() {
   );
 
   return (
-    <LayoutScreen title={tr.financeScreen.header} right={<FinanceMenuHeader currency={settings.currency} />}>
+    <LayoutScreen title={tr.financeScreen.header} right={<FinanceMenuHeader />}>
       <FlatList
-        data={rows}
-        keyExtractor={(row, i) => (row.kind === 'day' ? `day-${row.day}` : row.kind === 'pair' ? `pair-${row.left.id}` : row.expense.id) + i}
+        data={expenses}
+        keyExtractor={(expense) => expense.id}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={listHeader}
-        renderItem={({ item: row }) => {
-          if (row.kind === 'day') {
-            return (
-              <View style={styles.dayHeader}>
-                <Text style={[styles.dayLabel, { color: theme.colors.text }]}>
-                  {new Date(`${row.day}T12:00:00`).toLocaleDateString(tr.localeCode, { weekday: 'long', day: 'numeric', month: 'long' })}
-                </Text>
-                <Text style={[styles.dayTotal, { color: theme.colors.danger }]}>-{row.total.toFixed(0)} {settings.currency}</Text>
-              </View>
-            );
-          }
-          if (row.kind === 'pair') {
-            return (
-              <View style={styles.pairRow}>
-                {renderExpense(row.left, 'tile')}
-                {row.right ? renderExpense(row.right, 'tile') : <View style={styles.pairSpacer} />}
-              </View>
-            );
-          }
-          return renderExpense(row.expense, expenseMode === 'timeline' ? 'compact' : expenseMode === 'big' ? 'big' : 'row');
-        }}
-        ItemSeparatorComponent={() => <View style={{ height: expenseMode === 'timeline' ? 0 : expenseMode === 'big' ? 12 : 8 }} />}
+        renderItem={({ item }) => renderExpense(item, expenseMode === 'big' ? 'big' : 'row')}
+        ItemSeparatorComponent={() => <View style={{ height: expenseMode === 'big' ? 12 : 8 }} />}
         ListEmptyComponent={<EmptyState icon="💰" title={tr.financeScreen.emptyTitle} subtitle={tr.financeScreen.emptySubtitle} />}
       />
 
@@ -246,7 +200,6 @@ export function FinanceScreen() {
       ) : null}
 
       <Fab
-        label={tr.layoutText.add}
         onPress={() => router.push('/expense/new')}
         onLongPress={() => defaultQuickAddCategoryId && setQuickAddOpen(true)}
         bottom={insets.bottom + 16}
@@ -263,11 +216,7 @@ const styles = StyleSheet.create({
   budgetTitle: { marginTop: 0, marginBottom: 2 },
   budgetRow: { gap: 6, marginTop: 8 },
   budgetLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  dayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 16, paddingBottom: 4 },
-  dayLabel: { fontSize: 14, fontWeight: '800', textTransform: 'capitalize' },
-  dayTotal: { fontSize: 13, fontWeight: '700' },
   pairRow: { flexDirection: 'row', gap: 10 },
-  pairSpacer: { flex: 1 },
   statTile: { flex: 1, padding: 14, gap: 4 },
   statLabel: { fontSize: 12, fontWeight: '700' },
   statValue: { fontSize: 24, fontWeight: '800' },

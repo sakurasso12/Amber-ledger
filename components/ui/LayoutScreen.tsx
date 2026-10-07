@@ -2,21 +2,12 @@ import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
-import { useTranslation } from '@/i18n';
 import { Screen } from './Screen';
 import { Text } from './Text';
 
-/** Top safe-area padding a tab screen needs — none when the layout puts the tab bar on top,
- * because then the bar itself sits under the status bar. */
-export function useTabScreenTopInset(): number {
-  const insets = useSafeAreaInsets();
-  const { layout } = useTheme();
-  return layout.tabBar === 'top' ? 0 : insets.top;
-}
-
 interface LayoutScreenProps {
   title: string;
-  /** Shown as a big counter (giant header) or under the rail letters (vertical header). */
+  /** Shown under the rail letters (vertical header). */
   count?: number;
   /** Extra controls next to the title (links, buttons). */
   right?: React.ReactNode;
@@ -29,10 +20,8 @@ interface LayoutScreenProps {
 /** Root of every main tab: draws the header the active layout asks for (see theme/layouts.ts). */
 export function LayoutScreen({ title, count, right, headerOverride, children, style }: LayoutScreenProps) {
   const theme = useTheme();
-  const tr = useTranslation();
-  const topInset = useTabScreenTopInset();
+  const topInset = useSafeAreaInsets().top;
   const { colors, layout } = theme;
-  const kicker = new Date().toLocaleDateString(tr.localeCode, { weekday: 'long', day: 'numeric', month: 'long' });
 
   if (layout.header === 'vertical') {
     return (
@@ -51,7 +40,9 @@ export function LayoutScreen({ title, count, right, headerOverride, children, st
             ) : null}
             <View style={[styles.railLine, { backgroundColor: colors.border }]} />
           </View>
-          <View style={styles.flex}>
+          {/* Pulled left over the rail's empty edge (and kept off the right edge) so the cards sit
+              roughly centred on screen instead of being pushed right by the rail. */}
+          <View style={styles.railContent}>
             {headerOverride ?? (right ? <View style={styles.railRight}>{right}</View> : <View style={styles.railSpacer} />)}
             {children}
           </View>
@@ -63,36 +54,17 @@ export function LayoutScreen({ title, count, right, headerOverride, children, st
   let header: React.ReactNode;
   if (headerOverride) {
     header = headerOverride;
-  } else if (layout.header === 'giant') {
+  } else if (layout.header === 'accent') {
     header = (
-      <View style={styles.giantWrap}>
-        <View style={styles.giantRow}>
-          <Text style={[styles.giantTitle, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
-            {title}
-            <Text style={{ color: colors.primary }}>.</Text>
-          </Text>
-          {count !== undefined ? (
-            <View style={[styles.giantCount, { borderColor: colors.primary }]}>
-              <Text style={[styles.giantCountText, { color: colors.primary }]}>{count}</Text>
-            </View>
-          ) : null}
-        </View>
-        <Text style={[styles.giantKicker, { color: colors.textMuted }]}>{kicker}</Text>
-        {right ? <View style={styles.giantRight}>{right}</View> : null}
-      </View>
-    );
-  } else if (layout.header === 'magazine') {
-    header = (
-      <View style={styles.magWrap}>
-        <Text style={[styles.magKicker, { color: colors.textMuted }]}>
-          {kicker.toUpperCase()}
-          {count !== undefined ? `  ·  ${count}` : ''}
+      <View style={styles.accentRow}>
+        <Text
+          style={[styles.accentTitle, { color: colors.primary, textShadowColor: `${colors.primary}AA` }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {title}
         </Text>
-        <View style={styles.magRow}>
-          <Text style={[styles.magTitle, { color: colors.text }]}>{title}</Text>
-          {right}
-        </View>
-        <View style={[styles.magBar, { backgroundColor: colors.primary }]} />
+        {right}
       </View>
     );
   } else {
@@ -125,22 +97,20 @@ const styles = StyleSheet.create({
   },
   classicTitle: { fontSize: 26, fontWeight: '700' },
 
-  giantWrap: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 14 },
-  giantRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  giantTitle: { fontSize: 44, fontWeight: '800', letterSpacing: -1.5, flexShrink: 1 },
-  giantCount: { minWidth: 52, height: 52, borderRadius: 26, borderWidth: 3, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
-  giantCountText: { fontSize: 22, fontWeight: '800' },
-  giantKicker: { fontSize: 13, marginTop: -2, textTransform: 'capitalize' },
-  giantRight: { marginTop: 10, alignSelf: 'flex-start' },
-
-  magWrap: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 14 },
-  magKicker: { fontSize: 11, fontWeight: '700', letterSpacing: 2 },
-  magRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 },
-  magTitle: { fontSize: 32, fontWeight: '700', letterSpacing: -0.5 },
-  magBar: { width: 56, height: 5, borderRadius: 3, marginTop: 8 },
+  accentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 16,
+  },
+  accentTitle: { fontSize: 36, fontWeight: '800', letterSpacing: -0.5, flexShrink: 1, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 14 },
 
   railRow: { flex: 1, flexDirection: 'row' },
-  rail: { width: 42, alignItems: 'center', paddingTop: 14 },
+  rail: { width: 36, alignItems: 'center', paddingTop: 14 },
+  railContent: { flex: 1, marginLeft: -12, marginRight: 6 },
   railLetter: { fontSize: 19, fontWeight: '800', lineHeight: 21 },
   railCount: { marginTop: 10, minWidth: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   railCountText: { fontSize: 13, fontWeight: '800' },

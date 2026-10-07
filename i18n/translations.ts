@@ -206,8 +206,6 @@ export interface Translation {
   };
   defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
   layoutText: {
-    add: string;
-    buckets: { overdue: string; today: string; tomorrow: string; later: string; noDeadline: string };
     noDeadline: string;
     focus: string;
     done: string;
@@ -220,12 +218,10 @@ export interface Translation {
     settingsHint: string;
     standard: string;
     standardDescription: string;
-    v1: string;
-    v1Description: string;
-    v2: string;
-    v2Description: string;
     v3: string;
     v3Description: string;
+    glow: string;
+    glowDescription: string;
   };
   designs: {
     settingsTitle: string;
@@ -238,11 +234,8 @@ export interface Translation {
     paperDescription: string;
     bold: string;
     boldDescription: string;
-  };
-  financeMenu: {
-    recurringDescription: string;
-    plannedDescription: string;
-    categoriesDescription: string;
+    plum: string;
+    plumDescription: string;
   };
   salaryPrompt: {
     title: string;
@@ -515,8 +508,6 @@ const ru: Translation = {
   },
   defaultCategories: { 'cat-food': 'Еда', 'cat-transport': 'Транспорт', 'cat-housing': 'Жильё', 'cat-fun': 'Развлечения', 'cat-other': 'Прочее' },
   layoutText: {
-    add: 'Добавить',
-    buckets: { overdue: 'Просрочено', today: 'Сегодня', tomorrow: 'Завтра', later: 'Позже', noDeadline: 'Без срока' },
     noDeadline: 'без срока',
     focus: 'В ФОКУСЕ',
     done: 'Готово',
@@ -529,12 +520,10 @@ const ru: Translation = {
     settingsHint: 'Временная вкладка: меняет расположение всего на всех вкладках. Цвета и шрифты — в «Тема», сочетается с любой.',
     standard: 'Стандарт',
     standardDescription: 'Как было: обычные заголовки, списки, панель снизу.',
-    v1: 'Вариант 1 · Бенто',
-    v1Description: 'Огромные заголовки со счётчиком, карточки с углами 5/36, задачи плитками по секциям, парящая капсула-навигация, широкая кнопка «Добавить».',
-    v2: 'Вариант 2 · Лента',
-    v2Description: 'Журнальные заголовки с датой, карточки-облачка, всё лентой по дням, вкладки текстом сверху, кнопка «+» в левом углу.',
-    v3: 'Вариант 3 · Вертикаль',
+    v3: 'Вариант 1 · Вертикаль',
     v3Description: 'Названия экранов буквами вниз по левой полосе, карточки-листья 40/6, одна задача в фокусе, крупные цифры, навигация-таблетка.',
+    glow: 'Вариант 2 · Неон-слива',
+    glowDescription: 'Сливовый фон, светящиеся розовые заголовки, карточки с неоновой обводкой, круглая розовая кнопка «+». Включает тему «Слива».',
   },
   designs: {
     settingsTitle: 'Дизайн приложения (тест)',
@@ -547,11 +536,8 @@ const ru: Translation = {
     paperDescription: 'Блокнот: шрифт с засечками, светлая бумага, чернильные линии вместо коробок, красный и синий акценты.',
     bold: 'Брутал',
     boldDescription: 'Громко и крупно: узкий жирный шрифт, толстые чёрные рамки с жёсткой тенью, кислотные акценты.',
-  },
-  financeMenu: {
-    recurringDescription: 'Подписки и регулярные платежи',
-    plannedDescription: 'Будущие траты, уже учтённые в итоге',
-    categoriesDescription: 'Цвета и лимиты категорий',
+    plum: 'Слива',
+    plumDescription: 'Тёмная слива и розовый неон: светящиеся рамки карточек, розовые акценты.',
   },
   salaryPrompt: {
     title: 'Зарплата уже пришла?',
@@ -823,8 +809,6 @@ const uk: Translation = {
   },
   defaultCategories: { 'cat-food': 'Їжа', 'cat-transport': 'Транспорт', 'cat-housing': 'Житло', 'cat-fun': 'Розваги', 'cat-other': 'Інше' },
   layoutText: {
-    add: 'Додати',
-    buckets: { overdue: 'Прострочено', today: 'Сьогодні', tomorrow: 'Завтра', later: 'Пізніше', noDeadline: 'Без терміну' },
     noDeadline: 'без терміну',
     focus: 'У ФОКУСІ',
     done: 'Готово',
@@ -837,12 +821,10 @@ const uk: Translation = {
     settingsHint: 'Тимчасова вкладка: змінює розташування всього на всіх вкладках. Кольори й шрифти — у «Тема», поєднується з будь-якою.',
     standard: 'Стандарт',
     standardDescription: 'Як було: звичайні заголовки, списки, панель знизу.',
-    v1: 'Варіант 1 · Бенто',
-    v1Description: 'Величезні заголовки з лічильником, картки з кутами 5/36, задачі плитками за секціями, плаваюча капсула-навігація, широка кнопка «Додати».',
-    v2: 'Варіант 2 · Стрічка',
-    v2Description: 'Журнальні заголовки з датою, картки-хмаринки, усе стрічкою по днях, вкладки текстом зверху, кнопка «+» у лівому куті.',
-    v3: 'Варіант 3 · Вертикаль',
+    v3: 'Варіант 1 · Вертикаль',
     v3Description: 'Назви екранів літерами вниз по лівій смузі, картки-листки 40/6, одна задача у фокусі, великі цифри, навігація-пігулка.',
+    glow: 'Варіант 2 · Неон-слива',
+    glowDescription: 'Сливовий фон, світні рожеві заголовки, картки з неоновим обведенням, кругла рожева кнопка «+». Вмикає тему «Слива».',
   },
   designs: {
     settingsTitle: 'Дизайн застосунку (тест)',
@@ -855,11 +837,8 @@ const uk: Translation = {
     paperDescription: 'Блокнот: шрифт із засічками, світлий папір, чорнильні лінії замість коробок, червоний і синій акценти.',
     bold: 'Брутал',
     boldDescription: 'Гучно й великими: вузький жирний шрифт, товсті чорні рамки з жорсткою тінню, кислотні акценти.',
-  },
-  financeMenu: {
-    recurringDescription: 'Підписки та регулярні платежі',
-    plannedDescription: 'Майбутні витрати, вже враховані в підсумку',
-    categoriesDescription: 'Кольори та ліміти категорій',
+    plum: 'Слива',
+    plumDescription: 'Темна слива й рожевий неон: світні рамки карток, рожеві акценти.',
   },
   salaryPrompt: {
     title: 'Зарплата вже прийшла?',
@@ -1131,8 +1110,6 @@ const en: Translation = {
   },
   defaultCategories: { 'cat-food': 'Food', 'cat-transport': 'Transport', 'cat-housing': 'Housing', 'cat-fun': 'Fun', 'cat-other': 'Other' },
   layoutText: {
-    add: 'Add',
-    buckets: { overdue: 'Overdue', today: 'Today', tomorrow: 'Tomorrow', later: 'Later', noDeadline: 'No deadline' },
     noDeadline: 'no deadline',
     focus: 'IN FOCUS',
     done: 'Done',
@@ -1145,12 +1122,10 @@ const en: Translation = {
     settingsHint: 'Temporary tab: changes where everything goes on every tab. Colours and fonts live in Theme — any combination works.',
     standard: 'Standard',
     standardDescription: 'As before: plain titles, lists, bottom bar.',
-    v1: 'Variant 1 · Bento',
-    v1Description: 'Giant titles with a counter, 5/36 cornered cards, tasks as tiles in sections, floating pill nav, wide Add button.',
-    v2: 'Variant 2 · Feed',
-    v2Description: 'Magazine titles with the date, speech-bubble cards, everything as a dated feed, text tabs on top, "+" in the left corner.',
-    v3: 'Variant 3 · Vertical',
+    v3: 'Variant 1 · Vertical',
     v3Description: 'Screen names spelled down a left rail, 40/6 leaf cards, one task in focus, big numbers, pill navigation.',
+    glow: 'Variant 2 · Neon plum',
+    glowDescription: 'Plum background, glowing pink titles, cards with a neon edge, round pink "+" button. Switches on the Plum theme.',
   },
   designs: {
     settingsTitle: 'App design (test)',
@@ -1163,11 +1138,8 @@ const en: Translation = {
     paperDescription: 'Notebook: serif type, bright paper, ink lines instead of boxes, red and blue accents.',
     bold: 'Bold',
     boldDescription: 'Loud and chunky: condensed bold type, thick black outlines with a hard shadow, acid accents.',
-  },
-  financeMenu: {
-    recurringDescription: 'Subscriptions and regular payments',
-    plannedDescription: 'Future expenses already included in the total',
-    categoriesDescription: 'Category colours and limits',
+    plum: 'Plum',
+    plumDescription: 'Dark plum and pink neon: glowing card edges, pink accents.',
   },
   salaryPrompt: {
     title: 'Did you get your salary yet?',
