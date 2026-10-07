@@ -3,6 +3,13 @@
 Offline todo-organizer with an earnings/expense tracker, built with React Native + Expo
 (TypeScript). No backend, no network calls — everything lives in a local SQLite database.
 
+## Download (Android)
+
+Grab **[Amber-ledger.apk](https://github.com/sakurasso12/Amber-ledger/releases/latest/download/Amber-ledger.apk)**
+from the [latest release](https://github.com/sakurasso12/Amber-ledger/releases/latest), open it
+on your phone and allow installing from this source when Android asks. Updates install over the
+previous version and keep your data.
+
 ## Stack
 
 - **Expo (SDK 57) + TypeScript**, routing via `expo-router`
