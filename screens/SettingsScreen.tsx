@@ -65,6 +65,13 @@ export function SettingsScreen() {
       value: settings.homeWidgetBackgroundUri ? tr.settingsScreen.backgroundSet : tr.settingsScreen.notSet,
       route: '/settings/home-widget',
     },
+    // Temporary: remove once a Finance menu design is picked.
+    {
+      icon: '🧪',
+      title: tr.financeMenu.settingsTitle,
+      value: tr.financeMenu[settings.financeMenuStyle],
+      route: '/settings/finance-menu',
+    },
   ];
 
   return (

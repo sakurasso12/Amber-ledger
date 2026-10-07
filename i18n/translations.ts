@@ -186,6 +186,21 @@ export interface Translation {
   notificationsSettings: { title: string; enabled: string; disabled: string; reminderLabel: string; note: string };
   backgroundSettings: { title: string; notSet: string; pick: string; replace: string; remove: string };
   homeWidgetSettings: { title: string; hint: string };
+  financeMenu: {
+    settingsTitle: string;
+    settingsHint: string;
+    classic: string;
+    classicDescription: string;
+    chips: string;
+    chipsDescription: string;
+    tiles: string;
+    tilesDescription: string;
+    sheet: string;
+    sheetDescription: string;
+    recurringDescription: string;
+    plannedDescription: string;
+    categoriesDescription: string;
+  };
   salaryPrompt: {
     title: string;
     expected: (amount: string, period: string) => string;
@@ -434,6 +449,21 @@ const ru: Translation = {
     title: 'Виджет на главном экране',
     hint: 'Фото для фона виджета «Amber Ledger» на домашнем экране Android. Обновится сразу после сохранения.',
   },
+  financeMenu: {
+    settingsTitle: 'Дизайн меню (тест)',
+    settingsHint: 'Временная вкладка: переключай варианты и смотри на вкладке «Финансы», какой удобнее. Потом оставим один.',
+    classic: 'Классика',
+    classicDescription: 'Как сейчас: мелкие ссылки в шапке.',
+    chips: 'Кнопки',
+    chipsDescription: 'Три крупные кнопки с иконками под шапкой — легко попасть пальцем.',
+    tiles: 'Плитки',
+    tilesDescription: 'Три карточки с цифрами: сколько повторов, сумма планов, сколько категорий.',
+    sheet: 'Меню «⋯»',
+    sheetDescription: 'Чистая шапка с одной кнопкой, по нажатию снизу выезжает меню с описаниями.',
+    recurringDescription: 'Подписки и регулярные платежи',
+    plannedDescription: 'Будущие траты, уже учтённые в итоге',
+    categoriesDescription: 'Цвета и лимиты категорий',
+  },
   salaryPrompt: {
     title: 'Зарплата уже пришла?',
     expected: (amount, period) => `Ожидается ${amount} за ${period}`,
@@ -681,6 +711,21 @@ const uk: Translation = {
     title: 'Віджет на головному екрані',
     hint: 'Фото для фону віджета «Amber Ledger» на домашньому екрані Android. Оновиться одразу після збереження.',
   },
+  financeMenu: {
+    settingsTitle: 'Дизайн меню (тест)',
+    settingsHint: 'Тимчасова вкладка: перемикай варіанти й дивись на вкладці «Фінанси», який зручніший. Потім залишимо один.',
+    classic: 'Класика',
+    classicDescription: 'Як зараз: дрібні посилання в шапці.',
+    chips: 'Кнопки',
+    chipsDescription: 'Три великі кнопки з іконками під шапкою — легко влучити пальцем.',
+    tiles: 'Плитки',
+    tilesDescription: 'Три картки з цифрами: скільки повторів, сума планів, скільки категорій.',
+    sheet: 'Меню «⋯»',
+    sheetDescription: 'Чиста шапка з однією кнопкою, після натискання знизу виїжджає меню з описами.',
+    recurringDescription: 'Підписки та регулярні платежі',
+    plannedDescription: 'Майбутні витрати, вже враховані в підсумку',
+    categoriesDescription: 'Кольори та ліміти категорій',
+  },
   salaryPrompt: {
     title: 'Зарплата вже прийшла?',
     expected: (amount, period) => `Очікується ${amount} за ${period}`,
@@ -927,6 +972,21 @@ const en: Translation = {
   homeWidgetSettings: {
     title: 'Home screen widget',
     hint: 'Background photo for the "Amber Ledger" Android home screen widget. Updates immediately after saving.',
+  },
+  financeMenu: {
+    settingsTitle: 'Menu design (test)',
+    settingsHint: 'Temporary tab: switch between the variants and check the Finance tab to see which one feels better. We will keep one later.',
+    classic: 'Classic',
+    classicDescription: 'As it is now: small links in the header.',
+    chips: 'Buttons',
+    chipsDescription: 'Three big buttons with icons under the header — easy to hit with a thumb.',
+    tiles: 'Tiles',
+    tilesDescription: 'Three cards with live figures: recurring count, planned total, category count.',
+    sheet: '"⋯" menu',
+    sheetDescription: 'Clean header with one button that opens a bottom sheet with descriptions.',
+    recurringDescription: 'Subscriptions and regular payments',
+    plannedDescription: 'Future expenses already included in the total',
+    categoriesDescription: 'Category colours and limits',
   },
   salaryPrompt: {
     title: 'Did you get your salary yet?',
