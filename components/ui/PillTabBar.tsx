@@ -24,7 +24,7 @@ const PAD = 6;
 const GAP = 4;
 const ITEM_HEIGHT = 46;
 /** The active tab is this many times wider than the others. */
-const ACTIVE_GROW = 2;
+const ACTIVE_GROW = 2.4;
 const LABEL_MAX_WIDTH = 96;
 
 /**
@@ -108,6 +108,8 @@ export function PillTabBar({ state, descriptors, navigation }: TabBarProps) {
                     opacity: active,
                     maxWidth: active.interpolate({ inputRange: [0, 1], outputRange: [0, LABEL_MAX_WIDTH] }),
                     marginLeft: active.interpolate({ inputRange: [0, 1], outputRange: [0, 6] }),
+                    // Shrink with the pill so long names end in "…" instead of spilling out.
+                    flexShrink: 1,
                     overflow: 'hidden',
                   }}
                 >
@@ -128,14 +130,15 @@ const styles = StyleSheet.create({
   wrap: { paddingHorizontal: 12, paddingTop: 6 },
   bar: { flexDirection: 'row', alignItems: 'center', padding: PAD, gap: GAP },
   pill: { position: 'absolute', left: 0, top: PAD, height: ITEM_HEIGHT, borderRadius: ITEM_HEIGHT / 2 },
-  slot: { flexBasis: 0 },
+  slot: { flexBasis: 0, height: ITEM_HEIGHT },
+  // No `flex: 1` here: the slot is a column, so flex would override the fixed height and
+  // collapse the whole bar (the pill then hung below it, over Android's nav buttons).
   item: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: ITEM_HEIGHT,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   label: { fontSize: 13, fontWeight: '700' },
 });
