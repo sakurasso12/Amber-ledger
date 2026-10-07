@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { CustomizableCard, EmptyState, ProgressBar, QuickAddBar, Screen } from '@/components/ui';
 import { BalanceCard } from '@/components/finance/BalanceCard';
 import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
+import { FinanceMenuBody, FinanceMenuHeader } from '@/components/finance/FinanceMenu';
 import { WorkCalendar } from '@/components/finance/WorkCalendar';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
 import { formatRangeLabel, monthRange, todayKey, weekRange } from '@/lib/dateRanges';
@@ -89,17 +90,7 @@ export function FinanceScreen() {
     <Screen style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.headerRow}>
         <Text style={[styles.header, { color: theme.colors.text }]}>{tr.financeScreen.header}</Text>
-        <View style={styles.headerLinks}>
-          <Pressable onPress={() => router.push('/expense/recurring')}>
-            <Text style={{ color: theme.colors.accent, fontWeight: '600', fontSize: 13 }}>{tr.financeScreen.recurringLink}</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push('/expense/planned')}>
-            <Text style={{ color: theme.colors.accent, fontWeight: '600', fontSize: 13 }}>{tr.financeScreen.plannedLink}</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push('/category/manage')}>
-            <Text style={{ color: theme.colors.accent, fontWeight: '600', fontSize: 13 }}>{tr.financeScreen.categoriesLink}</Text>
-          </Pressable>
-        </View>
+        <FinanceMenuHeader menuStyle={settings.financeMenuStyle} currency={settings.currency} />
       </View>
 
       <FlatList
@@ -109,6 +100,7 @@ export function FinanceScreen() {
         ListHeaderComponent={
           <View style={styles.topSection}>
             {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
+            <FinanceMenuBody menuStyle={settings.financeMenuStyle} currency={settings.currency} />
             <BalanceCard
               bank={bank}
               spentSinceSet={spentSinceSet}
@@ -199,7 +191,6 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
-  headerLinks: { flexDirection: 'row', gap: 14 },
   header: { fontSize: 26, fontWeight: '700' },
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   topSection: { gap: 14, marginBottom: 14 },
