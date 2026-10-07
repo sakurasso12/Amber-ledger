@@ -33,16 +33,6 @@ function themeCardSurface(theme: AppTheme): ViewStyle {
         borderBottomWidth: design.borderWidth,
         borderColor: colors.border,
       };
-    case 'brutal':
-      return {
-        backgroundColor: colors.surface,
-        borderRadius: design.radius.card,
-        borderWidth: design.borderWidth,
-        // A thicker right/bottom edge reads as a hard offset shadow.
-        borderRightWidth: design.borderWidth + 3,
-        borderBottomWidth: design.borderWidth + 3,
-        borderColor: colors.border,
-      };
     case 'outlined':
     default:
       return {
@@ -57,27 +47,15 @@ function themeCardSurface(theme: AppTheme): ViewStyle {
 /** Border and radius for buttons, inputs, chips and segmented controls. */
 export function controlSurface(theme: AppTheme): ViewStyle {
   const { design, colors } = theme;
-  if (design.cardStyle === 'brutal') {
-    return { borderRadius: design.radius.control, borderWidth: design.borderWidth, borderColor: colors.border };
-  }
   if (design.cardStyle === 'flat') {
     return { borderRadius: design.radius.control, borderWidth: design.borderWidth, borderColor: colors.border };
   }
   return { borderRadius: design.radius.control };
 }
 
-/** Shape of the round "+" button: a circle in soft designs, a square tile in the sharp ones. */
+/** Shape of the round "+" button: a circle in soft designs, a rounded square in Paper. */
 export function fabShape(theme: AppTheme): ViewStyle {
   const { design, colors } = theme;
-  if (design.cardStyle === 'brutal') {
-    return {
-      borderRadius: design.radius.control,
-      borderWidth: design.borderWidth,
-      borderRightWidth: design.borderWidth + 3,
-      borderBottomWidth: design.borderWidth + 3,
-      borderColor: colors.border,
-    };
-  }
   if (design.cardStyle === 'flat') return { borderRadius: design.radius.control };
   return {};
 }

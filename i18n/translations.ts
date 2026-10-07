@@ -225,8 +225,6 @@ export interface Translation {
     neonDescription: string;
     paper: string;
     paperDescription: string;
-    bold: string;
-    boldDescription: string;
   };
   salaryPrompt: {
     title: string;
@@ -518,8 +516,6 @@ const ru: Translation = {
     neonDescription: 'Ночной город: глубокий синий, светящиеся акценты, тонкие крупные заголовки, мягкие карточки на тени.',
     paper: 'Бумага',
     paperDescription: 'Блокнот: шрифт с засечками, светлая бумага, чернильные линии вместо коробок, красный и синий акценты.',
-    bold: 'Брутал',
-    boldDescription: 'Громко и крупно: узкий жирный шрифт, толстые чёрные рамки с жёсткой тенью, кислотные акценты.',
   },
   salaryPrompt: {
     title: 'Зарплата уже пришла?',
@@ -810,8 +806,6 @@ const uk: Translation = {
     neonDescription: 'Нічне місто: глибокий синій, світні акценти, тонкі великі заголовки, м’які картки на тіні.',
     paper: 'Папір',
     paperDescription: 'Блокнот: шрифт із засічками, світлий папір, чорнильні лінії замість коробок, червоний і синій акценти.',
-    bold: 'Брутал',
-    boldDescription: 'Гучно й великими: вузький жирний шрифт, товсті чорні рамки з жорсткою тінню, кислотні акценти.',
   },
   salaryPrompt: {
     title: 'Зарплата вже прийшла?',
@@ -1102,8 +1096,6 @@ const en: Translation = {
     neonDescription: 'Night city: deep blue, glowing accents, thin big headings, soft cards on shadows.',
     paper: 'Paper',
     paperDescription: 'Notebook: serif type, bright paper, ink lines instead of boxes, red and blue accents.',
-    bold: 'Bold',
-    boldDescription: 'Loud and chunky: condensed bold type, thick black outlines with a hard shadow, acid accents.',
   },
   salaryPrompt: {
     title: 'Did you get your salary yet?',

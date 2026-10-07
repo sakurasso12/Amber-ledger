@@ -43,8 +43,8 @@ export function ThemeSettingsScreen() {
             setTimeout(() => refreshHomeWidget(), 300);
           }}
           segments={[
-            { value: 'v3', label: tr.layouts.v3 },
             { value: 'standard', label: tr.layouts.standard },
+            { value: 'v3', label: tr.layouts.v3 },
           ]}
         />
 
