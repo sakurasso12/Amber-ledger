@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
@@ -23,17 +23,37 @@ export function FocusTaskCard({ task, onDone }: { task: Task; onDone: () => void
       : ms < 0
         ? tr.homeWidgets.overdueBy(formatDuration(ms, tr.homeWidgets))
         : tr.homeWidgets.dueIn(formatDuration(ms, tr.homeWidgets));
+  // With a photo the card's text sits on the image, so it switches to light text over a dark fade.
+  const photo = task.imageUri;
+  const textColor = photo ? '#FFFFFF' : theme.colors.text;
+  const mutedColor = photo ? 'rgba(255,255,255,0.8)' : theme.colors.textMuted;
 
   return (
-    <PressableScale onPress={() => router.push(`/task/${task.id}`)} style={[styles.card, cardSurface(theme)]}>
+    <PressableScale
+      onPress={() => router.push(`/task/${task.id}`)}
+      // overflow: hidden clips the photo to the card's exact (leaf-shaped) corners.
+      style={[styles.card, cardSurface(theme), photo && styles.photoCard]}
+    >
+      {photo ? (
+        <>
+          <Image source={{ uri: photo }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          <View style={[StyleSheet.absoluteFill, styles.photoFade]} />
+        </>
+      ) : null}
       <View style={styles.kickerRow}>
         <View style={[styles.dot, { backgroundColor: priorityColor(theme, task.priority) }]} />
-        <Text style={[styles.kicker, { color: theme.colors.textMuted }]}>{tr.layoutText.focus}</Text>
+        <Text style={[styles.kicker, { color: mutedColor }]}>{tr.layoutText.focus}</Text>
       </View>
-      <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={3}>
+      <Text style={[styles.title, { color: textColor }, photo && styles.photoText]} numberOfLines={3}>
         {task.title}
       </Text>
-      <Text style={[styles.countdown, { color: ms !== null && ms < 0 ? theme.colors.danger : theme.colors.primary }]}>
+      <Text
+        style={[
+          styles.countdown,
+          { color: ms !== null && ms < 0 ? theme.colors.danger : photo ? '#FFFFFF' : theme.colors.primary },
+          photo && styles.photoText,
+        ]}
+      >
         {countdown}
       </Text>
       <Pressable
@@ -51,6 +71,10 @@ export function FocusTaskCard({ task, onDone }: { task: Task; onDone: () => void
 
 const styles = StyleSheet.create({
   card: { padding: 22, gap: 10 },
+  photoCard: { overflow: 'hidden', minHeight: 220, justifyContent: 'flex-end' },
+  // Darker towards the bottom, where the title and button sit.
+  photoFade: { experimental_backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.7))' },
+  photoText: { textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
   kickerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   dot: { width: 10, height: 10, borderRadius: 5 },
   kicker: { fontSize: 12, fontWeight: '700', letterSpacing: 1 },
