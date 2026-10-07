@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { categoryLabel } from '@/lib/categoryLabel';
 import { useTranslation } from '@/i18n';
@@ -25,7 +26,7 @@ export function ExpenseListItem({ expense, category, currency, onPress, variant 
 
   if (variant === 'big') {
     return (
-      <Pressable onPress={onPress} style={[styles.big, cardSurface(theme)]}>
+      <PressableScale onPress={onPress} style={[styles.big, cardSurface(theme)]}>
         <Text style={[styles.bigAmount, { color: theme.colors.danger }]}>{amount}</Text>
         <View style={styles.bigMeta}>
           <View style={[styles.dot, { backgroundColor: color }]} />
@@ -35,12 +36,12 @@ export function ExpenseListItem({ expense, category, currency, onPress, variant 
           </Text>
           <Text style={[styles.date, { color: theme.colors.textMuted, marginLeft: 'auto' }]}>{date}</Text>
         </View>
-      </Pressable>
+      </PressableScale>
     );
   }
 
   return (
-    <Pressable onPress={onPress} style={[styles.row, cardSurface(theme)]}>
+    <PressableScale onPress={onPress} style={[styles.row, cardSurface(theme)]}>
       <View style={[styles.dot, { backgroundColor: color }]} />
       <View style={styles.body}>
         <Text style={[styles.category, { color: theme.colors.text }]}>{categoryLabel(category, tr)}</Text>
@@ -52,7 +53,7 @@ export function ExpenseListItem({ expense, category, currency, onPress, variant 
         <Text style={[styles.date, { color: theme.colors.textMuted }]}>{date}</Text>
       </View>
       <Text style={[styles.amount, { color: theme.colors.danger }]}>{amount}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 

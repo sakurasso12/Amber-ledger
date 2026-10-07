@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Animated, PanResponder, StyleSheet, View } from 'react-native';
 import { haptics } from '@/lib/haptics';
+import { SPRING } from '@/theme/motion';
 
 interface SwipeAction {
   icon: React.ReactNode;
@@ -52,11 +53,11 @@ export function SwipeableRow({ children, rightAction, leftAction }: SwipeableRow
           leftAction.onTrigger();
         }
         pastThreshold.current = false;
-        Animated.spring(translateX, { toValue: 0, useNativeDriver: true, bounciness: 6 }).start();
+        Animated.spring(translateX, { toValue: 0, ...SPRING, useNativeDriver: true }).start();
       },
       onPanResponderTerminate: () => {
         pastThreshold.current = false;
-        Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+        Animated.spring(translateX, { toValue: 0, ...SPRING, useNativeDriver: true }).start();
       },
     })
   ).current;

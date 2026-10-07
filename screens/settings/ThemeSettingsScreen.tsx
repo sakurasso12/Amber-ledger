@@ -11,6 +11,7 @@ import { DESIGN_ORDER, DESIGNS } from '@/theme/designs';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { useTranslation } from '@/i18n';
 import { ThemeMode } from '@/types';
+import { LayoutId } from '@/theme/layouts';
 
 export function ThemeSettingsScreen() {
   const theme = useTheme();
@@ -30,6 +31,20 @@ export function ThemeSettingsScreen() {
             { value: 'light', label: tr.settingsScreen.themeLight },
             { value: 'dark', label: tr.settingsScreen.themeDark },
             { value: 'system', label: tr.settingsScreen.themeSystem },
+          ]}
+        />
+
+        <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.layouts.label}</Text>
+        <SegmentedControl<LayoutId>
+          value={settings.layoutId}
+          onChange={(layoutId) => {
+            updateSettings({ layoutId });
+            // Home screen widgets take their corner shape from the layout too.
+            setTimeout(() => refreshHomeWidget(), 300);
+          }}
+          segments={[
+            { value: 'v3', label: tr.layouts.v3 },
+            { value: 'standard', label: tr.layouts.standard },
           ]}
         />
 

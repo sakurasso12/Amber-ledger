@@ -6,6 +6,7 @@ export * from './CustomizableCard';
 export * from './DateTimeField';
 export * from './EmptyState';
 export * from './Fab';
+export * from './PressableScale';
 export * from './ProgressBar';
 export * from './QuickAddBar';
 export * from './ReorderableList';

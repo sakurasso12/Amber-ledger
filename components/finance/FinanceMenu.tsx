@@ -80,7 +80,7 @@ export function FinanceMenuBody() {
             style={({ pressed }) => [
               styles.chip,
               cardSurface(theme),
-              theme.design.cardStyle === 'elevated' || theme.design.cardStyle === 'outlined' || theme.design.cardStyle === 'glow' ? { borderRadius: 999 } : null,
+              theme.design.cardStyle === 'elevated' || theme.design.cardStyle === 'outlined' ? { borderRadius: 999 } : null,
               { opacity: pressed ? 0.7 : 1 },
             ]}
           >

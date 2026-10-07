@@ -83,5 +83,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   salaryConfirmations: {},
   salaryPromptSnoozedUntil: null,
   designId: 'amber',
-  layoutId: 'standard',
+  layoutId: 'v3',
 };

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { sqliteStateStorage } from '@/db/settingsRepo';
 import { AppSettings, DEFAULT_SETTINGS } from '@/types';
 import { LAYOUTS } from '@/theme/layouts';
+import { DESIGNS } from '@/theme/designs';
 
 interface SettingsState {
   settings: AppSettings;
@@ -46,8 +47,9 @@ export const useSettingsStore = create<SettingsState>()(
       merge: (persisted, current) => {
         const persistedSettings = (persisted as Partial<SettingsState> | null)?.settings;
         const settings = { ...DEFAULT_SETTINGS, ...persistedSettings };
-        // Layouts that were tried and dropped (Bento, Feed) fall back to Vertical, the one kept.
+        // Layouts and themes that were tried and dropped fall back to Vertical / Amber.
         if (!LAYOUTS[settings.layoutId]) settings.layoutId = 'v3';
+        if (!DESIGNS[settings.designId]) settings.designId = 'amber';
         return { ...current, settings };
       },
       onRehydrateStorage: () => () => {
