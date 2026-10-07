@@ -43,10 +43,12 @@ export function CustomizableCard({ widgetId, children, style }: CustomizableCard
 
   if (imageUri) {
     return (
+      // overflow: hidden clips the photo and its scrim to the card's exact corners — including the
+      // per-corner shapes of the Vertical layout — so no square photo edges poke out.
       <ImageBackground
         source={{ uri: imageUri }}
-        style={[styles.base, cardSurface(theme), style]}
-        imageStyle={{ borderRadius: theme.design.radius.card }}
+        resizeMode="cover"
+        style={[styles.base, cardSurface(theme), styles.clip, style]}
       >
         <View style={[{ padding: theme.design.cardPadding }, { backgroundColor: `${theme.colors.background}80` }]}>
           {menu}
@@ -69,5 +71,6 @@ export function CustomizableCard({ widgetId, children, style }: CustomizableCard
 const styles = StyleSheet.create({
   // overflow stays visible for the elevated design, otherwise Android clips its shadow.
   base: {},
+  clip: { overflow: 'hidden' },
   menuAnchor: { position: 'absolute', top: 6, right: 6, zIndex: 1 },
 });

@@ -66,7 +66,7 @@ export function HomeWidgetSettingsScreen() {
             <View key={key} style={styles.section}>
               <Text style={[styles.label, { color: theme.colors.text }]}>{label}</Text>
               {uri ? (
-                <Image source={{ uri }} style={[styles.preview, { aspectRatio }]} />
+                <Image source={{ uri }} style={[styles.preview, { aspectRatio }]} resizeMode="cover" />
               ) : (
                 <View style={[styles.preview, styles.placeholder, { aspectRatio, borderColor: theme.colors.border }]}>
                   <Text style={{ color: theme.colors.textMuted }}>{tr.backgroundSettings.notSet}</Text>

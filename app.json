@@ -55,8 +55,8 @@
           "widgets": [
             {
               "name": "AmberLedgerToday",
-              "label": "Amber Ledger — сегодня",
-              "description": "Ближайшие задачи и траты за сегодня (большой)",
+              "label": "@string/widget_amberledgertoday_label",
+              "description": "Upcoming tasks and today's spending (large)",
               "minWidth": "250dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
@@ -66,8 +66,8 @@
             },
             {
               "name": "AmberLedgerDayOff",
-              "label": "Amber Ledger — выходной",
-              "description": "Когда ближайший выходной (маленький)",
+              "label": "@string/widget_amberledgerdayoff_label",
+              "description": "When your next day off is (small)",
               "minWidth": "110dp",
               "minHeight": "50dp",
               "targetCellWidth": 2,
@@ -77,8 +77,8 @@
             },
             {
               "name": "AmberLedgerNextTask",
-              "label": "Amber Ledger — ближайшая задача",
-              "description": "Ближайшая задача и сколько до неё осталось (средний)",
+              "label": "@string/widget_amberledgernexttask_label",
+              "description": "The next task and how long until it (medium)",
               "minWidth": "110dp",
               "minHeight": "110dp",
               "targetCellWidth": 2,
@@ -88,7 +88,8 @@
             }
           ]
         }
-      ]
+      ],
+      "./plugins/withWidgetStrings"
     ],
     "experiments": {
       "typedRoutes": true
