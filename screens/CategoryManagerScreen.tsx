@@ -12,6 +12,7 @@ import { useTranslation } from '@/i18n';
 import { Category } from '@/types';
 import { monthRange } from '@/lib/dateRanges';
 import { totalExpenses } from '@/lib/expenses';
+import { categoryLabel } from '@/lib/categoryLabel';
 
 const PALETTE = ['#C1502E', '#3E7FB8', '#8A5CB8', '#3E8F5C', '#8A7A64', '#C98A1E', '#5A8F6B', '#B9702E'];
 
@@ -87,7 +88,7 @@ export function CategoryManagerScreen() {
           >
             <View style={[styles.dot, { backgroundColor: item.color }]} />
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={[styles.name, { color: theme.colors.text }]}>{item.name}</Text>
+              <Text style={[styles.name, { color: theme.colors.text }]}>{categoryLabel(item, tr)}</Text>
               {item.limitMonth ? (
                 <>
                   <Text style={{ color: theme.colors.textMuted, fontSize: 11 }}>
@@ -99,7 +100,7 @@ export function CategoryManagerScreen() {
                 </>
               ) : null}
             </View>
-            <Pressable onPress={() => handleRemove(item.id, item.name)} hitSlop={8}>
+            <Pressable onPress={() => handleRemove(item.id, categoryLabel(item, tr))} hitSlop={8}>
               <Text style={{ color: theme.colors.danger, fontSize: 15 }}>{tr.categoryManager.deleteRow}</Text>
             </Pressable>
           </Pressable>
@@ -130,7 +131,7 @@ export function CategoryManagerScreen() {
             onPress={(e) => e.stopPropagation()}
           >
             <Text style={[styles.dialogTitle, { color: theme.colors.text }]}>
-              {tr.categoryManager.editLimitTitle} · {editingCategory?.name}
+              {tr.categoryManager.editLimitTitle} · {categoryLabel(editingCategory, tr)}
             </Text>
             <TextField
               label={tr.categoryManager.limitLabel}

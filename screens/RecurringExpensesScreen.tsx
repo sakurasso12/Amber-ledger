@@ -13,6 +13,7 @@ import { RecurrencePicker } from '@/components/task/RecurrencePicker';
 import { todayKey } from '@/lib/dateRanges';
 import { useTranslation } from '@/i18n';
 import { RecurrenceRule } from '@/types';
+import { categoryLabel } from '@/lib/categoryLabel';
 
 export function RecurringExpensesScreen() {
   const theme = useTheme();
@@ -65,7 +66,7 @@ export function RecurringExpensesScreen() {
           <View style={[styles.row, cardSurface(theme)]}>
             <View style={[styles.dot, { backgroundColor: categoryById.get(item.categoryId)?.color ?? theme.colors.textMuted }]} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.rowTitle, { color: theme.colors.text }]}>{categoryById.get(item.categoryId)?.name ?? '—'}</Text>
+              <Text style={[styles.rowTitle, { color: theme.colors.text }]}>{categoryLabel(categoryById.get(item.categoryId), tr)}</Text>
               <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>
                 {freqLabel[item.freq]} · {tr.recurringExpenses.next} {item.nextDueDate}
               </Text>

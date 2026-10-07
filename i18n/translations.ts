@@ -185,7 +185,7 @@ export interface Translation {
   languageSettings: { title: string; note: string };
   notificationsSettings: { title: string; enabled: string; disabled: string; reminderLabel: string; note: string };
   backgroundSettings: { title: string; notSet: string; pick: string; replace: string; remove: string };
-  homeWidgetSettings: { title: string; hint: string };
+  homeWidgetSettings: { title: string; hint: string; big: string; medium: string; small: string };
   homeWidgets: {
     todayTitle: string;
     noTasks: string;
@@ -203,6 +203,29 @@ export interface Translation {
     days: string;
     hours: string;
     minutes: string;
+  };
+  defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
+  layoutText: {
+    add: string;
+    buckets: { overdue: string; today: string; tomorrow: string; later: string; noDeadline: string };
+    noDeadline: string;
+    focus: string;
+    done: string;
+    next: string;
+    expenses: string;
+    styleLabel: string;
+  };
+  layouts: {
+    settingsTitle: string;
+    settingsHint: string;
+    standard: string;
+    standardDescription: string;
+    v1: string;
+    v1Description: string;
+    v2: string;
+    v2Description: string;
+    v3: string;
+    v3Description: string;
   };
   designs: {
     settingsTitle: string;
@@ -336,7 +359,7 @@ const ru: Translation = {
     spent: 'Потрачено',
     bank: 'Банк',
     incoming: 'Должно прийти',
-    total: 'Останется после дохода и трат',
+    total: 'После зарплаты',
     editBankTitle: 'Сколько у тебя на руках?',
     editBankHint: 'Задай текущую сумму — дальше траты будут вычитаться из неё, а подтверждённая зарплата добавляться.',
     salaryCredited: 'зарплата',
@@ -466,8 +489,11 @@ const ru: Translation = {
     remove: 'Убрать фон',
   },
   homeWidgetSettings: {
-    title: 'Виджет на главном экране',
-    hint: 'Фото для фона виджета «Amber Ledger» на домашнем экране Android. Обновится сразу после сохранения.',
+    title: 'Виджеты на главном экране',
+    hint: 'Своё фото на фон для каждого виджета Amber Ledger. Обновится сразу после сохранения.',
+    big: 'Большой · сегодня',
+    medium: 'Средний · ближайшая задача',
+    small: 'Маленький · выходной',
   },
   homeWidgets: {
     todayTitle: 'Сегодня',
@@ -487,17 +513,40 @@ const ru: Translation = {
     hours: 'ч',
     minutes: 'мин',
   },
+  defaultCategories: { 'cat-food': 'Еда', 'cat-transport': 'Транспорт', 'cat-housing': 'Жильё', 'cat-fun': 'Развлечения', 'cat-other': 'Прочее' },
+  layoutText: {
+    add: 'Добавить',
+    buckets: { overdue: 'Просрочено', today: 'Сегодня', tomorrow: 'Завтра', later: 'Позже', noDeadline: 'Без срока' },
+    noDeadline: 'без срока',
+    focus: 'В ФОКУСЕ',
+    done: 'Готово',
+    next: 'Дальше',
+    expenses: 'Траты',
+    styleLabel: 'Стиль темы',
+  },
+  layouts: {
+    settingsTitle: 'Дизайн приложения (тест)',
+    settingsHint: 'Временная вкладка: меняет расположение всего на всех вкладках. Цвета и шрифты — в «Тема», сочетается с любой.',
+    standard: 'Стандарт',
+    standardDescription: 'Как было: обычные заголовки, списки, панель снизу.',
+    v1: 'Вариант 1 · Бенто',
+    v1Description: 'Огромные заголовки со счётчиком, карточки с углами 5/36, задачи плитками по секциям, парящая капсула-навигация, широкая кнопка «Добавить».',
+    v2: 'Вариант 2 · Лента',
+    v2Description: 'Журнальные заголовки с датой, карточки-облачка, всё лентой по дням, вкладки текстом сверху, кнопка «+» в левом углу.',
+    v3: 'Вариант 3 · Вертикаль',
+    v3Description: 'Названия экранов буквами вниз по левой полосе, карточки-листья 40/6, одна задача в фокусе, крупные цифры, навигация-таблетка.',
+  },
   designs: {
     settingsTitle: 'Дизайн приложения (тест)',
     settingsHint: 'Временная вкладка: переключай дизайны и пройдись по всем экранам. Работает и со светлой, и с тёмной темой. Потом оставим один.',
     amber: 'Янтарь',
-    amberDescription: 'Текущий дизайн: тёплые цвета, карточки с рамкой, классическое меню.',
+    amberDescription: 'Как было: тёплые цвета, системный шрифт, карточки с рамкой.',
     neon: 'Неон',
-    neonDescription: 'Ночной город: глубокий синий, светящиеся акценты, мягкие плавающие карточки, панель вкладок-капсула, крупный баланс по центру.',
+    neonDescription: 'Ночной город: глубокий синий, светящиеся акценты, тонкие крупные заголовки, мягкие карточки на тени.',
     paper: 'Бумага',
-    paperDescription: 'Блокнот: шрифт с засечками, тёплая бумага, линии вместо коробок, баланс как строчки в тетради, меню «⋯» снизу.',
+    paperDescription: 'Блокнот: шрифт с засечками, светлая бумага, чернильные линии вместо коробок, красный и синий акценты.',
     bold: 'Брутал',
-    boldDescription: 'Громко и крупно: узкий жирный шрифт, толстые чёрные рамки с жёсткой тенью, кислотные акценты, баланс блоками.',
+    boldDescription: 'Громко и крупно: узкий жирный шрифт, толстые чёрные рамки с жёсткой тенью, кислотные акценты.',
   },
   financeMenu: {
     recurringDescription: 'Подписки и регулярные платежи',
@@ -620,7 +669,7 @@ const uk: Translation = {
     spent: 'Витрачено',
     bank: 'Банк',
     incoming: 'Має надійти',
-    total: 'Залишиться після доходу і витрат',
+    total: 'Після зарплати',
     editBankTitle: 'Скільки у тебе на руках?',
     editBankHint: 'Задай поточну суму — далі витрати відніматимуться з неї, а підтверджена зарплата додаватиметься.',
     salaryCredited: 'зарплата',
@@ -748,8 +797,11 @@ const uk: Translation = {
     remove: 'Прибрати фон',
   },
   homeWidgetSettings: {
-    title: 'Віджет на головному екрані',
-    hint: 'Фото для фону віджета «Amber Ledger» на домашньому екрані Android. Оновиться одразу після збереження.',
+    title: 'Віджети на головному екрані',
+    hint: 'Своє фото на фон для кожного віджета Amber Ledger. Оновиться одразу після збереження.',
+    big: 'Великий · сьогодні',
+    medium: 'Середній · найближча задача',
+    small: 'Малий · вихідний',
   },
   homeWidgets: {
     todayTitle: 'Сьогодні',
@@ -769,17 +821,40 @@ const uk: Translation = {
     hours: 'год',
     minutes: 'хв',
   },
+  defaultCategories: { 'cat-food': 'Їжа', 'cat-transport': 'Транспорт', 'cat-housing': 'Житло', 'cat-fun': 'Розваги', 'cat-other': 'Інше' },
+  layoutText: {
+    add: 'Додати',
+    buckets: { overdue: 'Прострочено', today: 'Сьогодні', tomorrow: 'Завтра', later: 'Пізніше', noDeadline: 'Без терміну' },
+    noDeadline: 'без терміну',
+    focus: 'У ФОКУСІ',
+    done: 'Готово',
+    next: 'Далі',
+    expenses: 'Витрати',
+    styleLabel: 'Стиль теми',
+  },
+  layouts: {
+    settingsTitle: 'Дизайн застосунку (тест)',
+    settingsHint: 'Тимчасова вкладка: змінює розташування всього на всіх вкладках. Кольори й шрифти — у «Тема», поєднується з будь-якою.',
+    standard: 'Стандарт',
+    standardDescription: 'Як було: звичайні заголовки, списки, панель знизу.',
+    v1: 'Варіант 1 · Бенто',
+    v1Description: 'Величезні заголовки з лічильником, картки з кутами 5/36, задачі плитками за секціями, плаваюча капсула-навігація, широка кнопка «Додати».',
+    v2: 'Варіант 2 · Стрічка',
+    v2Description: 'Журнальні заголовки з датою, картки-хмаринки, усе стрічкою по днях, вкладки текстом зверху, кнопка «+» у лівому куті.',
+    v3: 'Варіант 3 · Вертикаль',
+    v3Description: 'Назви екранів літерами вниз по лівій смузі, картки-листки 40/6, одна задача у фокусі, великі цифри, навігація-пігулка.',
+  },
   designs: {
     settingsTitle: 'Дизайн застосунку (тест)',
     settingsHint: 'Тимчасова вкладка: перемикай дизайни й пройдись усіма екранами. Працює і зі світлою, і з темною темою. Потім залишимо один.',
     amber: 'Бурштин',
-    amberDescription: 'Поточний дизайн: теплі кольори, картки з рамкою, класичне меню.',
+    amberDescription: 'Як було: теплі кольори, системний шрифт, картки з рамкою.',
     neon: 'Неон',
-    neonDescription: 'Нічне місто: глибокий синій, світні акценти, м’які плаваючі картки, панель вкладок-капсула, великий баланс по центру.',
+    neonDescription: 'Нічне місто: глибокий синій, світні акценти, тонкі великі заголовки, м’які картки на тіні.',
     paper: 'Папір',
-    paperDescription: 'Блокнот: шрифт із засічками, теплий папір, лінії замість коробок, баланс як рядки в зошиті, меню «⋯» знизу.',
+    paperDescription: 'Блокнот: шрифт із засічками, світлий папір, чорнильні лінії замість коробок, червоний і синій акценти.',
     bold: 'Брутал',
-    boldDescription: 'Гучно й великими: вузький жирний шрифт, товсті чорні рамки з жорсткою тінню, кислотні акценти, баланс блоками.',
+    boldDescription: 'Гучно й великими: вузький жирний шрифт, товсті чорні рамки з жорсткою тінню, кислотні акценти.',
   },
   financeMenu: {
     recurringDescription: 'Підписки та регулярні платежі',
@@ -902,7 +977,7 @@ const en: Translation = {
     spent: 'Spent',
     bank: 'Bank',
     incoming: 'Incoming',
-    total: 'Left after income and expenses',
+    total: 'After payday',
     editBankTitle: 'How much do you have on hand?',
     editBankHint: 'Set your current amount — after that, expenses are subtracted from it and confirmed salary is added.',
     salaryCredited: 'salary',
@@ -1030,8 +1105,11 @@ const en: Translation = {
     remove: 'Remove background',
   },
   homeWidgetSettings: {
-    title: 'Home screen widget',
-    hint: 'Background photo for the "Amber Ledger" Android home screen widget. Updates immediately after saving.',
+    title: 'Home screen widgets',
+    hint: 'Your own background photo for each Amber Ledger widget. Updates right after saving.',
+    big: 'Large · today',
+    medium: 'Medium · next task',
+    small: 'Small · day off',
   },
   homeWidgets: {
     todayTitle: 'Today',
@@ -1051,17 +1129,40 @@ const en: Translation = {
     hours: 'h',
     minutes: 'min',
   },
+  defaultCategories: { 'cat-food': 'Food', 'cat-transport': 'Transport', 'cat-housing': 'Housing', 'cat-fun': 'Fun', 'cat-other': 'Other' },
+  layoutText: {
+    add: 'Add',
+    buckets: { overdue: 'Overdue', today: 'Today', tomorrow: 'Tomorrow', later: 'Later', noDeadline: 'No deadline' },
+    noDeadline: 'no deadline',
+    focus: 'IN FOCUS',
+    done: 'Done',
+    next: 'Up next',
+    expenses: 'Expenses',
+    styleLabel: 'Theme style',
+  },
+  layouts: {
+    settingsTitle: 'App design (test)',
+    settingsHint: 'Temporary tab: changes where everything goes on every tab. Colours and fonts live in Theme — any combination works.',
+    standard: 'Standard',
+    standardDescription: 'As before: plain titles, lists, bottom bar.',
+    v1: 'Variant 1 · Bento',
+    v1Description: 'Giant titles with a counter, 5/36 cornered cards, tasks as tiles in sections, floating pill nav, wide Add button.',
+    v2: 'Variant 2 · Feed',
+    v2Description: 'Magazine titles with the date, speech-bubble cards, everything as a dated feed, text tabs on top, "+" in the left corner.',
+    v3: 'Variant 3 · Vertical',
+    v3Description: 'Screen names spelled down a left rail, 40/6 leaf cards, one task in focus, big numbers, pill navigation.',
+  },
   designs: {
     settingsTitle: 'App design (test)',
     settingsHint: 'Temporary tab: switch designs and walk through every screen. Works with both light and dark mode. We will keep one later.',
     amber: 'Amber',
-    amberDescription: 'Current design: warm colours, outlined cards, classic menu.',
+    amberDescription: 'As before: warm colours, system font, outlined cards.',
     neon: 'Neon',
-    neonDescription: 'Night city: deep blue, glowing accents, soft floating cards, pill tab bar, big centred balance.',
+    neonDescription: 'Night city: deep blue, glowing accents, thin big headings, soft cards on shadows.',
     paper: 'Paper',
-    paperDescription: 'Notebook: serif type, warm paper, lines instead of boxes, balance as ledger rows, "⋯" bottom menu.',
+    paperDescription: 'Notebook: serif type, bright paper, ink lines instead of boxes, red and blue accents.',
     bold: 'Bold',
-    boldDescription: 'Loud and chunky: condensed bold type, thick black outlines with a hard shadow, acid accents, balance in blocks.',
+    boldDescription: 'Loud and chunky: condensed bold type, thick black outlines with a hard shadow, acid accents.',
   },
   financeMenu: {
     recurringDescription: 'Subscriptions and regular payments',

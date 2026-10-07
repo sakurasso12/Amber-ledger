@@ -1,4 +1,6 @@
 import type { Design } from './designs';
+import type { AppLayout } from './layouts';
+import { LAYOUTS } from './layouts';
 import { DESIGNS } from './designs';
 
 export interface ThemeColors {
@@ -24,8 +26,10 @@ export interface AppTheme {
   label: string;
   dark: boolean;
   colors: ThemeColors;
-  /** Fonts, shapes, tab bar and layout — see designs.ts. */
+  /** Colours, fonts and shapes — see designs.ts ("Тема" in settings). */
   design: Design;
+  /** Where things go on every screen — see layouts.ts ("Дизайн приложения" in settings). */
+  layout: AppLayout;
 }
 
 export const lightTheme: AppTheme = {
@@ -33,6 +37,7 @@ export const lightTheme: AppTheme = {
   label: 'Светлая',
   dark: false,
   design: DESIGNS.amber,
+  layout: LAYOUTS.standard,
   colors: {
     background: '#FBF7F1',
     surface: '#FFFFFF',
@@ -57,6 +62,7 @@ export const darkTheme: AppTheme = {
   label: 'Тёмная',
   dark: true,
   design: DESIGNS.amber,
+  layout: LAYOUTS.standard,
   colors: {
     background: '#000000',
     surface: '#120A1F',

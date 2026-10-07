@@ -4,10 +4,10 @@ import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
-import { fabShape } from '@/theme/surfaces';
+import { cardSurface } from '@/theme/surfaces';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { CustomizableCard, EmptyState, ProgressBar, QuickAddBar, Screen } from '@/components/ui';
+import { CustomizableCard, EmptyState, Fab, LayoutScreen, ProgressBar, QuickAddBar } from '@/components/ui';
 import { BalanceCard } from '@/components/finance/BalanceCard';
 import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
 import { FinanceMenuBody, FinanceMenuHeader } from '@/components/finance/FinanceMenu';
@@ -88,18 +88,46 @@ export function FinanceScreen() {
   const spentThisMonth = useMemo(() => totalExpenses(expenses, monthRange(new Date())), [expenses]);
   const hasBudgetLimits = !!settings.budgetLimitWeek || !!settings.budgetLimitMonth;
 
-  return (
-    <Screen style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.headerRow}>
-        <Text style={[styles.header, { color: theme.colors.text }]}>{tr.financeScreen.header}</Text>
-        <FinanceMenuHeader currency={settings.currency} />
-      </View>
+  // How the expense list is arranged depends on the layout (Settings → App design).
+  type Row =
+    | { kind: 'expense'; expense: (typeof expenses)[number] }
+    | { kind: 'pair'; left: (typeof expenses)[number]; right?: (typeof expenses)[number] }
+    | { kind: 'day'; day: string; total: number };
+  const expenseMode = theme.layout.expenses;
+  const rows: Row[] = useMemo(() => {
+    if (expenseMode === 'tiles') {
+      const pairs: Row[] = [];
+      for (let i = 0; i < expenses.length; i += 2) pairs.push({ kind: 'pair', left: expenses[i], right: expenses[i + 1] });
+      return pairs;
+    }
+    if (expenseMode === 'timeline') {
+      const out: Row[] = [];
+      let currentDay: string | null = null;
+      for (const expense of expenses) {
+        if (expense.date !== currentDay) {
+          currentDay = expense.date;
+          const total = expenses.filter((e) => e.date === currentDay).reduce((sum, e) => sum + e.amount, 0);
+          out.push({ kind: 'day', day: currentDay, total });
+        }
+        out.push({ kind: 'expense', expense });
+      }
+      return out;
+    }
+    return expenses.map((expense) => ({ kind: 'expense', expense }));
+  }, [expenses, expenseMode]);
 
-      <FlatList
-        data={expenses}
-        keyExtractor={(e) => e.id}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
+  const renderExpense = (expense: (typeof expenses)[number], variant: 'row' | 'tile' | 'compact' | 'big') => (
+    <ExpenseListItem
+      key={expense.id}
+      expense={expense}
+      category={categoryById.get(expense.categoryId)}
+      currency={settings.currency}
+      onPress={() => router.push(`/expense/${expense.id}`)}
+      variant={variant}
+    />
+  );
+
+  const listHeader = (
           <View style={styles.topSection}>
             {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
             <FinanceMenuBody currency={settings.currency} />
@@ -115,6 +143,22 @@ export function FinanceScreen() {
               plannedTotal={plannedTotal}
               currency={settings.currency}
             />
+            {expenseMode === 'tiles' || expenseMode === 'big' ? (
+              // Bento / Vertical: this week and this month at a glance.
+              <View style={styles.pairRow}>
+                {[
+                  { label: tr.notificationsContent.perWeek, value: spentThisWeek },
+                  { label: tr.notificationsContent.perMonth, value: spentThisMonth },
+                ].map((stat) => (
+                  <View key={stat.label} style={[styles.statTile, cardSurface(theme)]}>
+                    <Text style={[styles.statLabel, { color: theme.colors.textMuted }]}>{stat.label}</Text>
+                    <Text style={[styles.statValue, { color: theme.colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
+                      -{stat.value.toFixed(0)} {settings.currency}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
             {hasBudgetLimits ? (
               <CustomizableCard widgetId="finance-budget">
                 <Text style={[styles.sectionTitle, styles.budgetTitle, { color: theme.colors.text }]}>
@@ -147,18 +191,47 @@ export function FinanceScreen() {
             <CustomizableCard widgetId="finance-work-calendar">
               <WorkCalendar />
             </CustomizableCard>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{tr.financeScreen.recentExpenses}</Text>
+            <Text
+              style={[
+                styles.sectionTitle,
+                { color: theme.colors.text },
+                expenseMode === 'big' && styles.bigSectionTitle,
+              ]}
+            >
+              {expenseMode === 'big' ? tr.layoutText.expenses.toUpperCase() : tr.financeScreen.recentExpenses}
+            </Text>
           </View>
-        }
-        renderItem={({ item }) => (
-          <ExpenseListItem
-            expense={item}
-            category={categoryById.get(item.categoryId)}
-            currency={settings.currency}
-            onPress={() => router.push(`/expense/${item.id}`)}
-          />
-        )}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+  );
+
+  return (
+    <LayoutScreen title={tr.financeScreen.header} right={<FinanceMenuHeader currency={settings.currency} />}>
+      <FlatList
+        data={rows}
+        keyExtractor={(row, i) => (row.kind === 'day' ? `day-${row.day}` : row.kind === 'pair' ? `pair-${row.left.id}` : row.expense.id) + i}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={listHeader}
+        renderItem={({ item: row }) => {
+          if (row.kind === 'day') {
+            return (
+              <View style={styles.dayHeader}>
+                <Text style={[styles.dayLabel, { color: theme.colors.text }]}>
+                  {new Date(`${row.day}T12:00:00`).toLocaleDateString(tr.localeCode, { weekday: 'long', day: 'numeric', month: 'long' })}
+                </Text>
+                <Text style={[styles.dayTotal, { color: theme.colors.danger }]}>-{row.total.toFixed(0)} {settings.currency}</Text>
+              </View>
+            );
+          }
+          if (row.kind === 'pair') {
+            return (
+              <View style={styles.pairRow}>
+                {renderExpense(row.left, 'tile')}
+                {row.right ? renderExpense(row.right, 'tile') : <View style={styles.pairSpacer} />}
+              </View>
+            );
+          }
+          return renderExpense(row.expense, expenseMode === 'timeline' ? 'compact' : expenseMode === 'big' ? 'big' : 'row');
+        }}
+        ItemSeparatorComponent={() => <View style={{ height: expenseMode === 'timeline' ? 0 : expenseMode === 'big' ? 12 : 8 }} />}
         ListEmptyComponent={<EmptyState icon="💰" title={tr.financeScreen.emptyTitle} subtitle={tr.financeScreen.emptySubtitle} />}
       />
 
@@ -172,46 +245,31 @@ export function FinanceScreen() {
         />
       ) : null}
 
-      <Pressable
+      <Fab
+        label={tr.layoutText.add}
         onPress={() => router.push('/expense/new')}
         onLongPress={() => defaultQuickAddCategoryId && setQuickAddOpen(true)}
-        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: insets.bottom + 16 }, fabShape(theme)]}
-      >
-        <Text style={{ color: theme.colors.primaryText, fontSize: 26, lineHeight: 28 }}>+</Text>
-      </Pressable>
-    </Screen>
+        bottom={insets.bottom + 16}
+      />
+    </LayoutScreen>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  header: { fontSize: 26, fontWeight: '700' },
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   topSection: { gap: 14, marginBottom: 14 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 4 },
   budgetTitle: { marginTop: 0, marginBottom: 2 },
   budgetRow: { gap: 6, marginTop: 8 },
   budgetLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
+  dayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 16, paddingBottom: 4 },
+  dayLabel: { fontSize: 14, fontWeight: '800', textTransform: 'capitalize' },
+  dayTotal: { fontSize: 13, fontWeight: '700' },
+  pairRow: { flexDirection: 'row', gap: 10 },
+  pairSpacer: { flex: 1 },
+  statTile: { flex: 1, padding: 14, gap: 4 },
+  statLabel: { fontSize: 12, fontWeight: '700' },
+  statValue: { fontSize: 24, fontWeight: '800' },
+  bigSectionTitle: { fontSize: 34, fontWeight: '800', letterSpacing: 2, marginTop: 12 },
 });

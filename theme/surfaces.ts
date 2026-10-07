@@ -1,8 +1,14 @@
 import { ViewStyle } from 'react-native';
 import type { AppTheme } from './theme';
+import { cornerStyle } from './layouts';
 
-/** Background, border, corner radius and shadow of a card in the active design. */
+/** Background, border, corner radius and shadow of a card in the active theme + layout. */
 export function cardSurface(theme: AppTheme): ViewStyle {
+  const base = themeCardSurface(theme);
+  return theme.layout.corners ? { ...base, ...cornerStyle(theme.layout.corners) } : base;
+}
+
+function themeCardSurface(theme: AppTheme): ViewStyle {
   const { design, colors } = theme;
   switch (design.cardStyle) {
     case 'elevated':

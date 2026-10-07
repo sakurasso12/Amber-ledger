@@ -8,6 +8,7 @@ import { designTextStyle } from '@/components/ui/Text';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useTranslation } from '@/i18n';
 import { Badge } from '@/components/ui';
+import { PillTabBar } from '@/components/ui/PillTabBar';
 import { todayKey, toDateKey } from '@/lib/dateRanges';
 
 /** As of Expo Router's SDK 56 navigation rewrite, importing `@react-navigation/*` packages
@@ -94,23 +95,50 @@ export default function TabsLayout() {
     underline: { height: 3, top: 0, backgroundColor: colors.text },
     blocks: { height: '100%', backgroundColor: colors.primary },
   };
-  const blocks = design.tabBar === 'blocks';
+  // The layout (Settings → App design) can replace the theme's tab bar with its own navigation.
+  const layoutBar = theme.layout.tabBar;
+  const barStyle = layoutBar === 'floating' ? 'floating' : design.tabBar;
+  const blocks = barStyle === 'blocks' && !layoutBar;
+  const onTop = layoutBar === 'top';
 
   return (
     <TopTabs
-      tabBarPosition="bottom"
+      tabBarPosition={onTop ? 'top' : 'bottom'}
       style={{ backgroundColor: colors.background }}
-      screenOptions={{
-        swipeEnabled: true,
-        tabBarShowIcon: design.tabBar !== 'underline',
-        tabBarShowLabel: design.tabBar !== 'floating',
-        tabBarActiveTintColor: blocks ? colors.primaryText : design.tabBar === 'underline' ? colors.text : colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarIndicatorStyle: indicatorByStyle[design.tabBar],
-        tabBarLabelStyle: labelStyle,
-        tabBarItemStyle: design.tabBar === 'floating' ? styles.floatingItem : styles.item,
-        tabBarStyle: barByStyle[design.tabBar],
-      }}
+      tabBar={layoutBar === 'pill' ? (props: object) => <PillTabBar {...(props as React.ComponentProps<typeof PillTabBar>)} /> : undefined}
+      screenOptions={
+        onTop
+          ? {
+              swipeEnabled: true,
+              tabBarScrollEnabled: true,
+              tabBarShowIcon: false,
+              tabBarShowLabel: true,
+              tabBarActiveTintColor: colors.text,
+              tabBarInactiveTintColor: colors.textMuted,
+              tabBarIndicatorStyle: { height: 4, borderRadius: 2, backgroundColor: colors.primary },
+              tabBarLabelStyle: { ...labelStyle, ...designTextStyle({ fontSize: 15, fontWeight: '800' }, design), textTransform: 'none' },
+              tabBarItemStyle: styles.topItem,
+              tabBarStyle: {
+                backgroundColor: colors.background,
+                paddingTop: insets.top,
+                elevation: 0,
+                shadowOpacity: 0,
+                borderBottomWidth: StyleSheet.hairlineWidth,
+                borderBottomColor: colors.border,
+              },
+            }
+          : {
+              swipeEnabled: true,
+              tabBarShowIcon: barStyle !== 'underline',
+              tabBarShowLabel: barStyle !== 'floating',
+              tabBarActiveTintColor: blocks ? colors.primaryText : barStyle === 'underline' ? colors.text : colors.primary,
+              tabBarInactiveTintColor: colors.textMuted,
+              tabBarIndicatorStyle: indicatorByStyle[barStyle],
+              tabBarLabelStyle: labelStyle,
+              tabBarItemStyle: barStyle === 'floating' ? styles.floatingItem : styles.item,
+              tabBarStyle: barByStyle[barStyle],
+            }
+      }
     >
       <TopTabs.Screen
         name="index"
@@ -167,4 +195,5 @@ const styles = StyleSheet.create({
   label: { fontSize: 11, textTransform: 'none', marginTop: 0 },
   item: { paddingTop: 6 },
   floatingItem: { justifyContent: 'center' },
+  topItem: { width: 'auto', paddingHorizontal: 14, minHeight: 46 },
 });

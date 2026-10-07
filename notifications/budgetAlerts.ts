@@ -3,6 +3,7 @@ import { AppSettings, Category, Expense } from '@/types';
 import { monthRange, weekRange } from '@/lib/dateRanges';
 import { totalExpenses } from '@/lib/expenses';
 import { getTranslation } from '@/i18n';
+import { categoryLabel } from '@/lib/categoryLabel';
 import { hasNotificationPermission } from './permissions';
 
 async function notifyBudget(identifier: string, title: string, body: string): Promise<void> {
@@ -52,6 +53,6 @@ export async function checkBudgetAlerts(expenses: Expense[], settings: AppSettin
     if (!category.limitMonth) continue;
     const categoryExpenses = expenses.filter((e) => e.categoryId === category.id);
     const spent = totalExpenses(categoryExpenses, range);
-    await maybeAlert(`budget-category-${category.id}`, `${tr.perMonth} · ${category.name}`, spent, category.limitMonth, settings.currency);
+    await maybeAlert(`budget-category-${category.id}`, `${tr.perMonth} · ${categoryLabel(category, getTranslation())}`, spent, category.limitMonth, settings.currency);
   }
 }

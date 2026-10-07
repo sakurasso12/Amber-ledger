@@ -35,8 +35,6 @@ export interface Design {
   cardStyle: CardStyle;
   cardPadding: number;
   tabBar: TabBarStyle;
-  balanceLayout: BalanceLayout;
-  financeMenu: FinanceMenuStyle;
   /** Home screen widget colours (the widget can't follow light/dark, so it gets one palette). */
   widget: { background: string; text: string; textMuted: string; accent: string; danger: string; radius: number };
 }
@@ -89,8 +87,6 @@ const amber: Design = {
   cardStyle: 'outlined',
   cardPadding: 14,
   tabBar: 'classic',
-  balanceLayout: 'columns',
-  financeMenu: 'classic',
   widget: { background: '#FFFFFF', text: '#241C13', textMuted: '#8A7A64', accent: '#B9702E', danger: '#C1502E', radius: 16 },
 };
 
@@ -143,8 +139,6 @@ const neon: Design = {
   cardStyle: 'elevated',
   cardPadding: 18,
   tabBar: 'floating',
-  balanceLayout: 'hero',
-  financeMenu: 'tiles',
   widget: { background: '#111833', text: '#E8ECFF', textMuted: '#8A93BF', accent: '#22D3EE', danger: '#FF5C8A', radius: 26 },
 };
 
@@ -153,38 +147,38 @@ const paper: Design = {
   id: 'paper',
   palettes: {
     light: {
-      background: '#F6F1E7',
-      surface: '#FBF8F2',
-      surfaceAlt: '#EDE6D8',
-      border: '#2B2620',
-      text: '#1E1A15',
-      textMuted: '#7A7062',
-      primary: '#1E1A15',
-      primaryText: '#F6F1E7',
-      accent: '#A23B2A',
-      success: '#3F6E4A',
-      warning: '#A8741A',
-      danger: '#A23B2A',
-      priorityLow: '#3F6E4A',
-      priorityMedium: '#A8741A',
-      priorityHigh: '#A23B2A',
+      background: '#FFFDF7',
+      surface: '#FFFFFF',
+      surfaceAlt: '#F6EEDD',
+      border: '#1A1611',
+      text: '#14110D',
+      textMuted: '#5C5346',
+      primary: '#C2361F',
+      primaryText: '#FFFDF7',
+      accent: '#1F5FBF',
+      success: '#2E7D45',
+      warning: '#C7820E',
+      danger: '#C2361F',
+      priorityLow: '#2E7D45',
+      priorityMedium: '#C7820E',
+      priorityHigh: '#C2361F',
     },
     dark: {
-      background: '#17140F',
-      surface: '#1F1B15',
-      surfaceAlt: '#2A251D',
-      border: '#D9CDB6',
-      text: '#EFE6D4',
-      textMuted: '#A3977F',
-      primary: '#EFE6D4',
-      primaryText: '#17140F',
-      accent: '#E0785F',
-      success: '#8DBF8F',
-      warning: '#D9AE5A',
-      danger: '#E0785F',
-      priorityLow: '#8DBF8F',
-      priorityMedium: '#D9AE5A',
-      priorityHigh: '#E0785F',
+      background: '#14120E',
+      surface: '#1D1A15',
+      surfaceAlt: '#29241C',
+      border: '#F2E8D5',
+      text: '#FAF4E8',
+      textMuted: '#B8AC96',
+      primary: '#FF7A59',
+      primaryText: '#14120E',
+      accent: '#7FB2FF',
+      success: '#7FD18B',
+      warning: '#FFC65C',
+      danger: '#FF7A59',
+      priorityLow: '#7FD18B',
+      priorityMedium: '#FFC65C',
+      priorityHigh: '#FF7A59',
     },
   },
   fonts: { regular: 'serif', medium: 'serif', bold: 'serif', heading: 'serif' },
@@ -197,9 +191,7 @@ const paper: Design = {
   cardStyle: 'flat',
   cardPadding: 14,
   tabBar: 'underline',
-  balanceLayout: 'ledger',
-  financeMenu: 'sheet',
-  widget: { background: '#FBF8F2', text: '#1E1A15', textMuted: '#7A7062', accent: '#A23B2A', danger: '#A23B2A', radius: 4 },
+  widget: { background: '#FFFDF7', text: '#14110D', textMuted: '#5C5346', accent: '#C2361F', danger: '#C2361F', radius: 4 },
 };
 
 /** Loud and chunky: condensed bold type, thick black outlines with a hard offset shadow, acid accents. */
@@ -251,8 +243,6 @@ const bold: Design = {
   cardStyle: 'brutal',
   cardPadding: 16,
   tabBar: 'blocks',
-  balanceLayout: 'blocks',
-  financeMenu: 'chips',
   widget: { background: '#FFE14D', text: '#111111', textMuted: '#3A3A3A', accent: '#111111', danger: '#E8261C', radius: 6 },
 };
 

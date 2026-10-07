@@ -29,3 +29,31 @@ export function formatDuration(ms: number, tr: Translation['homeWidgets']): stri
   if (hours > 0) return minutes > 0 ? `${hours} ${tr.hours} ${minutes} ${tr.minutes}` : `${hours} ${tr.hours}`;
   return `${minutes} ${tr.minutes}`;
 }
+
+/** Used instead of the palette when a background photo is set — the photo's brightness is unknown,
+ * so everything renders light-on-dark-scrim for guaranteed legibility. */
+export const ON_PHOTO_PALETTE: Omit<WidgetPalette, 'radius'> = {
+  background: '#00000000',
+  text: '#FFFFFF',
+  textMuted: '#E4D8C6',
+  accent: '#FFD9A8',
+  danger: '#FF8A80',
+};
+
+export interface WidgetCorners {
+  tl: number;
+  tr: number;
+  br: number;
+  bl: number;
+}
+
+/** Per-corner radius style for RemoteViews widgets (layout corners win over the theme's radius). */
+export function widgetCornerStyle(radius: number, corners: WidgetCorners | null) {
+  const c = corners ?? { tl: radius, tr: radius, br: radius, bl: radius };
+  return {
+    borderTopLeftRadius: c.tl,
+    borderTopRightRadius: c.tr,
+    borderBottomRightRadius: c.br,
+    borderBottomLeftRadius: c.bl,
+  };
+}

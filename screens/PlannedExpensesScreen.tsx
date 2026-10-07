@@ -10,6 +10,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { Button, Screen, SubScreenHeader, TextField } from '@/components/ui';
 import { CategoryPicker } from '@/components/finance/CategoryPicker';
 import { useTranslation } from '@/i18n';
+import { categoryLabel } from '@/lib/categoryLabel';
 
 export function PlannedExpensesScreen() {
   const theme = useTheme();
@@ -52,7 +53,7 @@ export function PlannedExpensesScreen() {
           <View style={[styles.row, cardSurface(theme)]}>
             <View style={[styles.dot, { backgroundColor: categoryById.get(item.categoryId)?.color ?? theme.colors.textMuted }]} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.rowTitle, { color: theme.colors.text }]}>{categoryById.get(item.categoryId)?.name ?? '—'}</Text>
+              <Text style={[styles.rowTitle, { color: theme.colors.text }]}>{categoryLabel(categoryById.get(item.categoryId), tr)}</Text>
               {item.comment ? <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>{item.comment}</Text> : null}
             </View>
             <Text style={[styles.amount, { color: theme.colors.danger }]}>

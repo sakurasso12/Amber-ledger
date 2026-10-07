@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
+import { categoryLabel } from '@/lib/categoryLabel';
 import { useTheme } from '@/theme/ThemeProvider';
 import { CategoryBreakdownEntry } from '@/types';
 import { useTranslation } from '@/i18n';
@@ -18,7 +19,7 @@ export function CategoryBreakdownBars({ entries, currency }: { entries: Category
       {entries.map((entry) => (
         <View key={entry.categoryId} style={styles.row}>
           <View style={styles.labelRow}>
-            <Text style={[styles.name, { color: theme.colors.text }]}>{entry.categoryName}</Text>
+            <Text style={[styles.name, { color: theme.colors.text }]}>{categoryLabel({ id: entry.categoryId, name: entry.categoryName }, tr)}</Text>
             <Text style={[styles.amount, { color: theme.colors.textMuted }]}>
               {entry.total.toFixed(0)} {currency} · {entry.percentage.toFixed(0)}%
             </Text>

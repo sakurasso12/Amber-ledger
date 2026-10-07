@@ -1,12 +1,12 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { Screen } from '@/components/ui';
+import { LayoutScreen } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 
 interface Row {
@@ -47,7 +47,7 @@ export function SettingsScreen() {
       value: settings.budgetLimitWeek || settings.budgetLimitMonth ? tr.settingsScreen.limitsSet : tr.settingsScreen.notSet,
       route: '/settings/budget',
     },
-    { icon: '🎨', title: tr.settingsScreen.theme, value: themeLabels[settings.themeMode], route: '/settings/theme' },
+    { icon: '🎨', title: tr.settingsScreen.theme, value: `${tr.designs[settings.designId]} · ${themeLabels[settings.themeMode]}`, route: '/settings/theme' },
     { icon: '🌐', title: tr.settingsScreen.language, value: languageLabels[settings.language], route: '/settings/language' },
     {
       icon: '🔔',
@@ -70,23 +70,75 @@ export function SettingsScreen() {
     // Temporary: remove once one of the app designs is picked.
     {
       icon: '🧪',
-      title: tr.designs.settingsTitle,
-      value: tr.designs[settings.designId],
+      title: tr.layouts.settingsTitle,
+      value: tr.layouts[settings.layoutId],
       route: '/settings/design',
     },
   ];
 
-  return (
-    <Screen style={{ paddingTop: insets.top }}>
-      <Text style={[styles.header, { color: theme.colors.text }]}>{tr.settingsScreen.header}</Text>
+  const mode = theme.layout.settings;
+  const open = (row: Row) => router.push(row.route as never);
 
+  let body: React.ReactNode;
+  if (mode === 'grid') {
+    // Bento: two-column tiles.
+    body = (
+      <View style={styles.grid}>
+        {rows.map((row) => (
+          <Pressable key={row.route} onPress={() => open(row)} style={[styles.gridTile, cardSurface(theme)]}>
+            <Text style={styles.gridIcon}>{row.icon}</Text>
+            <Text style={[styles.gridTitle, { color: theme.colors.text }]} numberOfLines={2}>
+              {row.title}
+            </Text>
+            <Text style={[styles.value, { color: theme.colors.textMuted }]} numberOfLines={1}>
+              {row.value}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    );
+  } else if (mode === 'grouped') {
+    // Feed: plain rows divided by lines, no boxes.
+    body = (
+      <View style={[styles.grouped, { borderTopColor: theme.colors.border }]}>
+        {rows.map((row) => (
+          <Pressable key={row.route} onPress={() => open(row)} style={[styles.groupedRow, { borderBottomColor: theme.colors.border }]}>
+            <Text style={styles.icon}>{row.icon}</Text>
+            <View style={styles.flex}>
+              <Text style={[styles.title, { color: theme.colors.text }]}>{row.title}</Text>
+              <Text style={[styles.value, { color: theme.colors.textMuted, maxWidth: undefined }]} numberOfLines={1}>
+                {row.value}
+              </Text>
+            </View>
+            <Text style={{ color: theme.colors.textMuted, fontSize: 18 }}>›</Text>
+          </Pressable>
+        ))}
+      </View>
+    );
+  } else if (mode === 'big') {
+    // Vertical: big rows with the icon in a circle.
+    body = (
       <View style={styles.list}>
         {rows.map((row) => (
-          <Pressable
-            key={row.route}
-            onPress={() => router.push(row.route as never)}
-            style={[styles.row, cardSurface(theme)]}
-          >
+          <Pressable key={row.route} onPress={() => open(row)} style={[styles.bigRow, cardSurface(theme)]}>
+            <View style={[styles.bigIcon, { backgroundColor: `${theme.colors.primary}22` }]}>
+              <Text style={styles.bigIconText}>{row.icon}</Text>
+            </View>
+            <View style={styles.flex}>
+              <Text style={[styles.bigTitle, { color: theme.colors.text }]}>{row.title}</Text>
+              <Text style={[styles.value, { color: theme.colors.textMuted, maxWidth: undefined }]} numberOfLines={1}>
+                {row.value}
+              </Text>
+            </View>
+          </Pressable>
+        ))}
+      </View>
+    );
+  } else {
+    body = (
+      <View style={styles.list}>
+        {rows.map((row) => (
+          <Pressable key={row.route} onPress={() => open(row)} style={[styles.row, cardSurface(theme)]}>
             <Text style={styles.icon}>{row.icon}</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>{row.title}</Text>
             <Text style={[styles.value, { color: theme.colors.textMuted }]} numberOfLines={1}>
@@ -96,12 +148,28 @@ export function SettingsScreen() {
           </Pressable>
         ))}
       </View>
-    </Screen>
+    );
+  }
+
+  return (
+    <LayoutScreen title={tr.settingsScreen.header}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>{body}</ScrollView>
+    </LayoutScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { fontSize: 26, fontWeight: '700', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 },
+  flex: { flex: 1, gap: 2 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 10 },
+  gridTile: { width: '48%', flexGrow: 1, padding: 14, gap: 6, minHeight: 112 },
+  gridIcon: { fontSize: 28 },
+  gridTitle: { fontSize: 15, fontWeight: '700' },
+  grouped: { marginHorizontal: 16, borderTopWidth: StyleSheet.hairlineWidth },
+  groupedRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth },
+  bigRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14 },
+  bigIcon: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  bigIconText: { fontSize: 24 },
+  bigTitle: { fontSize: 17, fontWeight: '700' },
   list: { paddingHorizontal: 16, gap: 8 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14, borderWidth: 1 },
   icon: { fontSize: 18 },
