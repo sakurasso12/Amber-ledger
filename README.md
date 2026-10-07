@@ -10,6 +10,49 @@ from the [latest release](https://github.com/sakurasso12/Amber-ledger/releases/l
 on your phone and allow installing from this source when Android asks. Updates install over the
 previous version and keep your data.
 
+## Screenshots
+
+Two layouts, switchable in **Settings → Theme → Layout**.
+
+**Standard**
+
+| Tasks | Calendar | Finance | Stats |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/standard-tasks.jpg" width="200"> | <img src="docs/screenshots/standard-calendar.jpg" width="200"> | <img src="docs/screenshots/standard-finance.jpg" width="200"> | <img src="docs/screenshots/standard-stats.jpg" width="200"> |
+
+**Vertical**
+
+| Tasks | Calendar | Finance | Stats |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/vertical-tasks.jpg" width="200"> | <img src="docs/screenshots/vertical-calendar.jpg" width="200"> | <img src="docs/screenshots/vertical-finance.jpg" width="200"> | <img src="docs/screenshots/vertical-stats-tasks.jpg" width="200"> |
+
+| Stats · finance | Settings | Theme settings |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/vertical-stats-finance.jpg" width="200"> | <img src="docs/screenshots/vertical-settings.jpg" width="200"> | <img src="docs/screenshots/theme-settings.jpg" width="200"> |
+
+### What the Vertical layout adds
+
+- Screen titles spelled down a rail on the left, with a live counter
+- The nearest task as a big **In focus** card with a countdown and a Done button; the task's
+  photo becomes the card's background, cropped to its leaf shape
+- Big numbers: the selected day on Calendar, "after payday" on Finance, this week on Stats
+- Leaf-shaped cards and a pill tab bar where the active tab expands to show its name
+- Spring animations tuned to feel like iOS: the tab pill and segmented controls glide instead of
+  jumping, cards and buttons sink slightly under your finger, screens slide in
+
+## Customization
+
+Almost everything about the look can be changed — everything except the font so far:
+
+- **Light / dark / system** mode
+- **Layout:** Standard or Vertical
+- **Theme style:** Amber, Neon or Paper (colours, card shapes, tab bar)
+- **Accent colour** on top of any style
+- **App background:** your own picture behind every screen
+- **Card backgrounds:** a picture per card (calendar, balance, charts…) via the ⋮ menu
+- **Home screen widgets** with their own backgrounds
+- **Language:** English, Russian, Ukrainian
+
 ## Stack
 
 - **Expo (SDK 57) + TypeScript**, routing via `expo-router`
