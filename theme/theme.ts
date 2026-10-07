@@ -1,3 +1,6 @@
+import type { Design } from './designs';
+import { DESIGNS } from './designs';
+
 export interface ThemeColors {
   background: string;
   surface: string;
@@ -21,12 +24,15 @@ export interface AppTheme {
   label: string;
   dark: boolean;
   colors: ThemeColors;
+  /** Fonts, shapes, tab bar and layout — see designs.ts. */
+  design: Design;
 }
 
 export const lightTheme: AppTheme = {
   id: 'light',
   label: 'Светлая',
   dark: false,
+  design: DESIGNS.amber,
   colors: {
     background: '#FBF7F1',
     surface: '#FFFFFF',
@@ -50,6 +56,7 @@ export const darkTheme: AppTheme = {
   id: 'dark',
   label: 'Тёмная',
   dark: true,
+  design: DESIGNS.amber,
   colors: {
     background: '#000000',
     surface: '#120A1F',

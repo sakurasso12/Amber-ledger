@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
+import { cardSurface } from '@/theme/surfaces';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useTranslation } from '@/i18n';
-import { FinanceMenuStyle } from '@/types';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -55,8 +56,9 @@ function useMenuItems(currency: string): MenuItem[] {
 }
 
 /** Links in the Finance header row — "classic" text links, or the "⋯" button for the sheet style. */
-export function FinanceMenuHeader({ menuStyle, currency }: { menuStyle: FinanceMenuStyle; currency: string }) {
+export function FinanceMenuHeader({ currency }: { currency: string }) {
   const theme = useTheme();
+  const menuStyle = theme.design.financeMenu;
   const router = useRouter();
   const items = useMenuItems(currency);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -92,8 +94,9 @@ export function FinanceMenuHeader({ menuStyle, currency }: { menuStyle: FinanceM
 }
 
 /** Menu shown under the header — horizontal chips or a row of tiles with live figures. */
-export function FinanceMenuBody({ menuStyle, currency }: { menuStyle: FinanceMenuStyle; currency: string }) {
+export function FinanceMenuBody({ currency }: { currency: string }) {
   const theme = useTheme();
+  const menuStyle = theme.design.financeMenu;
   const router = useRouter();
   const items = useMenuItems(currency);
 
@@ -106,7 +109,9 @@ export function FinanceMenuBody({ menuStyle, currency }: { menuStyle: FinanceMen
             onPress={() => router.push(item.route as never)}
             style={({ pressed }) => [
               styles.chip,
-              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, opacity: pressed ? 0.7 : 1 },
+              cardSurface(theme),
+              theme.design.cardStyle === 'elevated' || theme.design.cardStyle === 'outlined' ? { borderRadius: 999 } : null,
+              { opacity: pressed ? 0.7 : 1 },
             ]}
           >
             <Ionicons name={item.icon} size={18} color={theme.colors.accent} />
@@ -128,7 +133,8 @@ export function FinanceMenuBody({ menuStyle, currency }: { menuStyle: FinanceMen
             onPress={() => router.push(item.route as never)}
             style={({ pressed }) => [
               styles.tile,
-              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, opacity: pressed ? 0.7 : 1 },
+              cardSurface(theme),
+              { opacity: pressed ? 0.7 : 1 },
             ]}
           >
             <View style={[styles.tileIcon, { backgroundColor: `${theme.colors.accent}26` }]}>
@@ -203,13 +209,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 12,
-    borderRadius: 999,
-    borderWidth: 1,
   },
   chipText: { fontSize: 14, fontWeight: '600' },
 
   tilesRow: { flexDirection: 'row', gap: 10 },
-  tile: { flex: 1, borderRadius: 16, borderWidth: 1, padding: 12, gap: 6 },
+  tile: { flex: 1, padding: 12, gap: 6 },
   tileIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   tileValue: { fontSize: 17, fontWeight: '800' },
   tileTitle: { fontSize: 12, fontWeight: '600' },

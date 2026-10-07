@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTranslation } from '@/i18n';

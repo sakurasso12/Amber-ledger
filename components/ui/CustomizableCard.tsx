@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleProp, ImageBackground, StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '@/theme/ThemeProvider';
+import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { deletePersistedImage, pickAndPersistImage } from '@/lib/imagePicker';
 import { WidgetMenu } from './WidgetMenu';
@@ -44,10 +45,10 @@ export function CustomizableCard({ widgetId, children, style }: CustomizableCard
     return (
       <ImageBackground
         source={{ uri: imageUri }}
-        style={[styles.base, { borderColor: theme.colors.border }, style]}
-        imageStyle={styles.image}
+        style={[styles.base, cardSurface(theme), style]}
+        imageStyle={{ borderRadius: theme.design.radius.card }}
       >
-        <View style={[styles.overlay, { backgroundColor: `${theme.colors.background}80` }]}>
+        <View style={[{ padding: theme.design.cardPadding }, { backgroundColor: `${theme.colors.background}80` }]}>
           {menu}
           {children}
         </View>
@@ -56,8 +57,8 @@ export function CustomizableCard({ widgetId, children, style }: CustomizableCard
   }
 
   return (
-    <View style={[styles.base, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, style]}>
-      <View style={styles.overlay}>
+    <View style={[styles.base, cardSurface(theme), style]}>
+      <View style={{ padding: theme.design.cardPadding }}>
         {menu}
         {children}
       </View>
@@ -66,8 +67,7 @@ export function CustomizableCard({ widgetId, children, style }: CustomizableCard
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
-  image: { borderRadius: 16 },
-  overlay: { padding: 14 },
+  // overflow stays visible for the elevated design, otherwise Android clips its shadow.
+  base: {},
   menuAnchor: { position: 'absolute', top: 6, right: 6, zIndex: 1 },
 });

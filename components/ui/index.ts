@@ -13,4 +13,5 @@ export * from './Skeleton';
 export * from './SegmentedControl';
 export * from './SubScreenHeader';
 export * from './SwipeableRow';
+export * from './Text';
 export * from './TextField';

@@ -1,8 +1,10 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
+import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Screen } from '@/components/ui';
 import { useTranslation } from '@/i18n';
@@ -65,12 +67,12 @@ export function SettingsScreen() {
       value: settings.homeWidgetBackgroundUri ? tr.settingsScreen.backgroundSet : tr.settingsScreen.notSet,
       route: '/settings/home-widget',
     },
-    // Temporary: remove once a Finance menu design is picked.
+    // Temporary: remove once one of the app designs is picked.
     {
       icon: '🧪',
-      title: tr.financeMenu.settingsTitle,
-      value: tr.financeMenu[settings.financeMenuStyle],
-      route: '/settings/finance-menu',
+      title: tr.designs.settingsTitle,
+      value: tr.designs[settings.designId],
+      route: '/settings/design',
     },
   ];
 
@@ -83,7 +85,7 @@ export function SettingsScreen() {
           <Pressable
             key={row.route}
             onPress={() => router.push(row.route as never)}
-            style={[styles.row, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+            style={[styles.row, cardSurface(theme)]}
           >
             <Text style={styles.icon}>{row.icon}</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>{row.title}</Text>

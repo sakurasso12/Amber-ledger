@@ -15,6 +15,7 @@ import {
   setupNotifications,
 } from '@/notifications';
 import { useTranslation } from '@/i18n';
+import { refreshHomeWidget } from '@/lib/widgetRefresh';
 
 function RootStack() {
   const theme = useTheme();
@@ -76,6 +77,27 @@ function AppGate({ children }: { children: React.ReactNode }) {
 
     return () => subscription.remove();
   }, []);
+
+  // Keep the home screen widgets in step with the data instead of waiting for their 30-min refresh.
+  useEffect(() => {
+    if (!dataLoaded) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => refreshHomeWidget(), 1500);
+    };
+    const unsubscribeTasks = useTaskStore.subscribe((state, prev) => {
+      if (state.tasks !== prev.tasks) schedule();
+    });
+    const unsubscribeFinance = useFinanceStore.subscribe((state, prev) => {
+      if (state.expenses !== prev.expenses || state.workDays !== prev.workDays) schedule();
+    });
+    return () => {
+      clearTimeout(timer);
+      unsubscribeTasks();
+      unsubscribeFinance();
+    };
+  }, [dataLoaded]);
 
   if (!hasHydrated || !dataLoaded) {
     return (

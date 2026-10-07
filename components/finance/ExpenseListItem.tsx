@@ -1,6 +1,8 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { cardSurface } from '@/theme/surfaces';
 import { Category, Expense } from '@/types';
 
 interface ExpenseListItemProps {
@@ -16,7 +18,7 @@ export function ExpenseListItem({ expense, category, currency, onPress }: Expens
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.row, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+      style={[styles.row, cardSurface(theme)]}
     >
       <View style={[styles.dot, { backgroundColor: category?.color ?? theme.colors.textMuted }]} />
       <View style={styles.body}>

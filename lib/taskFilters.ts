@@ -6,7 +6,11 @@ const STATUS_ORDER = { not_started: 0, in_progress: 1, done: 2 };
 export function applyTaskFilters(tasks: Task[], filters: TaskFilters): Task[] {
   let result = tasks;
 
-  if (filters.status !== 'all') {
+  // Completed tasks drop out of the list right away; they stay in the database (stats count them)
+  // and can still be seen with the "Done" status filter.
+  if (filters.status === 'all') {
+    result = result.filter((t) => t.status !== 'done');
+  } else {
     result = result.filter((t) => t.status === filters.status);
   }
   if (filters.priority !== 'all') {

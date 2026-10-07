@@ -1,6 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, TextStyle, View } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { controlSurface } from '@/theme/surfaces';
+import { designTextStyle } from './Text';
 
 interface TextFieldProps extends TextInputProps {
   label?: string;
@@ -15,6 +18,8 @@ export function TextField({ label, style, ...props }: TextFieldProps) {
         placeholderTextColor={theme.colors.textMuted}
         style={[
           styles.input,
+          controlSurface(theme) as TextStyle,
+          designTextStyle({ fontSize: 15 }, theme.design),
           {
             backgroundColor: theme.colors.surfaceAlt,
             borderColor: theme.colors.border,

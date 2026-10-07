@@ -186,17 +186,37 @@ export interface Translation {
   notificationsSettings: { title: string; enabled: string; disabled: string; reminderLabel: string; note: string };
   backgroundSettings: { title: string; notSet: string; pick: string; replace: string; remove: string };
   homeWidgetSettings: { title: string; hint: string };
-  financeMenu: {
+  homeWidgets: {
+    todayTitle: string;
+    noTasks: string;
+    spentToday: string;
+    dayOffTitle: string;
+    dayOffToday: string;
+    dayOffTomorrow: string;
+    dayOffIn: (days: number) => string;
+    shiftsBefore: (shifts: number) => string;
+    noDayOff: string;
+    nextTaskTitle: string;
+    dueIn: (time: string) => string;
+    overdueBy: (time: string) => string;
+    moreToday: (count: number) => string;
+    days: string;
+    hours: string;
+    minutes: string;
+  };
+  designs: {
     settingsTitle: string;
     settingsHint: string;
-    classic: string;
-    classicDescription: string;
-    chips: string;
-    chipsDescription: string;
-    tiles: string;
-    tilesDescription: string;
-    sheet: string;
-    sheetDescription: string;
+    amber: string;
+    amberDescription: string;
+    neon: string;
+    neonDescription: string;
+    paper: string;
+    paperDescription: string;
+    bold: string;
+    boldDescription: string;
+  };
+  financeMenu: {
     recurringDescription: string;
     plannedDescription: string;
     categoriesDescription: string;
@@ -449,17 +469,37 @@ const ru: Translation = {
     title: 'Виджет на главном экране',
     hint: 'Фото для фона виджета «Amber Ledger» на домашнем экране Android. Обновится сразу после сохранения.',
   },
+  homeWidgets: {
+    todayTitle: 'Сегодня',
+    noTasks: 'Нет активных задач',
+    spentToday: 'Потрачено сегодня',
+    dayOffTitle: 'Выходной',
+    dayOffToday: 'Сегодня',
+    dayOffTomorrow: 'Завтра',
+    dayOffIn: (days) => `Через ${days} дн.`,
+    shiftsBefore: (shifts) => (shifts > 0 ? `${shifts} смен до него` : 'Смен до него нет'),
+    noDayOff: 'Не отмечен',
+    nextTaskTitle: 'Ближайшая задача',
+    dueIn: (time) => `через ${time}`,
+    overdueBy: (time) => `просрочено на ${time}`,
+    moreToday: (count) => `ещё ${count} на сегодня`,
+    days: 'д',
+    hours: 'ч',
+    minutes: 'мин',
+  },
+  designs: {
+    settingsTitle: 'Дизайн приложения (тест)',
+    settingsHint: 'Временная вкладка: переключай дизайны и пройдись по всем экранам. Работает и со светлой, и с тёмной темой. Потом оставим один.',
+    amber: 'Янтарь',
+    amberDescription: 'Текущий дизайн: тёплые цвета, карточки с рамкой, классическое меню.',
+    neon: 'Неон',
+    neonDescription: 'Ночной город: глубокий синий, светящиеся акценты, мягкие плавающие карточки, панель вкладок-капсула, крупный баланс по центру.',
+    paper: 'Бумага',
+    paperDescription: 'Блокнот: шрифт с засечками, тёплая бумага, линии вместо коробок, баланс как строчки в тетради, меню «⋯» снизу.',
+    bold: 'Брутал',
+    boldDescription: 'Громко и крупно: узкий жирный шрифт, толстые чёрные рамки с жёсткой тенью, кислотные акценты, баланс блоками.',
+  },
   financeMenu: {
-    settingsTitle: 'Дизайн меню (тест)',
-    settingsHint: 'Временная вкладка: переключай варианты и смотри на вкладке «Финансы», какой удобнее. Потом оставим один.',
-    classic: 'Классика',
-    classicDescription: 'Как сейчас: мелкие ссылки в шапке.',
-    chips: 'Кнопки',
-    chipsDescription: 'Три крупные кнопки с иконками под шапкой — легко попасть пальцем.',
-    tiles: 'Плитки',
-    tilesDescription: 'Три карточки с цифрами: сколько повторов, сумма планов, сколько категорий.',
-    sheet: 'Меню «⋯»',
-    sheetDescription: 'Чистая шапка с одной кнопкой, по нажатию снизу выезжает меню с описаниями.',
     recurringDescription: 'Подписки и регулярные платежи',
     plannedDescription: 'Будущие траты, уже учтённые в итоге',
     categoriesDescription: 'Цвета и лимиты категорий',
@@ -711,17 +751,37 @@ const uk: Translation = {
     title: 'Віджет на головному екрані',
     hint: 'Фото для фону віджета «Amber Ledger» на домашньому екрані Android. Оновиться одразу після збереження.',
   },
+  homeWidgets: {
+    todayTitle: 'Сьогодні',
+    noTasks: 'Немає активних задач',
+    spentToday: 'Витрачено сьогодні',
+    dayOffTitle: 'Вихідний',
+    dayOffToday: 'Сьогодні',
+    dayOffTomorrow: 'Завтра',
+    dayOffIn: (days) => `Через ${days} дн.`,
+    shiftsBefore: (shifts) => (shifts > 0 ? `${shifts} змін до нього` : 'Змін до нього немає'),
+    noDayOff: 'Не позначено',
+    nextTaskTitle: 'Найближча задача',
+    dueIn: (time) => `через ${time}`,
+    overdueBy: (time) => `прострочено на ${time}`,
+    moreToday: (count) => `ще ${count} на сьогодні`,
+    days: 'д',
+    hours: 'год',
+    minutes: 'хв',
+  },
+  designs: {
+    settingsTitle: 'Дизайн застосунку (тест)',
+    settingsHint: 'Тимчасова вкладка: перемикай дизайни й пройдись усіма екранами. Працює і зі світлою, і з темною темою. Потім залишимо один.',
+    amber: 'Бурштин',
+    amberDescription: 'Поточний дизайн: теплі кольори, картки з рамкою, класичне меню.',
+    neon: 'Неон',
+    neonDescription: 'Нічне місто: глибокий синій, світні акценти, м’які плаваючі картки, панель вкладок-капсула, великий баланс по центру.',
+    paper: 'Папір',
+    paperDescription: 'Блокнот: шрифт із засічками, теплий папір, лінії замість коробок, баланс як рядки в зошиті, меню «⋯» знизу.',
+    bold: 'Брутал',
+    boldDescription: 'Гучно й великими: вузький жирний шрифт, товсті чорні рамки з жорсткою тінню, кислотні акценти, баланс блоками.',
+  },
   financeMenu: {
-    settingsTitle: 'Дизайн меню (тест)',
-    settingsHint: 'Тимчасова вкладка: перемикай варіанти й дивись на вкладці «Фінанси», який зручніший. Потім залишимо один.',
-    classic: 'Класика',
-    classicDescription: 'Як зараз: дрібні посилання в шапці.',
-    chips: 'Кнопки',
-    chipsDescription: 'Три великі кнопки з іконками під шапкою — легко влучити пальцем.',
-    tiles: 'Плитки',
-    tilesDescription: 'Три картки з цифрами: скільки повторів, сума планів, скільки категорій.',
-    sheet: 'Меню «⋯»',
-    sheetDescription: 'Чиста шапка з однією кнопкою, після натискання знизу виїжджає меню з описами.',
     recurringDescription: 'Підписки та регулярні платежі',
     plannedDescription: 'Майбутні витрати, вже враховані в підсумку',
     categoriesDescription: 'Кольори та ліміти категорій',
@@ -973,17 +1033,37 @@ const en: Translation = {
     title: 'Home screen widget',
     hint: 'Background photo for the "Amber Ledger" Android home screen widget. Updates immediately after saving.',
   },
+  homeWidgets: {
+    todayTitle: 'Today',
+    noTasks: 'No active tasks',
+    spentToday: 'Spent today',
+    dayOffTitle: 'Day off',
+    dayOffToday: 'Today',
+    dayOffTomorrow: 'Tomorrow',
+    dayOffIn: (days) => `In ${days} days`,
+    shiftsBefore: (shifts) => (shifts > 0 ? `${shifts} shifts before it` : 'No shifts before it'),
+    noDayOff: 'Not marked',
+    nextTaskTitle: 'Next task',
+    dueIn: (time) => `in ${time}`,
+    overdueBy: (time) => `overdue by ${time}`,
+    moreToday: (count) => `${count} more today`,
+    days: 'd',
+    hours: 'h',
+    minutes: 'min',
+  },
+  designs: {
+    settingsTitle: 'App design (test)',
+    settingsHint: 'Temporary tab: switch designs and walk through every screen. Works with both light and dark mode. We will keep one later.',
+    amber: 'Amber',
+    amberDescription: 'Current design: warm colours, outlined cards, classic menu.',
+    neon: 'Neon',
+    neonDescription: 'Night city: deep blue, glowing accents, soft floating cards, pill tab bar, big centred balance.',
+    paper: 'Paper',
+    paperDescription: 'Notebook: serif type, warm paper, lines instead of boxes, balance as ledger rows, "⋯" bottom menu.',
+    bold: 'Bold',
+    boldDescription: 'Loud and chunky: condensed bold type, thick black outlines with a hard shadow, acid accents, balance in blocks.',
+  },
   financeMenu: {
-    settingsTitle: 'Menu design (test)',
-    settingsHint: 'Temporary tab: switch between the variants and check the Finance tab to see which one feels better. We will keep one later.',
-    classic: 'Classic',
-    classicDescription: 'As it is now: small links in the header.',
-    chips: 'Buttons',
-    chipsDescription: 'Three big buttons with icons under the header — easy to hit with a thumb.',
-    tiles: 'Tiles',
-    tilesDescription: 'Three cards with live figures: recurring count, planned total, category count.',
-    sheet: '"⋯" menu',
-    sheetDescription: 'Clean header with one button that opens a bottom sheet with descriptions.',
     recurringDescription: 'Subscriptions and regular payments',
     plannedDescription: 'Future expenses already included in the total',
     categoriesDescription: 'Category colours and limits',
