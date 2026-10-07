@@ -1,6 +1,8 @@
 import React from 'react';
-import { StyleProp, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import { StyleProp, Pressable, StyleSheet, ViewStyle } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { controlSurface } from '@/theme/surfaces';
 
 interface ButtonProps {
   title: string;
@@ -27,6 +29,7 @@ export function Button({ title, onPress, variant = 'primary', disabled, style }:
       disabled={disabled}
       style={({ pressed }) => [
         styles.base,
+        controlSurface(theme),
         { backgroundColor, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
         style,
       ]}
@@ -40,7 +43,6 @@ const styles = StyleSheet.create({
   base: {
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },

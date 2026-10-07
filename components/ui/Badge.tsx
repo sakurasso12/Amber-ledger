@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '@/theme/ThemeProvider';
 
 /** Small numeric badge — used on tab icons and filter toggles. Caps the displayed value at 99+. */

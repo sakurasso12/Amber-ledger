@@ -56,10 +56,32 @@
             {
               "name": "AmberLedgerToday",
               "label": "Amber Ledger — сегодня",
-              "description": "Ближайшие задачи и траты за сегодня",
+              "description": "Ближайшие задачи и траты за сегодня (большой)",
               "minWidth": "250dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "AmberLedgerDayOff",
+              "label": "Amber Ledger — выходной",
+              "description": "Когда ближайший выходной (маленький)",
+              "minWidth": "110dp",
+              "minHeight": "50dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 1,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "AmberLedgerNextTask",
+              "label": "Amber Ledger — ближайшая задача",
+              "description": "Ближайшая задача и сколько до неё осталось (средний)",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 2,
               "targetCellHeight": 2,
               "resizeMode": "horizontal|vertical",
               "updatePeriodMillis": 1800000

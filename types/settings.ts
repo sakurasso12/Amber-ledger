@@ -1,9 +1,9 @@
+import type { DesignId } from '@/theme/designs';
+
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 export type AppLanguage = 'ru' | 'uk' | 'en';
 
-/** Temporary: which Finance menu design is active while the user picks one (Settings → design). */
-export type FinanceMenuStyle = 'classic' | 'chips' | 'tiles' | 'sheet';
 
 export interface AppSettings {
   hourlyRate: number;
@@ -50,8 +50,8 @@ export interface AppSettings {
   salaryConfirmations: Record<string, { amount: number; confirmedAt: string }>;
   /** ISO time until which the salary prompt stays hidden after "remind me in a day". */
   salaryPromptSnoozedUntil: string | null;
-  /** Temporary: Finance menu design being tried out (see FinanceMenuSettingsScreen). */
-  financeMenuStyle: FinanceMenuStyle;
+  /** Whole-app design (fonts, shapes, layout, palettes) — see theme/designs.ts. */
+  designId: DesignId;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -75,5 +75,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   widgetBackgrounds: {},
   salaryConfirmations: {},
   salaryPromptSnoozedUntil: null,
-  financeMenuStyle: 'classic',
+  designId: 'amber',
 };

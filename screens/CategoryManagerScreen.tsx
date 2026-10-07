@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
+import { cardSurface } from '@/theme/surfaces';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Button, ProgressBar, Screen, TextField } from '@/components/ui';
@@ -81,7 +83,7 @@ export function CategoryManagerScreen() {
         renderItem={({ item }) => (
           <Pressable
             onPress={() => openLimitEditor(item)}
-            style={[styles.row, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+            style={[styles.row, cardSurface(theme)]}
           >
             <View style={[styles.dot, { backgroundColor: item.color }]} />
             <View style={{ flex: 1, gap: 4 }}>

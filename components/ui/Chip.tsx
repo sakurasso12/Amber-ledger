@@ -1,6 +1,8 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { controlSurface } from '@/theme/surfaces';
 
 interface ChipProps {
   label: string;
@@ -18,6 +20,8 @@ export function Chip({ label, selected, onPress, color }: ChipProps) {
       onPress={onPress}
       style={[
         styles.base,
+        controlSurface(theme),
+        theme.design.cardStyle === 'outlined' || theme.design.cardStyle === 'elevated' ? { borderRadius: 100 } : null,
         {
           backgroundColor: selected ? activeColor : theme.colors.surfaceAlt,
           borderColor: selected ? activeColor : theme.colors.border,
@@ -35,7 +39,6 @@ const styles = StyleSheet.create({
   base: {
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 100,
     borderWidth: 1,
   },
 });

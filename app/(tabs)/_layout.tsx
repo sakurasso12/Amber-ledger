@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TopTabs } from 'expo-router/js-top-tabs';
 import { useTheme } from '@/theme/ThemeProvider';
+import { designTextStyle } from '@/components/ui/Text';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useTranslation } from '@/i18n';
 import { Badge } from '@/components/ui';
@@ -36,29 +37,79 @@ export default function TabsLayout() {
     }).length;
   }, [tasks]);
 
+  const { design, colors } = theme;
+  const labelStyle = { ...styles.label, ...designTextStyle({ fontSize: 11, fontWeight: '700' }, design) };
+
+  // Each design brings its own tab bar: classic strip, floating pill, ink underline, or solid blocks.
+  const barByStyle: Record<typeof design.tabBar, object> = {
+    classic: {
+      backgroundColor: colors.surface,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+      elevation: 0,
+      shadowOpacity: 0,
+      // Android's edge-to-edge display draws the gesture nav bar over app content by default —
+      // without this, its home-indicator pill overlaps the tab icons/labels.
+      height: 54 + insets.bottom,
+      paddingBottom: insets.bottom,
+    },
+    floating: {
+      backgroundColor: colors.surface,
+      marginHorizontal: 16,
+      marginBottom: insets.bottom + 10,
+      height: 62,
+      borderRadius: 31,
+      borderTopWidth: 0,
+      borderWidth: theme.dark ? 1 : 0,
+      borderColor: `${colors.primary}40`,
+      elevation: theme.dark ? 0 : 10,
+      shadowColor: '#1B2350',
+      shadowOpacity: 0.18,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 8 },
+      overflow: 'hidden',
+    },
+    underline: {
+      backgroundColor: colors.background,
+      borderTopWidth: design.borderWidth,
+      borderTopColor: colors.border,
+      elevation: 0,
+      shadowOpacity: 0,
+      height: 50 + insets.bottom,
+      paddingBottom: insets.bottom,
+    },
+    blocks: {
+      backgroundColor: colors.surface,
+      borderTopWidth: design.borderWidth,
+      borderTopColor: colors.border,
+      elevation: 0,
+      shadowOpacity: 0,
+      height: 58 + insets.bottom,
+      paddingBottom: insets.bottom,
+    },
+  };
+  const indicatorByStyle: Record<typeof design.tabBar, object> = {
+    classic: styles.hiddenIndicator,
+    floating: styles.hiddenIndicator,
+    underline: { height: 3, top: 0, backgroundColor: colors.text },
+    blocks: { height: '100%', backgroundColor: colors.primary },
+  };
+  const blocks = design.tabBar === 'blocks';
+
   return (
     <TopTabs
       tabBarPosition="bottom"
+      style={{ backgroundColor: colors.background }}
       screenOptions={{
         swipeEnabled: true,
-        tabBarShowIcon: true,
-        tabBarShowLabel: true,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textMuted,
-        tabBarIndicatorStyle: styles.hiddenIndicator,
-        tabBarLabelStyle: styles.label,
-        tabBarItemStyle: styles.item,
-        tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: theme.colors.border,
-          elevation: 0,
-          shadowOpacity: 0,
-          // Android's edge-to-edge display draws the gesture nav bar over app content by default —
-          // without this, its home-indicator pill overlaps the tab icons/labels.
-          height: 54 + insets.bottom,
-          paddingBottom: insets.bottom,
-        },
+        tabBarShowIcon: design.tabBar !== 'underline',
+        tabBarShowLabel: design.tabBar !== 'floating',
+        tabBarActiveTintColor: blocks ? colors.primaryText : design.tabBar === 'underline' ? colors.text : colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarIndicatorStyle: indicatorByStyle[design.tabBar],
+        tabBarLabelStyle: labelStyle,
+        tabBarItemStyle: design.tabBar === 'floating' ? styles.floatingItem : styles.item,
+        tabBarStyle: barByStyle[design.tabBar],
       }}
     >
       <TopTabs.Screen
@@ -115,4 +166,5 @@ const styles = StyleSheet.create({
   hiddenIndicator: { height: 0 },
   label: { fontSize: 11, textTransform: 'none', marginTop: 0 },
   item: { paddingTop: 6 },
+  floatingItem: { justifyContent: 'center' },
 });

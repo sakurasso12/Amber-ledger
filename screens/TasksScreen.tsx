@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
+import { fabShape } from '@/theme/surfaces';
 import { useTaskStore } from '@/store/useTaskStore';
 import { EmptyState, QuickAddBar, ReorderableList, Screen } from '@/components/ui';
 import { TaskListItem } from '@/components/task/TaskListItem';
@@ -146,7 +148,7 @@ export function TasksScreen() {
         <Pressable
           onPress={() => router.push('/task/new')}
           onLongPress={() => setQuickAddOpen(true)}
-          style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: insets.bottom + 16 }]}
+          style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: insets.bottom + 16 }, fabShape(theme)]}
         >
           <Text style={{ color: theme.colors.primaryText, fontSize: 26, lineHeight: 28 }}>+</Text>
         </Pressable>

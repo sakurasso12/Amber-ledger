@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { addMonths } from 'date-fns';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -37,7 +38,8 @@ export function CalendarScreen() {
     const ensure = (key: string) => (result[key] ??= { taskColors: [], hasExpense: false });
 
     for (const task of tasks) {
-      if (!task.deadlineAt) continue;
+      // Completed tasks disappear from the calendar too, like from the task list.
+      if (!task.deadlineAt || task.status === 'done') continue;
       const marker = ensure(toDateKey(new Date(task.deadlineAt)));
       const color = priorityColor(theme, task.priority);
       if (!marker.taskColors.includes(color)) marker.taskColors.push(color);
@@ -51,7 +53,7 @@ export function CalendarScreen() {
   const tasksForDay = useMemo(
     () =>
       tasks
-        .filter((t) => t.deadlineAt && toDateKey(new Date(t.deadlineAt)) === selectedDate)
+        .filter((t) => t.status !== 'done' && t.deadlineAt && toDateKey(new Date(t.deadlineAt)) === selectedDate)
         .sort((a, b) => (a.deadlineAt ?? '').localeCompare(b.deadlineAt ?? '')),
     [tasks, selectedDate]
   );

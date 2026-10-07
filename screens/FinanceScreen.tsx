@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
+import { fabShape } from '@/theme/surfaces';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { CustomizableCard, EmptyState, ProgressBar, QuickAddBar, Screen } from '@/components/ui';
@@ -90,7 +92,7 @@ export function FinanceScreen() {
     <Screen style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.headerRow}>
         <Text style={[styles.header, { color: theme.colors.text }]}>{tr.financeScreen.header}</Text>
-        <FinanceMenuHeader menuStyle={settings.financeMenuStyle} currency={settings.currency} />
+        <FinanceMenuHeader currency={settings.currency} />
       </View>
 
       <FlatList
@@ -100,7 +102,7 @@ export function FinanceScreen() {
         ListHeaderComponent={
           <View style={styles.topSection}>
             {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
-            <FinanceMenuBody menuStyle={settings.financeMenuStyle} currency={settings.currency} />
+            <FinanceMenuBody currency={settings.currency} />
             <BalanceCard
               bank={bank}
               spentSinceSet={spentSinceSet}
@@ -173,7 +175,7 @@ export function FinanceScreen() {
       <Pressable
         onPress={() => router.push('/expense/new')}
         onLongPress={() => defaultQuickAddCategoryId && setQuickAddOpen(true)}
-        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: insets.bottom + 16 }]}
+        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: insets.bottom + 16 }, fabShape(theme)]}
       >
         <Text style={{ color: theme.colors.primaryText, fontSize: 26, lineHeight: 28 }}>+</Text>
       </Pressable>

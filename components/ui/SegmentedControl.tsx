@@ -1,6 +1,8 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { controlSurface } from '@/theme/surfaces';
 
 interface Segment<T extends string> {
   value: T;
@@ -17,14 +19,14 @@ export function SegmentedControl<T extends string>({ segments, value, onChange }
   const theme = useTheme();
 
   return (
-    <View style={[styles.wrapper, { backgroundColor: theme.colors.surfaceAlt, borderColor: theme.colors.border }]}>
+    <View style={[styles.wrapper, { backgroundColor: theme.colors.surfaceAlt, borderColor: theme.colors.border }, controlSurface(theme)]}>
       {segments.map((segment) => {
         const isActive = segment.value === value;
         return (
           <Pressable
             key={segment.value}
             onPress={() => onChange(segment.value)}
-            style={[styles.segment, isActive && { backgroundColor: theme.colors.primary }]}
+            style={[styles.segment, { borderRadius: Math.max(0, theme.design.radius.control - 3) }, isActive && { backgroundColor: theme.colors.primary }]}
           >
             <Text
               style={[

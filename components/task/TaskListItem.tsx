@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
+import { cardSurface } from '@/theme/surfaces';
 import { useTaskStore } from '@/store/useTaskStore';
 import { Task, TaskStatus } from '@/types';
 import { useTranslation } from '@/i18n';
@@ -83,7 +85,7 @@ export function TaskListItem({ task, onCycleStatus, selectionMode, selected, onT
       onLongPress={onLongPress}
       style={[
         styles.row,
-        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+        cardSurface(theme),
         selected && { borderColor: theme.colors.primary, borderWidth: 2 },
       ]}
     >

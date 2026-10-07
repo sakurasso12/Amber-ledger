@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
+import { cardSurface } from '@/theme/surfaces';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Button, Screen, SubScreenHeader, TextField } from '@/components/ui';
@@ -60,7 +62,7 @@ export function RecurringExpensesScreen() {
         contentContainerStyle={styles.content}
         ListHeaderComponent={<Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.recurringExpenses.hint}</Text>}
         renderItem={({ item }) => (
-          <View style={[styles.row, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <View style={[styles.row, cardSurface(theme)]}>
             <View style={[styles.dot, { backgroundColor: categoryById.get(item.categoryId)?.color ?? theme.colors.textMuted }]} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.rowTitle, { color: theme.colors.text }]}>{categoryById.get(item.categoryId)?.name ?? '—'}</Text>
