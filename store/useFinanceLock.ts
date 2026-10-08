@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
+import { usePathname } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSettingsStore } from './useSettingsStore';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { checkProfilePassword } from '@/lib/password';
+import { FINANCE_LOCK_MAX_MINUTES } from '@/types';
 
 /**
  * Finance lock. Unlocked state is a timestamp (settings.financeUnlockedUntil) rather than a flag,
- * because the home screen widgets read it without the app running:
- *  - unlocking sets it to now + the chosen delay;
- *  - while the app is open and unlocked it's kept in the future;
- *  - leaving the app sets it to now + delay, and a timer re-locks (and redraws widgets) when it runs out.
+ * because the home screen widgets read it without the app running.
+ *  - N minutes (1–30): unlocking opens a window of exactly N minutes, counted from the unlock —
+ *    it closes on its own even while you keep using the app.
+ *  - 0: stays open only while you're on a money screen; leaving it (another tab, or the app
+ *    going to the background) locks at once.
  */
 
 const minutesFromNow = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
@@ -22,6 +25,11 @@ function isUnlocked(until: string | null): boolean {
 function setUnlockedUntil(until: string | null) {
   useSettingsStore.getState().updateSettings({ financeUnlockedUntil: until });
   refreshHomeWidget();
+}
+
+/** Screens that count as "in finances" for the 0-minute mode (incl. editors opened from them). */
+function isMoneyScreen(pathname: string): boolean {
+  return /^\/(finance|stats|expense|category)(\/|$)/.test(pathname);
 }
 
 /** True when money should be hidden right now. Re-renders when the unlock window runs out. */
@@ -55,8 +63,8 @@ export async function unlockWithPassword(password: string): Promise<boolean> {
 
 export function unlockFinances() {
   const { financeLockMinutes } = useSettingsStore.getState().settings;
-  // While the app is open the window is kept generous; leaving the app shortens it (see below).
-  setUnlockedUntil(minutesFromNow(Math.max(financeLockMinutes, 30)));
+  // 0 = "until you leave the screen": a safety cap here, the real lock comes from leaving.
+  setUnlockedUntil(minutesFromNow(financeLockMinutes > 0 ? financeLockMinutes : FINANCE_LOCK_MAX_MINUTES));
 }
 
 export function lockFinances() {
@@ -72,35 +80,39 @@ export async function deviceAuthAvailable(): Promise<boolean> {
   return hasHardware && enrolled;
 }
 
-/** Mount once (root layout): starts the re-lock countdown when the app goes to the background. */
+/** Mount once in the root layout: enforces the timer, the 0-minute mode and keeps widgets in step. */
 export function useFinanceLockLifecycle() {
-  useEffect(() => {
-    let relockTimer: ReturnType<typeof setTimeout> | null = null;
+  const enabled = useSettingsStore((s) => s.settings.financeLockEnabled);
+  const minutes = useSettingsStore((s) => s.settings.financeLockMinutes);
+  const until = useSettingsStore((s) => s.settings.financeUnlockedUntil);
+  const pathname = usePathname();
 
+  // The window ran out → lock for real (clears the timestamp and redraws the widgets).
+  useEffect(() => {
+    if (!enabled || !until) return;
+    const msLeft = new Date(until).getTime() - Date.now();
+    if (msLeft <= 0) {
+      lockFinances();
+      return;
+    }
+    const timer = setTimeout(lockFinances, msLeft + 50);
+    return () => clearTimeout(timer);
+  }, [enabled, until]);
+
+  // 0-minute mode: leaving the money screens locks immediately.
+  useEffect(() => {
+    if (enabled && minutes <= 0 && until && !isMoneyScreen(pathname)) lockFinances();
+  }, [enabled, minutes, until, pathname]);
+
+  // 0-minute mode: so does sending the app to the background. Coming back re-checks the window,
+  // since timers may have been paused while the app was in the background.
+  useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       const { financeLockEnabled, financeLockMinutes, financeUnlockedUntil } = useSettingsStore.getState().settings;
-      if (!financeLockEnabled || !isUnlocked(financeUnlockedUntil)) return;
-
-      if (state === 'background') {
-        if (financeLockMinutes <= 0) {
-          lockFinances();
-          return;
-        }
-        setUnlockedUntil(minutesFromNow(financeLockMinutes));
-        if (relockTimer) clearTimeout(relockTimer);
-        // Best effort: if Android freezes the app, widgets catch up on their next scheduled update.
-        relockTimer = setTimeout(lockFinances, financeLockMinutes * 60_000 + 500);
-      } else if (state === 'active') {
-        if (relockTimer) clearTimeout(relockTimer);
-        relockTimer = null;
-        // Back within the window: stay unlocked and stretch it again while the app is in use.
-        unlockFinances();
-      }
+      if (!financeLockEnabled || !financeUnlockedUntil) return;
+      if (state === 'background' && financeLockMinutes <= 0) lockFinances();
+      if (state === 'active' && !isUnlocked(financeUnlockedUntil)) lockFinances();
     });
-
-    return () => {
-      subscription.remove();
-      if (relockTimer) clearTimeout(relockTimer);
-    };
+    return () => subscription.remove();
   }, []);
 }

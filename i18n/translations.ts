@@ -624,8 +624,8 @@ const ru: Translation = {
     methodDevice: 'Отпечаток / код телефона',
     methodPassword: 'Пароль профиля',
     noBiometrics: 'На телефоне не настроен отпечаток — будет использоваться PIN или ключ телефона.',
-    relockAfter: 'Блокировать снова через',
-    relockHint: (max) => `После выхода из приложения. 0 — сразу, максимум ${max}.`,
+    relockAfter: 'Блокировать через',
+    relockHint: (max) => `Считается с момента разблокировки. 0 — блокировать, как только уходите из финансов. Максимум ${max}.`,
     minutes: 'мин',
   },
   financeLock: {
@@ -958,8 +958,8 @@ const uk: Translation = {
     methodDevice: 'Відбиток / код телефону',
     methodPassword: 'Пароль профілю',
     noBiometrics: 'На телефоні не налаштовано відбиток — використовуватиметься PIN або ключ телефону.',
-    relockAfter: 'Блокувати знову через',
-    relockHint: (max) => `Після виходу із застосунку. 0 — одразу, максимум ${max}.`,
+    relockAfter: 'Блокувати через',
+    relockHint: (max) => `Рахується від моменту розблокування. 0 — блокувати, щойно ви йдете з фінансів. Максимум ${max}.`,
     minutes: 'хв',
   },
   financeLock: {
@@ -1292,8 +1292,8 @@ const en: Translation = {
     methodDevice: 'Fingerprint / phone code',
     methodPassword: 'Profile password',
     noBiometrics: 'No fingerprint set up on this phone — its PIN or pattern will be used.',
-    relockAfter: 'Lock again after',
-    relockHint: (max) => `After leaving the app. 0 = right away, ${max} at most.`,
+    relockAfter: 'Lock after',
+    relockHint: (max) => `Counted from the moment you unlock. 0 = lock as soon as you leave Finance. ${max} at most.`,
     minutes: 'min',
   },
   financeLock: {
