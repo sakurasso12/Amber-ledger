@@ -17,7 +17,15 @@ import { RAIL_OVERLAP } from '@/components/ui/LayoutScreen';
  * Wraps anything that shows money. While Finance is locked the content stays in place but is
  * blurred, can't be touched, and a small unlock card sits on top.
  */
-export function FinanceLockGate({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+interface FinanceLockGateProps {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  /** The gate fills a whole tab screen whose content reaches under Vertical's title rail
+   * (Finance) — keep the blur off the rail there. Gates inside other content don't need it. */
+  clearRail?: boolean;
+}
+
+export function FinanceLockGate({ children, style, clearRail = false }: FinanceLockGateProps) {
   const locked = useFinanceLocked();
   const target = useRef<View>(null);
 
@@ -27,12 +35,12 @@ export function FinanceLockGate({ children, style }: { children: React.ReactNode
       <BlurTargetView ref={target} style={[styles.flex, style]} pointerEvents={locked ? 'none' : 'auto'}>
         {children}
       </BlurTargetView>
-      {locked ? <LockOverlay target={target} /> : null}
+      {locked ? <LockOverlay target={target} clearRail={clearRail} /> : null}
     </View>
   );
 }
 
-function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
+function LockOverlay({ target, clearRail }: { target: React.RefObject<View | null>; clearRail: boolean }) {
   const theme = useTheme();
   const tr = useTranslation();
   const method = useSettingsStore((s) => s.settings.financeLockMethod);
@@ -62,7 +70,7 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
 
   // In Vertical the content slides a little under the title rail; keep the blur off the rail
   // so the screen title stays readable.
-  const railInset = theme.layout.header === 'vertical' ? RAIL_OVERLAP : 0;
+  const railInset = clearRail && theme.layout.header === 'vertical' ? RAIL_OVERLAP : 0;
 
   return (
     <View style={[StyleSheet.absoluteFill, { left: railInset }]}>
