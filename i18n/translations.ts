@@ -321,7 +321,6 @@ export interface Translation {
     save: string;
     cancel: string;
     hideCard: string;
-    invalidDate: string;
     settingsToggle: string;
     settingsToggleHint: string;
   };
@@ -437,7 +436,7 @@ const ru: Translation = {
     headerNew: 'Новая трата',
     headerEdit: 'Редактировать трату',
     amountLabel: 'Сумма',
-    dateLabel: 'Дата (ГГГГ-ММ-ДД)',
+    dateLabel: 'Дата',
     commentLabel: 'Комментарий',
     commentPlaceholder: 'Необязательно',
     save: 'Сохранить',
@@ -670,7 +669,7 @@ const ru: Translation = {
     no: 'Не нужно',
     balance: 'Сейчас на счёте',
     rate: 'Ставка, % годовых',
-    openedAt: 'Дата открытия счёта (ГГГГ-ММ-ДД)',
+    openedAt: 'Дата открытия счёта',
     openedAtHint: 'От неё считается год — к какой дате будет прогноз.',
     yearEnds: (month) => `Год закончится: ${month}`,
     projection: (amount, interest) => `≈ ${amount} к этому времени (+${interest})`,
@@ -680,7 +679,6 @@ const ru: Translation = {
     save: 'Сохранить',
     cancel: 'Отмена',
     hideCard: 'Скрыть карточку',
-    invalidDate: 'Дата в формате ГГГГ-ММ-ДД, не в будущем',
     settingsToggle: 'Карточка «Подушка безопасности»',
     settingsToggleHint: 'Внизу вкладки «Финансы»: накопления и прогноз на год.',
   },
@@ -796,7 +794,7 @@ const uk: Translation = {
     headerNew: 'Нова витрата',
     headerEdit: 'Редагувати витрату',
     amountLabel: 'Сума',
-    dateLabel: 'Дата (РРРР-ММ-ДД)',
+    dateLabel: 'Дата',
     commentLabel: 'Коментар',
     commentPlaceholder: 'Необов’язково',
     save: 'Зберегти',
@@ -1027,7 +1025,7 @@ const uk: Translation = {
     no: 'Не потрібно',
     balance: 'Зараз на рахунку',
     rate: 'Ставка, % річних',
-    openedAt: 'Дата відкриття рахунку (РРРР-ММ-ДД)',
+    openedAt: 'Дата відкриття рахунку',
     openedAtHint: 'Від неї рахується рік — до якої дати буде прогноз.',
     yearEnds: (month) => `Рік закінчиться: ${month}`,
     projection: (amount, interest) => `≈ ${amount} на той час (+${interest})`,
@@ -1037,7 +1035,6 @@ const uk: Translation = {
     save: 'Зберегти',
     cancel: 'Скасувати',
     hideCard: 'Приховати картку',
-    invalidDate: 'Дата у форматі РРРР-ММ-ДД, не в майбутньому',
     settingsToggle: 'Картка «Подушка безпеки»',
     settingsToggleHint: 'Унизу вкладки «Фінанси»: заощадження і прогноз на рік.',
   },
@@ -1153,7 +1150,7 @@ const en: Translation = {
     headerNew: 'New Expense',
     headerEdit: 'Edit Expense',
     amountLabel: 'Amount',
-    dateLabel: 'Date (YYYY-MM-DD)',
+    dateLabel: 'Date',
     commentLabel: 'Comment',
     commentPlaceholder: 'Optional',
     save: 'Save',
@@ -1384,7 +1381,7 @@ const en: Translation = {
     no: 'No thanks',
     balance: 'Balance now',
     rate: 'Interest rate, % per year',
-    openedAt: 'Account opened (YYYY-MM-DD)',
+    openedAt: 'Account opened',
     openedAtHint: 'The year is counted from this date — that\'s when the projection ends.',
     yearEnds: (month) => `Year ends: ${month}`,
     projection: (amount, interest) => `≈ ${amount} by then (+${interest})`,
@@ -1394,7 +1391,6 @@ const en: Translation = {
     save: 'Save',
     cancel: 'Cancel',
     hideCard: 'Hide card',
-    invalidDate: 'Date as YYYY-MM-DD, not in the future',
     settingsToggle: 'Savings cushion card',
     settingsToggleHint: 'At the bottom of Finance: your savings and a one-year projection.',
   },

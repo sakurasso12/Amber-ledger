@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useFinanceStore } from '@/store/useFinanceStore';
-import { Button, Screen, TextField } from '@/components/ui';
+import { Button, DateField, Screen, TextField } from '@/components/ui';
 import { CategoryPicker } from '@/components/finance/CategoryPicker';
 import { todayKey } from '@/lib/dateRanges';
 import { useTranslation } from '@/i18n';
@@ -81,13 +81,7 @@ export function ExpenseEditorScreen() {
 
       <TextField label={tr.expenseEditor.amountLabel} value={amount} onChangeText={setAmount} placeholder="0" keyboardType="decimal-pad" />
       <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
-      <TextField
-        label={tr.expenseEditor.dateLabel}
-        value={date}
-        onChangeText={setDate}
-        placeholder={todayKey()}
-        keyboardType="numbers-and-punctuation"
-      />
+      <DateField label={tr.expenseEditor.dateLabel} value={date} onChange={setDate} />
       <TextField label={tr.expenseEditor.commentLabel} value={comment} onChangeText={setComment} placeholder={tr.expenseEditor.commentPlaceholder} />
 
       <Button title={tr.expenseEditor.save} onPress={handleSave} style={styles.saveButton} />

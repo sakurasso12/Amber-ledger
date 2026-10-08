@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
-import { CustomizableCard, Button, TextField } from '@/components/ui';
+import { CustomizableCard, Button, TextField, useKeyboardHeight } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 
 interface BalanceCardProps {
@@ -37,6 +37,7 @@ export function BalanceCard({
   currency,
 }: BalanceCardProps) {
   const theme = useTheme();
+  const keyboardHeight = useKeyboardHeight();
   const tr = useTranslation();
   const bankColor = bank >= 0 ? theme.colors.success : theme.colors.danger;
   // What will be on the card once the salary for the closed period arrives. The still-accruing
@@ -162,7 +163,7 @@ export function BalanceCard({
       {body}
 
       <Modal visible={editing} transparent animationType="fade" onRequestClose={() => setEditing(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setEditing(false)}>
+        <Pressable style={[styles.backdrop, { paddingBottom: keyboardHeight }]} onPress={() => setEditing(false)}>
           <Pressable
             style={[styles.dialog, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
             onPress={(e) => e.stopPropagation()}

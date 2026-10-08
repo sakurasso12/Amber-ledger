@@ -7,7 +7,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { Button, ProgressBar, Screen, TextField } from '@/components/ui';
+import { Button, ProgressBar, Screen, TextField, useKeyboardHeight } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 import { Category } from '@/types';
 import { monthRange } from '@/lib/dateRanges';
@@ -18,6 +18,7 @@ const PALETTE = ['#C1502E', '#3E7FB8', '#8A5CB8', '#3E8F5C', '#8A7A64', '#C98A1E
 
 export function CategoryManagerScreen() {
   const theme = useTheme();
+  const keyboardHeight = useKeyboardHeight();
   const tr = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -125,7 +126,7 @@ export function CategoryManagerScreen() {
       />
 
       <Modal visible={!!editingCategory} transparent animationType="fade" onRequestClose={() => setEditingCategory(null)}>
-        <Pressable style={styles.backdrop} onPress={() => setEditingCategory(null)}>
+        <Pressable style={[styles.backdrop, { paddingBottom: keyboardHeight }]} onPress={() => setEditingCategory(null)}>
           <Pressable
             style={[styles.dialog, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
             onPress={(e) => e.stopPropagation()}

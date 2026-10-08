@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurTargetView, BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { Button, CustomizableCard, PressableScale, Text, TextField } from '@/components/ui';
+import { Button, CustomizableCard, DateField, PressableScale, Text, TextField, useKeyboardHeight } from '@/components/ui';
 import { projectSavings } from '@/lib/savings';
 import { todayKey } from '@/lib/dateRanges';
 import { useTranslation } from '@/i18n';
@@ -102,8 +102,6 @@ function AskCard() {
   );
 }
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
 function SavingsEditor({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const theme = useTheme();
   const tr = useTranslation();
@@ -112,15 +110,14 @@ function SavingsEditor({ visible, onClose }: { visible: boolean; onClose: () => 
   const [balance, setBalance] = useState('');
   const [rate, setRate] = useState('');
   const [opened, setOpened] = useState('');
-  const [dateError, setDateError] = useState(false);
   const insets = useSafeAreaInsets();
+  const keyboardHeight = useKeyboardHeight();
 
   // Fill the fields from settings every time the sheet opens.
   function handleShow() {
     setBalance(settings.savingsBalance ? String(settings.savingsBalance) : '');
     setRate(settings.savingsRatePercent ? String(settings.savingsRatePercent) : '');
     setOpened(settings.savingsOpenedAt ?? todayKey());
-    setDateError(false);
   }
 
   const toNumber = (text: string) => {
@@ -129,36 +126,20 @@ function SavingsEditor({ visible, onClose }: { visible: boolean; onClose: () => 
   };
 
   function handleSave() {
-    const validDate = DATE_RE.test(opened) && !Number.isNaN(new Date(`${opened}T00:00:00`).getTime()) && opened <= todayKey();
-    if (!validDate) {
-      setDateError(true);
-      return;
-    }
     updateSettings({ savingsBalance: toNumber(balance), savingsRatePercent: toNumber(rate), savingsOpenedAt: opened });
     onClose();
   }
 
   return (
     <Modal visible={visible} transparent animationType="slide" onShow={handleShow} onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheetBackdrop}>
+      <View style={[styles.sheetBackdrop, { paddingBottom: keyboardHeight }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={[styles.sheet, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, paddingBottom: insets.bottom + 20 }]}>
+        <View style={[styles.sheet, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, paddingBottom: (keyboardHeight ? 0 : insets.bottom) + 20 }]}>
           <Text style={[styles.sheetTitle, { color: theme.colors.text }]}>{tr.savings.editTitle}</Text>
           <TextField label={`${tr.savings.balance} (${settings.currency})`} value={balance} onChangeText={setBalance} keyboardType="decimal-pad" placeholder="0" />
           <TextField label={tr.savings.rate} value={rate} onChangeText={setRate} keyboardType="decimal-pad" placeholder="5" />
-          <TextField
-            label={tr.savings.openedAt}
-            value={opened}
-            onChangeText={(t) => {
-              setOpened(t);
-              setDateError(false);
-            }}
-            placeholder="2026-01-31"
-            maxLength={10}
-          />
-          <Text style={[styles.note, { color: dateError ? theme.colors.danger : theme.colors.textMuted }]}>
-            {dateError ? tr.savings.invalidDate : tr.savings.openedAtHint}
-          </Text>
+          <DateField label={tr.savings.openedAt} value={opened} onChange={setOpened} maximumDate={new Date()} />
+          <Text style={[styles.note, { color: theme.colors.textMuted }]}>{tr.savings.openedAtHint}</Text>
           <View style={styles.askButtons}>
             <Button title={tr.savings.cancel} variant="secondary" onPress={onClose} style={styles.flex} />
             <Button title={tr.savings.save} onPress={handleSave} style={styles.flex} />
@@ -173,7 +154,7 @@ function SavingsEditor({ visible, onClose }: { visible: boolean; onClose: () => 
             <Text style={[styles.hideLink, { color: theme.colors.danger }]}>{tr.savings.hideCard}</Text>
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
