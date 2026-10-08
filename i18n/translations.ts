@@ -4,7 +4,18 @@ export interface Translation {
   status: { notStarted: string; inProgress: string; done: string };
   priority: { low: string; medium: string; high: string };
   weekdaysShort: string[];
-  welcome: { slides: { title: string; text: string }[]; skip: string; next: string; start: string };
+  onboarding: {
+    continue: string;
+    back: string;
+    profileTitle: string;
+    profileSubtitle: string;
+    passwordTitle: string;
+    passwordHint: string;
+    passwordPlaceholder: string;
+    repeatPlaceholder: string;
+    passwordAlreadySet: string;
+  };
+  welcome: { slides: { title: string; text: string }[]; skip: string; next: string; start: string; again: string; againValue: string };
   tasksScreen: {
     header: string;
     emptyTitle: string;
@@ -326,6 +337,17 @@ const ru: Translation = {
   status: { notStarted: 'Не начато', inProgress: 'В процессе', done: 'Готово' },
   priority: { low: 'Низкий', medium: 'Средний', high: 'Высокий' },
   weekdaysShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+  onboarding: {
+    continue: 'Продолжить',
+    back: 'Назад',
+    profileTitle: 'Создай профиль',
+    profileSubtitle: 'Как тебя зовут? Фото — по желанию.',
+    passwordTitle: 'Пароль (необязательно)',
+    passwordHint: 'Нужен для блокировки финансов. Восстановить забытый пароль нельзя. Можно задать позже в настройках.',
+    passwordPlaceholder: 'Пароль',
+    repeatPlaceholder: 'Повтори пароль',
+    passwordAlreadySet: 'Пароль уже задан ✓',
+  },
   welcome: {
     slides: [
       { title: 'Добро пожаловать в Amber Ledger', text: 'Задачи и деньги в одном месте. Пролистай — покажем, что тут есть.' },
@@ -339,6 +361,8 @@ const ru: Translation = {
     skip: 'Пропустить',
     next: 'Далее',
     start: 'Начать',
+    again: 'Первый запуск',
+    againValue: 'Язык, профиль и гайд заново',
   },
   tasksScreen: {
     header: 'Задачи',
@@ -691,6 +715,17 @@ const uk: Translation = {
   status: { notStarted: 'Не розпочато', inProgress: 'У процесі', done: 'Готово' },
   priority: { low: 'Низький', medium: 'Середній', high: 'Високий' },
   weekdaysShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
+  onboarding: {
+    continue: 'Продовжити',
+    back: 'Назад',
+    profileTitle: 'Створи профіль',
+    profileSubtitle: 'Як тебе звати? Фото — за бажанням.',
+    passwordTitle: 'Пароль (необов’язково)',
+    passwordHint: 'Потрібен для блокування фінансів. Відновити забутий пароль неможливо. Можна задати пізніше в налаштуваннях.',
+    passwordPlaceholder: 'Пароль',
+    repeatPlaceholder: 'Повтори пароль',
+    passwordAlreadySet: 'Пароль уже задано ✓',
+  },
   welcome: {
     slides: [
       { title: 'Ласкаво просимо до Amber Ledger', text: 'Задачі й гроші в одному місці. Погортай — покажемо, що тут є.' },
@@ -704,6 +739,8 @@ const uk: Translation = {
     skip: 'Пропустити',
     next: 'Далі',
     start: 'Почати',
+    again: 'Перший запуск',
+    againValue: 'Мова, профіль і гайд знову',
   },
   tasksScreen: {
     header: 'Завдання',
@@ -1054,6 +1091,17 @@ const en: Translation = {
   status: { notStarted: 'Not started', inProgress: 'In progress', done: 'Done' },
   priority: { low: 'Low', medium: 'Medium', high: 'High' },
   weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  onboarding: {
+    continue: 'Continue',
+    back: 'Back',
+    profileTitle: 'Create your profile',
+    profileSubtitle: 'What should we call you? A photo is optional.',
+    passwordTitle: 'Password (optional)',
+    passwordHint: 'Used for the finance lock. A forgotten password can’t be recovered. You can set it later in Settings.',
+    passwordPlaceholder: 'Password',
+    repeatPlaceholder: 'Repeat password',
+    passwordAlreadySet: 'Password already set ✓',
+  },
   welcome: {
     slides: [
       { title: 'Welcome to Amber Ledger', text: 'Your tasks and your money in one place. Swipe through for a quick tour.' },
@@ -1067,6 +1115,8 @@ const en: Translation = {
     skip: 'Skip',
     next: 'Next',
     start: 'Get started',
+    again: 'First launch',
+    againValue: 'Language, profile and tour again',
   },
   tasksScreen: {
     header: 'Tasks',

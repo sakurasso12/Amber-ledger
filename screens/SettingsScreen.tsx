@@ -13,7 +13,9 @@ interface Row {
   icon: string;
   title: string;
   value: string;
-  route: string;
+  route?: string;
+  /** Instead of a route: rows that just do something. */
+  action?: () => void;
 }
 
 export function SettingsScreen() {
@@ -22,6 +24,7 @@ export function SettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const settings = useSettingsStore((s) => s.settings);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
 
   const languageLabels: Record<string, string> = {
     ru: tr.settingsScreen.languageRu,
@@ -81,10 +84,12 @@ export function SettingsScreen() {
       value: settings.homeWidgetBackgroundUri ? tr.settingsScreen.backgroundSet : tr.settingsScreen.notSet,
       route: '/settings/home-widget',
     },
+    // Brings back the first-launch welcome cards.
+    { icon: '👋', title: tr.welcome.again, value: tr.welcome.againValue, action: () => updateSettings({ onboardingDone: false }) },
   ];
 
   const mode = theme.layout.settings;
-  const open = (row: Row) => router.push(row.route as never);
+  const open = (row: Row) => (row.action ? row.action() : router.push(row.route as never));
 
   let body: React.ReactNode;
   if (mode === 'big') {
@@ -92,7 +97,7 @@ export function SettingsScreen() {
     body = (
       <View style={styles.list}>
         {rows.map((row) => (
-          <PressableScale key={row.route} onPress={() => open(row)} style={[styles.bigRow, cardSurface(theme)]}>
+          <PressableScale key={row.title} onPress={() => open(row)} style={[styles.bigRow, cardSurface(theme)]}>
             <View style={[styles.bigIcon, { backgroundColor: `${theme.colors.primary}22` }]}>
               <Text style={styles.bigIconText}>{row.icon}</Text>
             </View>
@@ -110,7 +115,7 @@ export function SettingsScreen() {
     body = (
       <View style={styles.list}>
         {rows.map((row) => (
-          <PressableScale key={row.route} onPress={() => open(row)} style={[styles.row, cardSurface(theme)]}>
+          <PressableScale key={row.title} onPress={() => open(row)} style={[styles.row, cardSurface(theme)]}>
             <Text style={styles.icon}>{row.icon}</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>{row.title}</Text>
             <Text style={[styles.value, { color: theme.colors.textMuted }]} numberOfLines={1}>
