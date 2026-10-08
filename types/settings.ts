@@ -75,6 +75,15 @@ export interface AppSettings {
   /** ISO time until which Finance counts as unlocked. Persisted so home screen widgets — which
    * run without the app — know whether to show amounts. */
   financeUnlockedUntil: string | null;
+  /** Savings cushion card at the bottom of Finance: 'ask' until the user answers the prompt on it. */
+  savingsCard: 'ask' | 'on' | 'off';
+  /** Current balance on the savings account, in the app currency. */
+  savingsBalance: number;
+  /** Annual interest rate in percent (e.g. 5.5). */
+  savingsRatePercent: number;
+  /** Date the account (or the current deposit term) was opened, yyyy-MM-dd — the projection runs to
+   * its next anniversary. */
+  savingsOpenedAt: string | null;
 }
 
 export type FinanceLockMethod = 'fingerprint' | 'device' | 'password';
@@ -111,4 +120,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   financeLockMethod: 'fingerprint',
   financeLockMinutes: 4,
   financeUnlockedUntil: null,
+  savingsCard: 'ask',
+  savingsBalance: 0,
+  savingsRatePercent: 0,
+  savingsOpenedAt: null,
 };

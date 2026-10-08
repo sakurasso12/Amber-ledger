@@ -303,6 +303,28 @@ export interface Translation {
     prompt: string;
     cancel: string;
   };
+  savings: {
+    title: string;
+    askTitle: string;
+    askSubtitle: string;
+    yes: string;
+    no: string;
+    balance: string;
+    rate: string;
+    openedAt: string;
+    openedAtHint: string;
+    yearEnds: (month: string) => string;
+    projection: (amount: string, interest: string) => string;
+    afterTax: string;
+    notConfigured: string;
+    editTitle: string;
+    save: string;
+    cancel: string;
+    hideCard: string;
+    invalidDate: string;
+    settingsToggle: string;
+    settingsToggleHint: string;
+  };
 }
 
 const ru: Translation = {
@@ -640,6 +662,28 @@ const ru: Translation = {
     prompt: 'Разблокировать финансы',
     cancel: 'Отмена',
   },
+  savings: {
+    title: 'Подушка безопасности',
+    askTitle: 'Добавить карточку для подушки?',
+    askSubtitle: 'Сколько лежит на накопительном счёте и сколько будет к концу года по вашей ставке.',
+    yes: 'Да, добавить',
+    no: 'Не нужно',
+    balance: 'Сейчас на счёте',
+    rate: 'Ставка, % годовых',
+    openedAt: 'Дата открытия счёта (ГГГГ-ММ-ДД)',
+    openedAtHint: 'От неё считается год — к какой дате будет прогноз.',
+    yearEnds: (month) => `Год закончится: ${month}`,
+    projection: (amount, interest) => `≈ ${amount} к этому времени (+${interest})`,
+    afterTax: 'После налога Белки 19%, капитализация ежемесячно — примерно.',
+    notConfigured: 'Нажмите, чтобы указать сумму, ставку и дату открытия',
+    editTitle: 'Подушка безопасности',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    hideCard: 'Скрыть карточку',
+    invalidDate: 'Дата в формате ГГГГ-ММ-ДД, не в будущем',
+    settingsToggle: 'Карточка «Подушка безопасности»',
+    settingsToggleHint: 'Внизу вкладки «Финансы»: накопления и прогноз на год.',
+  },
 };
 
 const uk: Translation = {
@@ -975,6 +1019,28 @@ const uk: Translation = {
     prompt: 'Розблокувати фінанси',
     cancel: 'Скасувати',
   },
+  savings: {
+    title: 'Подушка безпеки',
+    askTitle: 'Додати картку для подушки?',
+    askSubtitle: 'Скільки лежить на накопичувальному рахунку і скільки буде до кінця року за вашою ставкою.',
+    yes: 'Так, додати',
+    no: 'Не потрібно',
+    balance: 'Зараз на рахунку',
+    rate: 'Ставка, % річних',
+    openedAt: 'Дата відкриття рахунку (РРРР-ММ-ДД)',
+    openedAtHint: 'Від неї рахується рік — до якої дати буде прогноз.',
+    yearEnds: (month) => `Рік закінчиться: ${month}`,
+    projection: (amount, interest) => `≈ ${amount} на той час (+${interest})`,
+    afterTax: 'Після податку Белки 19%, капіталізація щомісяця — приблизно.',
+    notConfigured: 'Натисніть, щоб вказати суму, ставку й дату відкриття',
+    editTitle: 'Подушка безпеки',
+    save: 'Зберегти',
+    cancel: 'Скасувати',
+    hideCard: 'Приховати картку',
+    invalidDate: 'Дата у форматі РРРР-ММ-ДД, не в майбутньому',
+    settingsToggle: 'Картка «Подушка безпеки»',
+    settingsToggleHint: 'Унизу вкладки «Фінанси»: заощадження і прогноз на рік.',
+  },
 };
 
 const en: Translation = {
@@ -1309,6 +1375,28 @@ const en: Translation = {
     wrongPassword: 'Wrong password',
     prompt: 'Unlock finance',
     cancel: 'Cancel',
+  },
+  savings: {
+    title: 'Savings cushion',
+    askTitle: 'Add a card for your savings?',
+    askSubtitle: 'What\'s on your savings account and roughly how much it will be by the end of the year at your rate.',
+    yes: 'Yes, add it',
+    no: 'No thanks',
+    balance: 'Balance now',
+    rate: 'Interest rate, % per year',
+    openedAt: 'Account opened (YYYY-MM-DD)',
+    openedAtHint: 'The year is counted from this date — that\'s when the projection ends.',
+    yearEnds: (month) => `Year ends: ${month}`,
+    projection: (amount, interest) => `≈ ${amount} by then (+${interest})`,
+    afterTax: 'After the 19% Belka tax, monthly capitalisation — a rough guide.',
+    notConfigured: 'Tap to set the balance, rate and opening date',
+    editTitle: 'Savings cushion',
+    save: 'Save',
+    cancel: 'Cancel',
+    hideCard: 'Hide card',
+    invalidDate: 'Date as YYYY-MM-DD, not in the future',
+    settingsToggle: 'Savings cushion card',
+    settingsToggleHint: 'At the bottom of Finance: your savings and a one-year projection.',
   },
 };
 

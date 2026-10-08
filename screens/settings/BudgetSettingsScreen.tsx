@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -13,6 +13,28 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <View style={styles.field}>
       <Text style={[styles.fieldLabel, { color: theme.colors.textMuted }]}>{label}</Text>
       {children}
+    </View>
+  );
+}
+
+/** Brings back (or hides) the savings cushion card at the bottom of Finance. */
+function SavingsToggle() {
+  const theme = useTheme();
+  const tr = useTranslation();
+  const savingsCard = useSettingsStore((s) => s.settings.savingsCard);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  return (
+    <View style={styles.toggleRow}>
+      <View style={styles.toggleText}>
+        <Text style={{ color: theme.colors.text, fontSize: 15, fontWeight: '600' }}>{tr.savings.settingsToggle}</Text>
+        <Text style={{ color: theme.colors.textMuted, fontSize: 12, lineHeight: 17 }}>{tr.savings.settingsToggleHint}</Text>
+      </View>
+      <Switch
+        value={savingsCard === 'on'}
+        onValueChange={(on) => updateSettings({ savingsCard: on ? 'on' : 'off' })}
+        trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
+        thumbColor={theme.colors.surface}
+      />
     </View>
   );
 }
@@ -56,12 +78,15 @@ export function BudgetSettingsScreen() {
             keyboardType="decimal-pad"
           />
         </Field>
+        <SavingsToggle />
       </ScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
+  toggleText: { flex: 1, gap: 2 },
   content: { paddingHorizontal: 16, paddingBottom: 32, gap: 16 },
   field: { gap: 6 },
   fieldLabel: { fontSize: 12, fontWeight: '600' },
