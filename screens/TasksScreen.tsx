@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
-import { EmptyState, Fab, LayoutScreen, QuickAddBar } from '@/components/ui';
+import { EditLayoutButton, EmptyState, Fab, LayoutScreen, QuickAddBar } from '@/components/ui';
 import { TaskBoard } from '@/components/task/TaskBoard';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
@@ -150,17 +150,7 @@ export function TasksScreen() {
       headerOverride={selectionBar}
       right={
         // Pencil: rearrange and resize the cards; the check mark ends editing.
-        <Pressable
-          onPress={() => {
-            haptics.tap();
-            setEditingLayout((v) => !v);
-          }}
-          hitSlop={10}
-          accessibilityLabel={editingLayout ? tr.layoutEdit.done : tr.layoutEdit.edit}
-          style={[styles.editButton, { backgroundColor: editingLayout ? theme.colors.primary : `${theme.colors.primary}1F` }]}
-        >
-          <Ionicons name={editingLayout ? 'checkmark' : 'pencil'} size={18} color={editingLayout ? theme.colors.primaryText : theme.colors.primary} />
-        </Pressable>
+        <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} />
       }
     >
       {list}
@@ -201,5 +191,4 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '800' },
   focusHeader: { gap: 14, marginBottom: 10 },
   habitsHeader: { marginBottom: 14 },
-  editButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
 });

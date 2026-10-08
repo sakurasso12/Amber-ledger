@@ -104,6 +104,8 @@ export interface AppSettings {
   taskOrderMode: 'deadline' | 'manual';
   /** The user's own order, as task series keys. */
   taskManualOrder: string[];
+  /** Editable card boards (Finance, Stats tabs): saved order and half/full sizes per board. */
+  moduleLayouts: Record<string, { order: string[]; sizes: Record<string, 'half' | 'full'> }>;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -154,4 +156,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   taskCardSizes: {},
   taskOrderMode: 'deadline',
   taskManualOrder: [],
+  moduleLayouts: {},
 };
