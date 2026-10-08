@@ -7,7 +7,7 @@ import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Button, Screen, SubScreenHeader, Text, TextField } from '@/components/ui';
 import { deletePersistedImage, pickAndPersistImage } from '@/lib/imagePicker';
-import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from '@/lib/password';
+import { checkProfilePassword, MIN_PASSWORD_LENGTH, setProfilePassword } from '@/lib/password';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 
@@ -76,7 +76,7 @@ export function ProfileSettingsScreen() {
 function PasswordSection() {
   const theme = useTheme();
   const tr = useTranslation();
-  const passwordHash = useSettingsStore((s) => s.settings.profilePasswordHash);
+  const passwordSet = useSettingsStore((s) => s.settings.profilePasswordSet);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -91,14 +91,13 @@ function PasswordSection() {
     if (next.length < MIN_PASSWORD_LENGTH) return setError(tr.profileSettings.tooShort(MIN_PASSWORD_LENGTH));
     if (next !== repeat) return setError(tr.profileSettings.mismatch);
     setBusy(true);
-    // Let the spinner paint before scrypt (deliberately slow) blocks the JS thread.
-    await new Promise((resolve) => setTimeout(resolve, 16));
-    if (passwordHash && !(await verifyPassword(current, passwordHash))) {
+    if (passwordSet && !(await checkProfilePassword(current))) {
       setBusy(false);
       haptics.warning();
       return setError(tr.profileSettings.wrongPassword);
     }
-    updateSettings({ profilePasswordHash: await hashPassword(next) });
+    await setProfilePassword(next);
+    updateSettings({ profilePasswordSet: true });
     setBusy(false);
     haptics.success();
     setCurrent('');
@@ -111,13 +110,13 @@ function PasswordSection() {
     <View style={[styles.section, cardSurface(theme)]}>
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{tr.profileSettings.passwordSection}</Text>
-        <Text style={{ color: passwordHash ? theme.colors.success : theme.colors.textMuted, fontSize: 12, fontWeight: '600' }}>
-          {passwordHash ? tr.profileSettings.passwordSet : tr.profileSettings.passwordNotSet}
+        <Text style={{ color: passwordSet ? theme.colors.success : theme.colors.textMuted, fontSize: 12, fontWeight: '600' }}>
+          {passwordSet ? tr.profileSettings.passwordSet : tr.profileSettings.passwordNotSet}
         </Text>
       </View>
       <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.profileSettings.passwordHint}</Text>
 
-      {passwordHash ? (
+      {passwordSet ? (
         <TextField value={current} onChangeText={setCurrent} placeholder={tr.profileSettings.currentPassword} secureTextEntry />
       ) : null}
       <TextField value={next} onChangeText={setNext} placeholder={tr.profileSettings.newPassword} secureTextEntry />
@@ -130,9 +129,9 @@ function PasswordSection() {
         <ActivityIndicator color={theme.colors.primary} />
       ) : (
         <Button
-          title={passwordHash ? tr.profileSettings.changePassword : tr.profileSettings.setPassword}
+          title={passwordSet ? tr.profileSettings.changePassword : tr.profileSettings.setPassword}
           onPress={handleSave}
-          disabled={!next || !repeat || (!!passwordHash && !current)}
+          disabled={!next || !repeat || (!!passwordSet && !current)}
         />
       )}
     </View>

@@ -62,9 +62,9 @@ export interface AppSettings {
   profileName: string;
   /** Local file:// URI of the square-cropped avatar photo (drawn as a circle), or null. */
   profileAvatarUri: string | null;
-  /** Salted scrypt hash of the profile password (see lib/password.ts), or null until one is set.
-   * The password itself is never stored. It unlocks Finance as a fallback and will key sync. */
-  profilePasswordHash: string | null;
+  /** Whether a profile password exists. Its salted hash lives in secure storage, not here — see
+   * lib/password.ts. It unlocks Finance as a fallback and will key sync later. */
+  profilePasswordSet: boolean;
   /** Settings → Security: hide money behind a lock (Finance tab, Stats → Finance, money widgets). */
   financeLockEnabled: boolean;
   /** device = fingerprint with the phone's own PIN/pattern as fallback; password = profile password. */
@@ -105,7 +105,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   layoutId: 'standard',
   profileName: '',
   profileAvatarUri: null,
-  profilePasswordHash: null,
+  profilePasswordSet: false,
   financeLockEnabled: false,
   financeLockMethod: 'device',
   financeLockMinutes: 4,

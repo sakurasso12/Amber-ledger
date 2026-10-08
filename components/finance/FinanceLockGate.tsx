@@ -35,7 +35,7 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
   const theme = useTheme();
   const tr = useTranslation();
   const method = useSettingsStore((s) => s.settings.financeLockMethod);
-  const hasPassword = useSettingsStore((s) => !!s.settings.profilePasswordHash);
+  const hasPassword = useSettingsStore((s) => !!s.settings.profilePasswordSet);
   const [showPassword, setShowPassword] = useState(method === 'password');
   const [password, setPassword] = useState('');
   const [checking, setChecking] = useState(false);
@@ -49,8 +49,6 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
   async function handlePassword() {
     setChecking(true);
     setError(false);
-    // scrypt is intentionally slow; let the spinner paint before it starts.
-    await new Promise((resolve) => setTimeout(resolve, 16));
     const ok = await unlockWithPassword(password);
     setChecking(false);
     if (ok) haptics.success();

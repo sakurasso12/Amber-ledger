@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSettingsStore } from './useSettingsStore';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
-import { verifyPassword } from '@/lib/password';
+import { checkProfilePassword } from '@/lib/password';
 
 /**
  * Finance lock. Unlocked state is a timestamp (settings.financeUnlockedUntil) rather than a flag,
@@ -48,8 +48,7 @@ export async function unlockWithDevice(prompt: string, cancelLabel: string): Pro
 
 /** Profile password — the fallback when the fingerprint isn't available or was forgotten. */
 export async function unlockWithPassword(password: string): Promise<boolean> {
-  const hash = useSettingsStore.getState().settings.profilePasswordHash;
-  if (!hash || !(await verifyPassword(password, hash))) return false;
+  if (!(await checkProfilePassword(password))) return false;
   unlockFinances();
   return true;
 }

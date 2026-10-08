@@ -20,7 +20,7 @@ export function SecuritySettingsScreen() {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [minutesText, setMinutesText] = useState(String(settings.financeLockMinutes));
   const [hasBiometrics, setHasBiometrics] = useState(true);
-  const hasPassword = !!settings.profilePasswordHash;
+  const hasPassword = settings.profilePasswordSet;
 
   useEffect(() => {
     deviceAuthAvailable().then(setHasBiometrics);
