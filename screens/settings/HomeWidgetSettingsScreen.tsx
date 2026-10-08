@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -71,7 +72,16 @@ export function HomeWidgetSettingsScreen() {
                 <Image source={{ uri }} style={[styles.preview, { width, aspectRatio }]} resizeMode="cover" />
               ) : (
                 <View style={[styles.preview, styles.placeholder, { width, aspectRatio, borderColor: theme.colors.border }]}>
-                  <Text style={{ color: theme.colors.textMuted }}>{tr.backgroundSettings.notSet}</Text>
+                  {/* Small previews are only ~80 px tall: an icon plus text that shrinks to fit. */}
+                  <Ionicons name="image-outline" size={20} color={theme.colors.textMuted} />
+                  <Text
+                    style={[styles.placeholderText, { color: theme.colors.textMuted }]}
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}
+                  >
+                    {tr.backgroundSettings.notSet}
+                  </Text>
                 </View>
               )}
               <View style={styles.buttons}>
@@ -98,7 +108,8 @@ const styles = StyleSheet.create({
   section: { gap: 10 },
   label: { fontSize: 15, fontWeight: '700' },
   preview: { borderRadius: 16, alignSelf: 'center' },
-  placeholder: { borderWidth: 1, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  placeholder: { borderWidth: 1, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', padding: 8, gap: 4 },
+  placeholderText: { fontSize: 12, textAlign: 'center' },
   buttons: { flexDirection: 'row', gap: 10 },
   button: { flex: 1 },
 });
