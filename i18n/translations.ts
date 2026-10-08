@@ -57,7 +57,10 @@ export interface Translation {
     unitDays: string;
     unitWeeks: string;
     unitMonths: string;
+    streak: string;
+    streakHint: string;
   };
+  habits: { doneToday: string; markDone: string; next: (day: string) => string };
   calendarScreen: { header: string; emptyDay: string };
   financeScreen: {
     header: string;
@@ -376,7 +379,10 @@ const ru: Translation = {
     unitDays: 'дней',
     unitWeeks: 'недель',
     unitMonths: 'месяцев',
+    streak: 'Считать серию',
+    streakHint: 'Задача станет привычкой с огоньком 🔥 наверху экрана задач',
   },
+  habits: { doneToday: 'Сделано', markDone: 'Отметить', next: (day) => `Далее: ${day}` },
   calendarScreen: { header: 'Календарь', emptyDay: 'На этот день ничего не запланировано' },
   financeScreen: {
     header: 'Финансы',
@@ -725,7 +731,10 @@ const uk: Translation = {
     unitDays: 'днів',
     unitWeeks: 'тижнів',
     unitMonths: 'місяців',
+    streak: 'Рахувати серію',
+    streakHint: 'Задача стане звичкою з вогником 🔥 угорі екрана задач',
   },
+  habits: { doneToday: 'Зроблено', markDone: 'Позначити', next: (day) => `Далі: ${day}` },
   calendarScreen: { header: 'Календар', emptyDay: 'На цей день нічого не заплановано' },
   financeScreen: {
     header: 'Фінанси',
@@ -1072,7 +1081,10 @@ const en: Translation = {
     unitDays: 'days',
     unitWeeks: 'weeks',
     unitMonths: 'months',
+    streak: 'Count streak',
+    streakHint: 'The task becomes a habit with a 🔥 at the top of Tasks',
   },
+  habits: { doneToday: 'Done', markDone: 'Mark done', next: (day) => `Next: ${day}` },
   calendarScreen: { header: 'Calendar', emptyDay: 'Nothing planned for this day' },
   financeScreen: {
     header: 'Finance',

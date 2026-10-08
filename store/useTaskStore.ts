@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as tasksRepo from '@/db/tasksRepo';
 import { nextOccurrence } from '@/lib/recurrence';
+import { isHabit, isOnOrBeforeToday } from '@/lib/streaks';
 import { cancelTaskReminder, clearStickyNotification, syncStickyNotification, syncTaskReminder } from '@/notifications';
 import { useSettingsStore } from './useSettingsStore';
 import { useFinanceStore } from './useFinanceStore';
@@ -84,7 +85,11 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
     syncNotificationsFor(updated);
 
     if (status === 'done' && task.recurrenceRule) {
-      const deadlineAt = nextOccurrence(task.recurrenceRule, task.deadlineAt);
+      let deadlineAt = nextOccurrence(task.recurrenceRule, task.deadlineAt);
+      // A habit done late covers today too, so its next time is the first one after today.
+      while (deadlineAt && isHabit(task) && isOnOrBeforeToday(deadlineAt)) {
+        deadlineAt = nextOccurrence(task.recurrenceRule, deadlineAt);
+      }
       if (deadlineAt) {
         const nextTask = await tasksRepo.createNextRecurringInstance(task, deadlineAt);
         set((state) => ({ tasks: [nextTask, ...state.tasks] }));

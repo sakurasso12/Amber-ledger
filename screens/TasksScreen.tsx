@@ -9,6 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { EmptyState, Fab, LayoutScreen, QuickAddBar } from '@/components/ui';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
+import { HabitStrip } from '@/components/task/HabitStrip';
 import { activeTasks } from '@/lib/taskFilters';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
@@ -137,6 +138,8 @@ export function TasksScreen() {
 
   return (
     <LayoutScreen title={tr.tasksScreen.header} count={visibleTasks.length} headerOverride={selectionBar}>
+      {!selectionMode ? <HabitStrip /> : null}
+
       {list}
 
       {quickAddOpen && !selectionMode ? (

@@ -12,6 +12,7 @@ import { TagInput } from '@/components/task/TagInput';
 import { RecurrencePicker } from '@/components/task/RecurrencePicker';
 import { CategoryPicker } from '@/components/finance/CategoryPicker';
 import { Priority, RecurrenceRule, TaskStatus } from '@/types';
+import { canCountStreak, firstHabitDeadline } from '@/lib/streaks';
 import { generateId } from '@/lib/id';
 import { deletePersistedImage, pickAndPersistImage } from '@/lib/imagePicker';
 import { useTranslation } from '@/i18n';
@@ -78,6 +79,10 @@ export function TaskEditorScreen() {
         ? { categoryId: expenseCategoryId, amount: amountNum }
         : null;
 
+    // A habit needs a date to count from; without one it starts on its first scheduled day.
+    const habitDeadline =
+      deadlineAt ?? (recurrenceRule?.streak && canCountStreak(recurrenceRule) ? firstHabitDeadline(recurrenceRule) : null);
+
     if (isEditing && existing) {
       await editTask({
         ...existing,
@@ -85,7 +90,7 @@ export function TaskEditorScreen() {
         description,
         priority,
         status,
-        deadlineAt,
+        deadlineAt: habitDeadline,
         isImportant,
         tags,
         recurrenceRule,
@@ -106,7 +111,7 @@ export function TaskEditorScreen() {
         description,
         priority,
         status,
-        deadlineAt,
+        deadlineAt: habitDeadline,
         isImportant,
         tags,
         recurrenceRule,
@@ -216,7 +221,7 @@ export function TaskEditorScreen() {
       </View>
 
       <TagInput tags={tags} onChange={setTags} />
-      <RecurrencePicker value={recurrenceRule} onChange={setRecurrenceRule} />
+      <RecurrencePicker value={recurrenceRule} onChange={setRecurrenceRule} showStreak />
       <SubtaskChecklist subtasks={subtasks} onChange={setSubtasks} />
 
       {categories.length > 0 ? (

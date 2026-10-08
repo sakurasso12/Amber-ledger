@@ -12,6 +12,8 @@ export interface RecurrenceRule {
   weekdays: number[] | null;
   /** ISO date string; recurrence stops producing new instances after this date. */
   until: string | null;
+  /** Count a streak for this series and show it as a habit card instead of in the task list. */
+  streak?: boolean;
 }
 
 export interface SubTask {

@@ -1,7 +1,7 @@
 export const DB_NAME = 'amber-ledger.db';
 
 /** Current schema version. Bump this and append a migration when the schema changes. */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export const CREATE_TABLES_SQL = `
 PRAGMA journal_mode = WAL;
@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   recurrence_interval INTEGER,
   recurrence_weekdays TEXT,
   recurrence_until TEXT,
+  recurrence_streak INTEGER NOT NULL DEFAULT 0,
   series_id TEXT,
   image_uri TEXT,
   sort_order INTEGER NOT NULL DEFAULT 0,
