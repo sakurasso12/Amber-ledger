@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { deviceAuthAvailable, lockFinances, unlockFinances } from '@/store/useFinanceLock';
+import { deviceAuthAvailable, lockFinances } from '@/store/useFinanceLock';
 import { Button, Screen, SegmentedControl, SubScreenHeader, Text, TextField } from '@/components/ui';
 import { FINANCE_LOCK_MAX_MINUTES, FinanceLockMethod } from '@/types';
 import { useTranslation } from '@/i18n';
@@ -28,9 +28,9 @@ export function SecuritySettingsScreen() {
 
   function toggleLock(enabled: boolean) {
     updateSettings({ financeLockEnabled: enabled });
-    // Turning it on from here counts as unlocked for now — no point locking the user out mid-setup.
-    if (enabled) unlockFinances();
-    else lockFinances();
+    // Turning the lock on locks right away, so the next visit to Finance already asks to unlock
+    // (and the timer starts from that unlock). Turning it off just clears the window.
+    lockFinances();
   }
 
   function commitMinutes(text: string) {
