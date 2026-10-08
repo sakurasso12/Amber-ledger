@@ -6,7 +6,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
-import { LayoutEditItem, useLayoutHint } from './LayoutEditItem';
+import { droppedKey, LayoutEditItem, useLayoutHint } from './LayoutEditItem';
 import { LayoutEditingContext } from './LayoutEditing';
 import { Text } from './Text';
 
@@ -83,7 +83,10 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
               save({ order: order(list).map((m) => m.key) });
               markSeen();
             }}
-            onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
+            onActiveItemDropped={({ key }) => {
+              const k = droppedKey(key);
+              setDrops((d) => ({ ...d, [k]: (d[k] ?? 0) + 1 }));
+            }}
           >
             {list.map((m, index) => {
               const size = sizeOf(m);

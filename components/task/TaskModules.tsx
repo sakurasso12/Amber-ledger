@@ -6,7 +6,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Habit } from '@/lib/streaks';
 import { SegmentedControl, Text } from '@/components/ui';
-import { LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
+import { droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { LayoutEditingContext } from '@/components/ui/LayoutEditing';
 import { useTranslation } from '@/i18n';
 import { HabitCard } from './HabitCard';
@@ -99,7 +99,10 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
                 updateSettings({ tasksModuleOrder: order(modules).map((m) => m.key) });
                 markSeen();
               }}
-              onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
+              onActiveItemDropped={({ key }) => {
+              const k = droppedKey(key);
+              setDrops((d) => ({ ...d, [k]: (d[k] ?? 0) + 1 }));
+            }}
             >
               {modules.map((item, index) => (
                 <View key={item.key} style={{ width: item.key === FOCUS_KEY ? width : size }}>

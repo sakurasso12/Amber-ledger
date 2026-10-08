@@ -9,7 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { CustomizableCard, EditLayoutButton, EmptyState, LayoutScreen } from '@/components/ui';
-import { LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
+import { droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
@@ -144,7 +144,10 @@ export function CalendarScreen() {
               updateSettings({ expenseDayOrder: { ...dayOrders, [selectedDate]: order(expensesForDay).map((e) => e.id) } });
               markSeen();
             }}
-            onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
+            onActiveItemDropped={({ key }) => {
+              const k = droppedKey(key);
+              setDrops((d) => ({ ...d, [k]: (d[k] ?? 0) + 1 }));
+            }}
           >
             {expensesForDay.map((expense, index) => (
               <View key={expense.id}>

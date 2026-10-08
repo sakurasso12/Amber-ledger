@@ -28,6 +28,12 @@ export function useLayoutHint(boardId: string) {
   return { showHint: !seen, markSeen };
 }
 
+/**
+ * Sortable.Flex reports an item's key the way React.Children.toArray stores it (".$balance");
+ * strip that prefix to get back the key we gave the item.
+ */
+export const droppedKey = (key: string) => key.replace(/^\.\$/, '');
+
 interface LayoutEditItemProps {
   children: React.ReactNode;
   /** Sway side to side for a couple of seconds — "these can be moved" when edit mode opens. */
