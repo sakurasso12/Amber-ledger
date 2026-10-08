@@ -9,7 +9,7 @@ import { deletePersistedImage, pickAndPersistImage } from '@/lib/imagePicker';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { useTranslation } from '@/i18n';
 
-type WidgetKey = 'AmberLedgerToday' | 'AmberLedgerNextTask' | 'AmberLedgerDayOff';
+type WidgetKey = 'AmberLedgerToday' | 'AmberLedgerNextTask' | 'AmberLedgerDayOff' | 'AmberLedgerStreak';
 
 /** Pick a background photo for each home screen widget separately. */
 export function HomeWidgetSettingsScreen() {
@@ -20,11 +20,12 @@ export function HomeWidgetSettingsScreen() {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
 
   // Previews keep the widgets' real sizes relative to each other: the big one is 4 cells wide,
-  // the others 2, so they're drawn at full and half width.
+  // the others 2 (the streak square 1), so they're drawn at full, half and quarter width.
   const widgets: { key: WidgetKey; label: string; width: `${number}%`; aspectRatio: number }[] = [
     { key: 'AmberLedgerToday', label: tr.homeWidgetSettings.big, width: '100%', aspectRatio: 2 },
     { key: 'AmberLedgerNextTask', label: tr.homeWidgetSettings.medium, width: '50%', aspectRatio: 1 },
     { key: 'AmberLedgerDayOff', label: tr.homeWidgetSettings.small, width: '50%', aspectRatio: 2 },
+    { key: 'AmberLedgerStreak', label: tr.homeWidgetSettings.streak, width: '25%', aspectRatio: 1 },
   ];
 
   const uriFor = (key: WidgetKey) =>

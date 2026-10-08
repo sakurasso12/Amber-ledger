@@ -191,7 +191,7 @@ export interface Translation {
   languageSettings: { title: string; note: string };
   notificationsSettings: { title: string; enabled: string; disabled: string; reminderLabel: string; note: string };
   backgroundSettings: { title: string; notSet: string; pick: string; replace: string; remove: string };
-  homeWidgetSettings: { title: string; hint: string; big: string; medium: string; small: string };
+  homeWidgetSettings: { title: string; hint: string; big: string; medium: string; small: string; streak: string };
   homeWidgets: {
     todayTitle: string;
     noTasks: string;
@@ -570,6 +570,7 @@ const ru: Translation = {
     big: 'Большой · сегодня',
     medium: 'Средний · ближайшая задача',
     small: 'Маленький · выходной',
+    streak: 'Квадрат · серия',
   },
   homeWidgets: {
     todayTitle: 'Сегодня',
@@ -953,6 +954,7 @@ const uk: Translation = {
     big: 'Великий · сьогодні',
     medium: 'Середній · найближча задача',
     small: 'Малий · вихідний',
+    streak: 'Квадрат · серія',
   },
   homeWidgets: {
     todayTitle: 'Сьогодні',
@@ -1336,6 +1338,7 @@ const en: Translation = {
     big: 'Large · today',
     medium: 'Medium · next task',
     small: 'Small · day off',
+    streak: 'Square · streak',
   },
   homeWidgets: {
     todayTitle: 'Today',
