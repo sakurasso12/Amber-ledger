@@ -18,6 +18,7 @@ import {
 import { useTranslation } from '@/i18n';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { useFinanceLockLifecycle } from '@/store/useFinanceLock';
+import { WelcomeCards } from '@/components/WelcomeCards';
 
 /**
  * JS stack (not the native one) because Android's native stack has no swipe-back: here every
@@ -53,6 +54,7 @@ function RootStack() {
         <Stack.Screen name="expense/recurring" options={MODAL} />
         <Stack.Screen name="category/manage" options={MODAL} />
       </Stack>
+      <WelcomeCards />
     </>
   );
 }

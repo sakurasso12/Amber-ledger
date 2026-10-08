@@ -4,6 +4,7 @@ export interface Translation {
   status: { notStarted: string; inProgress: string; done: string };
   priority: { low: string; medium: string; high: string };
   weekdaysShort: string[];
+  welcome: { slides: { title: string; text: string }[]; skip: string; next: string; start: string };
   tasksScreen: {
     header: string;
     emptyTitle: string;
@@ -325,6 +326,20 @@ const ru: Translation = {
   status: { notStarted: 'Не начато', inProgress: 'В процессе', done: 'Готово' },
   priority: { low: 'Низкий', medium: 'Средний', high: 'Высокий' },
   weekdaysShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+  welcome: {
+    slides: [
+      { title: 'Добро пожаловать в Amber Ledger', text: 'Задачи и деньги в одном месте. Пролистай — покажем, что тут есть.' },
+      { title: 'Задачи', text: 'Сроки, приоритеты, подзадачи и повторы. Долгое нажатие на «+» — быстрое добавление.' },
+      { title: 'Привычки 🔥', text: 'Включи «Считать серию» у повторяющейся задачи — она станет карточкой со стриком наверху.' },
+      { title: 'Календарь', text: 'Задачи и рабочие смены по дням — весь месяц перед глазами.' },
+      { title: 'Финансы', text: 'Баланс, зарплата за период, траты, бюджеты и подушка накоплений.' },
+      { title: 'Статистика', text: 'Неделя в графиках: сделанные задачи и траты по категориям.' },
+      { title: 'Под себя', text: 'Темы, вертикальный макет, виджеты и блокировка финансов — всё в настройках.' },
+    ],
+    skip: 'Пропустить',
+    next: 'Далее',
+    start: 'Начать',
+  },
   tasksScreen: {
     header: 'Задачи',
     emptyTitle: 'Пока нет задач',
@@ -676,6 +691,20 @@ const uk: Translation = {
   status: { notStarted: 'Не розпочато', inProgress: 'У процесі', done: 'Готово' },
   priority: { low: 'Низький', medium: 'Середній', high: 'Високий' },
   weekdaysShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
+  welcome: {
+    slides: [
+      { title: 'Ласкаво просимо до Amber Ledger', text: 'Задачі й гроші в одному місці. Погортай — покажемо, що тут є.' },
+      { title: 'Задачі', text: 'Терміни, пріоритети, підзадачі та повтори. Довге натискання на «+» — швидке додавання.' },
+      { title: 'Звички 🔥', text: 'Увімкни «Рахувати серію» у задачі, що повторюється, — вона стане карткою зі стріком угорі.' },
+      { title: 'Календар', text: 'Задачі та робочі зміни по днях — увесь місяць перед очима.' },
+      { title: 'Фінанси', text: 'Баланс, зарплата за період, витрати, бюджети та подушка заощаджень.' },
+      { title: 'Статистика', text: 'Тиждень у графіках: виконані задачі та витрати за категоріями.' },
+      { title: 'Під себе', text: 'Теми, вертикальний макет, віджети та блокування фінансів — усе в налаштуваннях.' },
+    ],
+    skip: 'Пропустити',
+    next: 'Далі',
+    start: 'Почати',
+  },
   tasksScreen: {
     header: 'Завдання',
     emptyTitle: 'Поки що немає завдань',
@@ -1025,6 +1054,20 @@ const en: Translation = {
   status: { notStarted: 'Not started', inProgress: 'In progress', done: 'Done' },
   priority: { low: 'Low', medium: 'Medium', high: 'High' },
   weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  welcome: {
+    slides: [
+      { title: 'Welcome to Amber Ledger', text: 'Your tasks and your money in one place. Swipe through for a quick tour.' },
+      { title: 'Tasks', text: 'Deadlines, priorities, subtasks and repeats. Long-press + to add one in a second.' },
+      { title: 'Habits 🔥', text: 'Turn on “Count streak” for a repeating task and it becomes a streak card at the top.' },
+      { title: 'Calendar', text: 'Tasks and work shifts day by day — the whole month at a glance.' },
+      { title: 'Finance', text: 'Bank balance, pay per period, expenses, budgets and a savings cushion.' },
+      { title: 'Stats', text: 'Your week in charts: tasks done and spending by category.' },
+      { title: 'Make it yours', text: 'Themes, the Vertical layout, home screen widgets and a finance lock — all in Settings.' },
+    ],
+    skip: 'Skip',
+    next: 'Next',
+    start: 'Get started',
+  },
   tasksScreen: {
     header: 'Tasks',
     emptyTitle: 'No tasks yet',

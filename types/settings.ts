@@ -84,6 +84,8 @@ export interface AppSettings {
   /** Date the account (or the current deposit term) was opened, yyyy-MM-dd — the projection runs to
    * its next anniversary. */
   savingsOpenedAt: string | null;
+  /** The welcome cards were shown (first launch). */
+  onboardingDone: boolean;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -124,4 +126,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   savingsBalance: 0,
   savingsRatePercent: 0,
   savingsOpenedAt: null,
+  onboardingDone: false,
 };
