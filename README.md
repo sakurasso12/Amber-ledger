@@ -1,104 +1,134 @@
 # Amber Ledger
 
-Offline todo-organizer with an earnings/expense tracker, built with React Native + Expo
-(TypeScript). No backend, no network calls — everything lives in a local SQLite database.
+Hi everyone! I made **Amber Ledger** — an offline **task manager + personal finance tracker for
+Android** (iOS may come later). No account, no cloud, no ads: everything stays on your phone.
 
-## Download (Android)
+## ⬇️ Download
 
-Grab **[Amber-Ledger.apk](https://github.com/sakurasso12/Amber-ledger/releases/latest/download/Amber-Ledger.apk)**
-from the [latest release](https://github.com/sakurasso12/Amber-ledger/releases/latest), open it
-on your phone and allow installing from this source when Android asks. Updates install over the
-previous version and keep your data.
+**[Download Amber-Ledger.apk](https://github.com/sakurasso12/Amber-ledger/releases/latest/download/Amber-Ledger.apk)**
 
-## Screenshots
+Open the file on your phone and allow installing from this source when Android asks. Updates
+install over the previous version and keep your data. I publish a new APK in
+[Releases](https://github.com/sakurasso12/Amber-ledger/releases) every time there's a fix, even a
+small one.
 
-Two layouts, switchable in **Settings → Theme → Layout**.
+## 📱 Screens
 
-**Standard**
+### Tasks
+Add any task you want: deadline with a reminder, priority, tags, subtasks, repeat rules and a
+photo. Swipe a task to complete or delete it, hold to select several at once.
 
-| Tasks | Calendar | Finance | Stats |
-|:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/standard-tasks.jpg" width="200"> | <img src="docs/screenshots/standard-calendar.jpg" width="200"> | <img src="docs/screenshots/standard-finance.jpg" width="200"> | <img src="docs/screenshots/standard-stats.jpg" width="200"> |
+<img src="docs/screenshots/standard-tasks.jpg" width="220">
 
-**Vertical**
+### Calendar
+Your month at a glance — days with tasks and expenses are marked; tap a day to see everything on it.
 
-| Tasks | Calendar | Finance | Stats |
-|:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/vertical-tasks.jpg" width="200"> | <img src="docs/screenshots/vertical-calendar.jpg" width="200"> | <img src="docs/screenshots/vertical-finance.jpg" width="200"> | <img src="docs/screenshots/vertical-stats-tasks.jpg" width="200"> |
+<img src="docs/screenshots/standard-calendar.jpg" width="220">
 
-| Stats · finance | Settings | Theme settings |
-|:---:|:---:|:---:|
-| <img src="docs/screenshots/vertical-stats-finance.jpg" width="200"> | <img src="docs/screenshots/vertical-settings.jpg" width="200"> | <img src="docs/screenshots/theme-settings.jpg" width="200"> |
+### Finance
+Bank balance, salary that's still on its way, a calendar of your work shifts with earnings,
+planned and recurring expenses, categories and budgets. The app asks on payday whether your
+salary has actually arrived before it counts it.
 
-### What the Vertical layout adds
+| Finance | New expense |
+|:---:|:---:|
+| <img src="docs/screenshots/standard-finance.jpg" width="220"> | <img src="docs/screenshots/expense-editor.jpg" width="220"> |
 
-- Screen titles spelled down a rail on the left, with a live counter
-- The nearest task as a big **In focus** card with a countdown and a Done button; the task's
-  photo becomes the card's background, cropped to its leaf shape
-- Big numbers: the selected day on Calendar, "after payday" on Finance, this week on Stats
-- Leaf-shaped cards and a pill tab bar where the active tab expands to show its name
-- Spring animations tuned to feel like iOS: the tab pill and segmented controls glide instead of
-  jumping, cards and buttons sink slightly under your finger, screens slide in
+### Stats
+Tasks created, completed and overdue per week; earnings per week and spending by category.
 
-## Customization
+<img src="docs/screenshots/standard-stats.jpg" width="220">
 
-Almost everything about the look can be changed — everything except the font so far:
+## ✨ Features
 
-- **Light / dark / system** mode
-- **Layout:** Standard or Vertical
-- **Theme style:** Amber, Neon or Paper (colours, card shapes, tab bar)
-- **Accent colour** on top of any style
-- **App background:** your own picture behind every screen
-- **Card backgrounds:** a picture per card (calendar, balance, charts…) via the ⋮ menu
-- **Home screen widgets** with their own backgrounds
+### 🔔 Notifications
+Reminders before deadlines, a pinned notification for important tasks, budget alerts and a
+payday reminder.
+
+### 🎨 Almost everything is customizable
+Everything about the look can be changed — except the font (coming soon):
+
+- **Two layouts:** Standard, or Vertical — titles spelled down a rail on the left, the nearest
+  task as a big *In focus* card with its photo as the background, a pill tab bar
+- **Theme styles:** Amber, Neon, Paper — plus **light / dark / system** mode and an **accent colour**
+- **Backgrounds:** your own picture behind the whole app, and a separate picture for any card
+  (calendar, balance, charts…)
+- **Home screen widgets:** today's tasks and spending, next task, next day off — each with its
+  own background
 - **Language:** English, Russian, Ukrainian
+- Smooth, spring-based animations everywhere
 
-## Stack
+| Standard | Vertical | Themes | Widgets |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/standard-finance.jpg" width="180"> | <img src="docs/screenshots/vertical-tasks.jpg" width="180"> | <img src="docs/screenshots/theme-neon.jpg" width="180"> | <img src="docs/screenshots/home-widgets.jpg" width="180"> |
 
-- **Expo (SDK 57) + TypeScript**, routing via `expo-router`
-- **expo-sqlite** for storage (tasks, subtasks, tags, categories, expenses, work days, settings)
-- **zustand** for state, with settings persisted straight into the SQLite `settings` table
-- **expo-notifications** for deadline reminders and budget alerts; **@notifee/react-native** for
-  the "important task" sticky/ongoing notification (a native module — see caveat below)
-- Custom StyleSheet-based UI kit and a theme object/provider (`theme/`) — no third-party UI-kit
-  library
-- Custom calendar and bar-chart components on `react-native-svg` — no charting library
+### 🔒 Security
+Your money is nobody else's business. Turn on **Finance lock** in *Settings → Security* and every
+amount — Finance, Stats, Calendar and the widget — stays blurred until you unlock it with:
 
-## Project layout
+- **fingerprint** (face unlock works too on phones that support it, e.g. Samsung),
+- your **phone's PIN / pattern**,
+- or your **profile password**.
 
-```
-app/            expo-router routes (thin — each wires a screens/* component to a route)
-screens/        actual screen implementations
-components/     ui/, task/, finance/, calendar/, charts/
-store/          zustand stores (useTaskStore, useFinanceStore, useSettingsStore)
-db/             SQLite schema, client, and per-domain repositories
-lib/            pure calculation/logic: earnings, expenses, recurrence, date ranges, task stats
-notifications/  permission flow, reminder scheduler, budget alerts, sticky notification
-theme/          theme objects (light/dark) + ThemeProvider
-types/          shared TypeScript models
-```
+It locks again after the time you choose (0–30 minutes after unlocking; 0 = as soon as you leave
+Finance). The profile password is never stored — only a salted hash kept in Android's encrypted
+Keystore.
 
-## Running in development
+| Locked | Security settings | Profile |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/locked-finance.jpg" width="200"> | <img src="docs/screenshots/security.jpg" width="200"> | <img src="docs/screenshots/profile.jpg" width="200"> |
 
-```sh
-npm install
-npx expo start
-```
+## 🛠️ How it's built
 
-Opens in Expo Go or a dev client. **Sticky notifications for "important" tasks need a dev
-client** — `@notifee/react-native` is a native module and does not work in plain Expo Go. Every
-other feature (tasks, subtasks, recurrence, finance, calendar, stats, deadline/budget
-notifications) works fine in Expo Go.
+- **React Native + Expo** (SDK 57), **TypeScript**, routing with **expo-router**
+- **SQLite** (expo-sqlite) for storage, **zustand** for state
+- Own UI kit, charts and calendar (react-native-svg) — no UI or chart libraries
+- APKs are built with **EAS Build**
 
-## Building a standalone APK
+The idea, the design, every feature and every change to the interface are my own initiative —
+and I tested all of it on a real phone. I'm a beginner developer and a student, so I can't know
+everything yet: **Claude (Anthropic's AI assistant)** was my mentor and pair programmer. It
+explained what I didn't know and helped me keep the project moving while I was at work.
 
-```sh
-npx eas build --platform android --profile preview
-```
+## 🚀 Run it yourself
 
-This uses the `preview` profile in `eas.json`, which builds an installable `.apk` (not an
-`.aab`), so it can be sideloaded directly — no dev server, no Expo Go, just tap the icon.
+**Just want to use it?** Download the [APK](#️-download) — that's all.
 
-## License
+**Want to run the code?**
 
-MIT — see [LICENSE](LICENSE).
+1. Install [Node.js](https://nodejs.org) (LTS) and [Git](https://git-scm.com).
+2. Clone and install the dependencies:
+   ```sh
+   git clone https://github.com/sakurasso12/Amber-ledger.git
+   cd Amber-ledger
+   npm install
+   ```
+3. Start the dev server and scan the QR code with **Expo Go** on your phone (same Wi-Fi):
+   ```sh
+   npx expo start
+   ```
+   Expo Go can't run home screen widgets, notifications or the pinned notification — everything
+   else works. For those, make your own build (below).
+
+**Want to build your own APK?**
+
+1. Create a free account at [expo.dev](https://expo.dev).
+2. Install the EAS CLI and log in:
+   ```sh
+   npm install -g eas-cli
+   eas login
+   ```
+3. Link the project to **your** account. It's linked to mine by default, so first delete
+   `"owner"` and `"extra": { "eas": { "projectId": ... } }` from `app.json`, then run:
+   ```sh
+   eas init
+   ```
+4. Build an installable APK in Expo's cloud:
+   ```sh
+   eas build --platform android --profile preview
+   ```
+   When it's done you get a link to download the `.apk`.
+
+## 📄 License
+
+[MIT](LICENSE)
