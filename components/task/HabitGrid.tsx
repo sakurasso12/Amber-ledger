@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,7 +7,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { SPRING } from '@/theme/motion';
 import { useTaskStore } from '@/store/useTaskStore';
-import { buildHabits, Habit, HabitMark } from '@/lib/streaks';
+import { Habit, HabitMark } from '@/lib/streaks';
 import { haptics } from '@/lib/haptics';
 import { PressableScale, Text } from '@/components/ui';
 import { useTranslation } from '@/i18n';
@@ -20,9 +20,7 @@ const GAP = 10;
  * task list: the streak with a flame, the last few times as dots, and a tap to mark today done.
  * Renders nothing when there are no habits.
  */
-export function HabitGrid() {
-  const tasks = useTaskStore((s) => s.tasks);
-  const habits = useMemo(() => buildHabits(tasks), [tasks]);
+export function HabitGrid({ habits }: { habits: Habit[] }) {
   // Measured, so the squares fit both layouts (Vertical has the title rail on the left).
   const [width, setWidth] = useState(0);
   if (habits.length === 0) return null;

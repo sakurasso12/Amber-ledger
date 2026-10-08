@@ -11,6 +11,7 @@ import { TaskListItem } from '@/components/task/TaskListItem';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
 import { HabitGrid } from '@/components/task/HabitGrid';
 import { activeTasks } from '@/lib/taskFilters';
+import { buildHabits } from '@/lib/streaks';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 
@@ -27,6 +28,7 @@ export function TasksScreen() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const visibleTasks = useMemo(() => activeTasks(tasks), [tasks]);
+  const habitList = useMemo(() => buildHabits(tasks), [tasks]);
   const selectionMode = selectedIds.size > 0;
 
   function toggleSelect(id: string) {
@@ -88,7 +90,7 @@ export function TasksScreen() {
   );
 
   // Habit squares sit at the top of the list and scroll with it.
-  const habits = selectionMode ? null : <HabitGrid />;
+  const habits = selectionMode ? null : <HabitGrid habits={habitList} />;
 
   let list: React.ReactNode;
   if (visibleTasks.length === 0) {
@@ -148,7 +150,7 @@ export function TasksScreen() {
   ) : undefined;
 
   return (
-    <LayoutScreen title={tr.tasksScreen.header} count={visibleTasks.length} headerOverride={selectionBar}>
+    <LayoutScreen title={tr.tasksScreen.header} count={visibleTasks.length + habitList.length} headerOverride={selectionBar}>
       {list}
 
       {quickAddOpen && !selectionMode ? (
