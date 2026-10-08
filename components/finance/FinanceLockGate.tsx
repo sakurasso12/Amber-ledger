@@ -1,5 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
+import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { BlurTargetView, BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,7 +36,8 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
   const tr = useTranslation();
   const method = useSettingsStore((s) => s.settings.financeLockMethod);
   const hasPassword = useSettingsStore((s) => !!s.settings.profilePasswordSet);
-  const [showPassword, setShowPassword] = useState(method === 'password');
+  // Nothing pops up by itself — the user taps Unlock first, then gets their chosen method.
+  const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState(false);
@@ -46,15 +46,6 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
     const ok = await unlockWithDevice(tr.financeLock.prompt, tr.financeLock.cancel, method === 'fingerprint');
     if (ok) haptics.success();
   }
-
-  // Fingerprint mode: ask straight away when the locked screen comes into view — no extra tap.
-  // Once per visit, so cancelling doesn't bring the prompt back in a loop; the button stays as a retry.
-  useFocusEffect(
-    useCallback(() => {
-      if (method === 'fingerprint') handleDevice();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [method])
-  );
 
   async function handlePassword() {
     setChecking(true);
@@ -109,10 +100,14 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
               )}
             </View>
           ) : (
-            <Button title={tr.financeLock.unlock} onPress={handleDevice} style={styles.fullWidth} />
+            <Button
+              title={tr.financeLock.unlock}
+              onPress={method === 'password' ? () => setShowPassword(true) : handleDevice}
+              style={styles.fullWidth}
+            />
           )}
 
-          {!showPassword && hasPassword ? (
+          {!showPassword && hasPassword && method !== 'password' ? (
             <Pressable onPress={() => setShowPassword(true)} hitSlop={8}>
               <Text style={[styles.link, { color: theme.colors.accent }]}>{tr.financeLock.usePassword}</Text>
             </Pressable>
