@@ -258,6 +258,50 @@ export interface Translation {
     snooze30: string;
     snooze60: string;
   };
+  profileSettings: {
+    title: string;
+    namePlaceholder: string;
+    noName: string;
+    changePhoto: string;
+    removePhoto: string;
+    passwordSection: string;
+    passwordHint: string;
+    currentPassword: string;
+    newPassword: string;
+    repeatPassword: string;
+    setPassword: string;
+    changePassword: string;
+    passwordSet: string;
+    passwordNotSet: string;
+    tooShort: (min: number) => string;
+    mismatch: string;
+    wrongPassword: string;
+    saved: string;
+  };
+  securitySettings: {
+    title: string;
+    lockFinances: string;
+    lockFinancesHint: string;
+    needPassword: string;
+    goToProfile: string;
+    method: string;
+    methodDevice: string;
+    methodPassword: string;
+    noBiometrics: string;
+    relockAfter: string;
+    relockHint: (max: number) => string;
+    minutes: string;
+  };
+  financeLock: {
+    title: string;
+    subtitle: string;
+    unlock: string;
+    usePassword: string;
+    passwordPlaceholder: string;
+    wrongPassword: string;
+    prompt: string;
+    cancel: string;
+  };
 }
 
 const ru: Translation = {
@@ -550,6 +594,50 @@ const ru: Translation = {
     snooze30: 'Через 30 мин',
     snooze60: 'Через час',
   },
+  profileSettings: {
+    title: 'Профиль',
+    namePlaceholder: 'Ваше имя',
+    noName: 'Без имени',
+    changePhoto: 'Выбрать фото',
+    removePhoto: 'Убрать фото',
+    passwordSection: 'Пароль профиля',
+    passwordHint: 'Нужен, чтобы открыть финансы, если отпечаток не сработал. Восстановить забытый пароль нельзя — запомните его.',
+    currentPassword: 'Текущий пароль',
+    newPassword: 'Новый пароль',
+    repeatPassword: 'Повторите пароль',
+    setPassword: 'Установить пароль',
+    changePassword: 'Сменить пароль',
+    passwordSet: 'Пароль установлен',
+    passwordNotSet: 'Пароль не установлен',
+    tooShort: (min) => `Минимум ${min} символов`,
+    mismatch: 'Пароли не совпадают',
+    wrongPassword: 'Неверный текущий пароль',
+    saved: 'Сохранено',
+  },
+  securitySettings: {
+    title: 'Безопасность',
+    lockFinances: 'Защитить финансы',
+    lockFinancesHint: 'Суммы в финансах, статистике, календаре и виджетах скрыты, пока вы не разблокируете.',
+    needPassword: 'Сначала задайте пароль профиля — он нужен на случай, если отпечаток не сработает.',
+    goToProfile: 'Открыть профиль',
+    method: 'Способ разблокировки',
+    methodDevice: 'Отпечаток / код телефона',
+    methodPassword: 'Пароль профиля',
+    noBiometrics: 'На телефоне не настроен отпечаток — будет использоваться PIN или ключ телефона.',
+    relockAfter: 'Блокировать снова через',
+    relockHint: (max) => `После выхода из приложения. 0 — сразу, максимум ${max}.`,
+    minutes: 'мин',
+  },
+  financeLock: {
+    title: 'Финансы заблокированы',
+    subtitle: 'Разблокируйте, чтобы увидеть суммы',
+    unlock: 'Разблокировать',
+    usePassword: 'Войти паролем профиля',
+    passwordPlaceholder: 'Пароль профиля',
+    wrongPassword: 'Неверный пароль',
+    prompt: 'Разблокировать финансы',
+    cancel: 'Отмена',
+  },
 };
 
 const uk: Translation = {
@@ -840,6 +928,50 @@ const uk: Translation = {
     snooze30: 'Через 30 хв',
     snooze60: 'Через годину',
   },
+  profileSettings: {
+    title: 'Профіль',
+    namePlaceholder: 'Ваше ім’я',
+    noName: 'Без імені',
+    changePhoto: 'Вибрати фото',
+    removePhoto: 'Прибрати фото',
+    passwordSection: 'Пароль профілю',
+    passwordHint: 'Потрібен, щоб відкрити фінанси, якщо відбиток не спрацював. Відновити забутий пароль неможливо — запам’ятайте його.',
+    currentPassword: 'Поточний пароль',
+    newPassword: 'Новий пароль',
+    repeatPassword: 'Повторіть пароль',
+    setPassword: 'Встановити пароль',
+    changePassword: 'Змінити пароль',
+    passwordSet: 'Пароль встановлено',
+    passwordNotSet: 'Пароль не встановлено',
+    tooShort: (min) => `Мінімум ${min} символів`,
+    mismatch: 'Паролі не збігаються',
+    wrongPassword: 'Невірний поточний пароль',
+    saved: 'Збережено',
+  },
+  securitySettings: {
+    title: 'Безпека',
+    lockFinances: 'Захистити фінанси',
+    lockFinancesHint: 'Суми у фінансах, статистиці, календарі та віджетах приховані, доки ви не розблокуєте.',
+    needPassword: 'Спершу задайте пароль профілю — він потрібен на випадок, якщо відбиток не спрацює.',
+    goToProfile: 'Відкрити профіль',
+    method: 'Спосіб розблокування',
+    methodDevice: 'Відбиток / код телефону',
+    methodPassword: 'Пароль профілю',
+    noBiometrics: 'На телефоні не налаштовано відбиток — використовуватиметься PIN або ключ телефону.',
+    relockAfter: 'Блокувати знову через',
+    relockHint: (max) => `Після виходу із застосунку. 0 — одразу, максимум ${max}.`,
+    minutes: 'хв',
+  },
+  financeLock: {
+    title: 'Фінанси заблоковано',
+    subtitle: 'Розблокуйте, щоб побачити суми',
+    unlock: 'Розблокувати',
+    usePassword: 'Увійти паролем профілю',
+    passwordPlaceholder: 'Пароль профілю',
+    wrongPassword: 'Невірний пароль',
+    prompt: 'Розблокувати фінанси',
+    cancel: 'Скасувати',
+  },
 };
 
 const en: Translation = {
@@ -1129,6 +1261,50 @@ const en: Translation = {
     snooze10: 'In 10 min',
     snooze30: 'In 30 min',
     snooze60: 'In an hour',
+  },
+  profileSettings: {
+    title: 'Profile',
+    namePlaceholder: 'Your name',
+    noName: 'No name',
+    changePhoto: 'Choose photo',
+    removePhoto: 'Remove photo',
+    passwordSection: 'Profile password',
+    passwordHint: 'Opens Finance if the fingerprint doesn\'t work. A forgotten password can\'t be recovered — remember it.',
+    currentPassword: 'Current password',
+    newPassword: 'New password',
+    repeatPassword: 'Repeat password',
+    setPassword: 'Set password',
+    changePassword: 'Change password',
+    passwordSet: 'Password is set',
+    passwordNotSet: 'No password yet',
+    tooShort: (min) => `At least ${min} characters`,
+    mismatch: 'Passwords don\'t match',
+    wrongPassword: 'Current password is wrong',
+    saved: 'Saved',
+  },
+  securitySettings: {
+    title: 'Security',
+    lockFinances: 'Lock finances',
+    lockFinancesHint: 'Amounts in Finance, Stats, Calendar and widgets stay hidden until you unlock.',
+    needPassword: 'Set a profile password first — it\'s the way in if the fingerprint fails.',
+    goToProfile: 'Open profile',
+    method: 'Unlock with',
+    methodDevice: 'Fingerprint / phone code',
+    methodPassword: 'Profile password',
+    noBiometrics: 'No fingerprint set up on this phone — its PIN or pattern will be used.',
+    relockAfter: 'Lock again after',
+    relockHint: (max) => `After leaving the app. 0 = right away, ${max} at most.`,
+    minutes: 'min',
+  },
+  financeLock: {
+    title: 'Finance is locked',
+    subtitle: 'Unlock to see the amounts',
+    unlock: 'Unlock',
+    usePassword: 'Use profile password',
+    passwordPlaceholder: 'Profile password',
+    wrongPassword: 'Wrong password',
+    prompt: 'Unlock finance',
+    cancel: 'Cancel',
   },
 };
 

@@ -14,6 +14,7 @@ import { weeklyTaskStats } from '@/lib/taskStats';
 import { earningsForRanges } from '@/lib/earnings';
 import { categoryBreakdown, topCategory } from '@/lib/expenses';
 import { useTranslation } from '@/i18n';
+import { FinanceLockGate } from '@/components/finance/FinanceLockGate';
 import { categoryLabel } from '@/lib/categoryLabel';
 
 type Tab = 'tasks' | 'finance';
@@ -82,10 +83,9 @@ export function StatsScreen() {
         ]}
       />
 
-      {summary}
-
       {tab === 'tasks' ? (
         <>
+          {summary}
           <CustomizableCard widgetId="stats-created" style={styles.card}>
             <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{tr.stats.createdPerWeek}</Text>
             <BarChart data={taskStats.map((w) => ({ label: w.label, value: w.created }))} color={theme.colors.accent} />
@@ -100,7 +100,8 @@ export function StatsScreen() {
           </CustomizableCard>
         </>
       ) : (
-        <>
+        <FinanceLockGate style={styles.lockedArea}>
+          {summary}
           <CustomizableCard widgetId="stats-earnings" style={styles.card}>
             <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{tr.stats.earningsPerWeek}</Text>
             <BarChart
@@ -118,7 +119,7 @@ export function StatsScreen() {
             </View>
             <CategoryBreakdownBars entries={breakdown} currency={settings.currency} />
           </CustomizableCard>
-        </>
+        </FinanceLockGate>
       )}
       </ScrollView>
     </LayoutScreen>
@@ -126,6 +127,8 @@ export function StatsScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Room for the unlock card even when there's little finance data yet.
+  lockedArea: { minHeight: 380, gap: 16 },
   content: { paddingHorizontal: 16, paddingTop: 4, gap: 16 },
   bigWrap: { alignItems: 'center', paddingVertical: 10 },
   bigValue: { fontSize: 88, fontWeight: '800', lineHeight: 92 },

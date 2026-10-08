@@ -16,12 +16,14 @@ import {
 } from '@/notifications';
 import { useTranslation } from '@/i18n';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
+import { useFinanceLockLifecycle } from '@/store/useFinanceLock';
 
 /** Editors and lists open as sheets sliding up from the bottom, like iOS modals. */
 const MODAL = { presentation: 'modal', animation: 'slide_from_bottom' } as const;
 
 function RootStack() {
   const theme = useTheme();
+  useFinanceLockLifecycle();
   return (
     <>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />

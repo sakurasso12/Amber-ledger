@@ -6,6 +6,7 @@ import { categoryLabel } from '@/lib/categoryLabel';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
+import { useFinanceLocked } from '@/store/useFinanceLock';
 import { Category, Expense } from '@/types';
 
 interface ExpenseListItemProps {
@@ -21,7 +22,8 @@ export function ExpenseListItem({ expense, category, currency, onPress, variant 
   const theme = useTheme();
   const tr = useTranslation();
   const color = category?.color ?? theme.colors.textMuted;
-  const amount = `-${expense.amount.toFixed(0)} ${currency}`;
+  // Hidden while Finance is locked (Settings → Security) — this row also shows up in Calendar.
+  const amount = useFinanceLocked() ? `•••• ${currency}` : `-${expense.amount.toFixed(0)} ${currency}`;
   const date = new Date(`${expense.date}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' });
 
   if (variant === 'big') {

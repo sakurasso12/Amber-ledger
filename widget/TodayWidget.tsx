@@ -13,7 +13,8 @@ export interface WidgetTask extends Pick<Task, 'id' | 'title'> {
 
 interface TodayWidgetProps {
   upcomingTasks: WidgetTask[];
-  spentToday: number;
+  /** null while Finance is locked — shown as •••• instead of the amount. */
+  spentToday: number | null;
   currency: string;
   palette: WidgetPalette;
   corners: WidgetCorners | null;
@@ -72,7 +73,7 @@ export function TodayWidget({ upcomingTasks, spentToday, currency, palette, corn
       <FlexWidget style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6, width: 'match_parent' }}>
         <TextWidget text={tr.spentToday} style={{ fontSize: 14, color: colors.textMuted as `#${string}` }} />
         <TextWidget
-          text={`${spentToday.toFixed(0)} ${currency}`}
+          text={spentToday === null ? `🔒 •••• ${currency}` : `${spentToday.toFixed(0)} ${currency}`}
           style={{ fontSize: 15, fontWeight: 'bold', color: colors.danger as `#${string}` }}
         />
       </FlexWidget>

@@ -56,9 +56,28 @@ export interface AppSettings {
   salaryPromptSnoozedUntil: string | null;
   /** Theme style: palettes, fonts and shapes — see theme/designs.ts (Settings → Тема). */
   designId: DesignId;
-  /** Temporary while picking: arrangement of every screen — see theme/layouts.ts. */
+  /** Arrangement of every screen (Standard / Vertical) — see theme/layouts.ts. */
   layoutId: LayoutId;
+  /** Local profile (one per device for now). Name and avatar are shown in Settings → Profile. */
+  profileName: string;
+  /** Local file:// URI of the square-cropped avatar photo (drawn as a circle), or null. */
+  profileAvatarUri: string | null;
+  /** Salted scrypt hash of the profile password (see lib/password.ts), or null until one is set.
+   * The password itself is never stored. It unlocks Finance as a fallback and will key sync. */
+  profilePasswordHash: string | null;
+  /** Settings → Security: hide money behind a lock (Finance tab, Stats → Finance, money widgets). */
+  financeLockEnabled: boolean;
+  /** device = fingerprint with the phone's own PIN/pattern as fallback; password = profile password. */
+  financeLockMethod: FinanceLockMethod;
+  /** Minutes after leaving the app before Finance locks again (0 = at once, max 30). */
+  financeLockMinutes: number;
+  /** ISO time until which Finance counts as unlocked. Persisted so home screen widgets — which
+   * run without the app — know whether to show amounts. */
+  financeUnlockedUntil: string | null;
 }
+
+export type FinanceLockMethod = 'device' | 'password';
+export const FINANCE_LOCK_MAX_MINUTES = 30;
 
 export const DEFAULT_SETTINGS: AppSettings = {
   hourlyRate: 0,
@@ -84,4 +103,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   salaryPromptSnoozedUntil: null,
   designId: 'amber',
   layoutId: 'standard',
+  profileName: '',
+  profileAvatarUri: null,
+  profilePasswordHash: null,
+  financeLockEnabled: false,
+  financeLockMethod: 'device',
+  financeLockMinutes: 4,
+  financeUnlockedUntil: null,
 };

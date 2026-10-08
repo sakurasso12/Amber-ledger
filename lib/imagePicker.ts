@@ -17,9 +17,9 @@ async function ensureImagesDir(): Promise<void> {
  * Opens the system image picker and copies the chosen image into the app's own document
  * directory (the picker's own URI can point at a cache file that gets cleared, so anything we
  * want to keep across restarts needs its own stable copy). Returns the stable file:// URI, or
- * null if the user cancelled or permission was refused.
+ * null if the user cancelled or permission was refused. `aspect` locks the crop frame's shape.
  */
-export async function pickAndPersistImage(): Promise<string | null> {
+export async function pickAndPersistImage(options: { aspect?: [number, number] } = {}): Promise<string | null> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) return null;
 
@@ -27,6 +27,8 @@ export async function pickAndPersistImage(): Promise<string | null> {
     mediaTypes: ['images'],
     quality: 0.85,
     allowsEditing: true,
+    // e.g. [1, 1] for the avatar: the picker's crop frame is locked to a square.
+    aspect: options.aspect,
   });
   if (result.canceled || !result.assets[0]) return null;
 

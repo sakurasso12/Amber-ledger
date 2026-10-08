@@ -30,10 +30,12 @@ interface WidgetSettings {
   designId: DesignId;
   layoutId: LayoutId;
   language: AppLanguage;
+  /** Finance lock is on and not currently unlocked — widgets show •••• instead of amounts. */
+  moneyHidden: boolean;
 }
 
 async function readWidgetSettings(): Promise<WidgetSettings> {
-  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'ru' };
+  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'ru', moneyHidden: false };
   try {
     const raw = await getSetting('app-settings');
     const settings = raw ? JSON.parse(raw)?.state?.settings : null;
@@ -43,6 +45,9 @@ async function readWidgetSettings(): Promise<WidgetSettings> {
       layoutId: settings?.layoutId && LAYOUTS[settings.layoutId as LayoutId] ? settings.layoutId : fallback.layoutId,
       designId: settings?.designId && DESIGNS[settings.designId as DesignId] ? settings.designId : fallback.designId,
       language: settings?.language && translations[settings.language as AppLanguage] ? settings.language : fallback.language,
+      moneyHidden:
+        !!settings?.financeLockEnabled &&
+        !(settings?.financeUnlockedUntil && new Date(settings.financeUnlockedUntil).getTime() > Date.now()),
     };
   } catch {
     return fallback;
@@ -108,7 +113,7 @@ export async function buildTodayWidget(widgetInfo: WidgetInfo) {
 
   return React.createElement(TodayWidget, {
     upcomingTasks: tasks,
-    spentToday,
+    spentToday: settings.moneyHidden ? null : spentToday,
     currency: settings.currency,
     ...widgetLook(settings),
     photo: await widgetPhoto(widgetInfo, settings),

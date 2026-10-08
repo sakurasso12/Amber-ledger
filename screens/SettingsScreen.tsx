@@ -36,6 +36,20 @@ export function SettingsScreen() {
 
   const rows: Row[] = [
     {
+      icon: '👤',
+      title: tr.profileSettings.title,
+      value: settings.profileName.trim() || tr.profileSettings.noName,
+      route: '/settings/profile',
+    },
+    {
+      icon: '🔒',
+      title: tr.securitySettings.title,
+      value: settings.financeLockEnabled
+        ? `${settings.financeLockMethod === 'device' ? tr.securitySettings.methodDevice : tr.securitySettings.methodPassword} · ${settings.financeLockMinutes} ${tr.securitySettings.minutes}`
+        : tr.settingsScreen.notSet,
+      route: '/settings/security',
+    },
+    {
       icon: '💵',
       title: tr.settingsScreen.earnings,
       value: `${settings.hourlyRate} / ${tr.settingsScreen.perHourShort} · ${settings.hoursPerShift}`,

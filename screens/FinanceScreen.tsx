@@ -18,6 +18,7 @@ import { payrollState } from '@/lib/earnings';
 import { syncSalaryReminder } from '@/notifications';
 import { computeBankBalance, totalExpenses } from '@/lib/expenses';
 import { useTranslation } from '@/i18n';
+import { FinanceLockGate } from '@/components/finance/FinanceLockGate';
 
 export function FinanceScreen() {
   const theme = useTheme();
@@ -179,6 +180,7 @@ export function FinanceScreen() {
 
   return (
     <LayoutScreen title={tr.financeScreen.header} right={<FinanceMenuHeader />}>
+      <FinanceLockGate>
       <FlatList
         data={expenses}
         keyExtractor={(expense) => expense.id}
@@ -204,6 +206,7 @@ export function FinanceScreen() {
         onLongPress={() => defaultQuickAddCategoryId && setQuickAddOpen(true)}
         bottom={insets.bottom + 16}
       />
+      </FinanceLockGate>
     </LayoutScreen>
   );
 }
