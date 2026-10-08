@@ -185,15 +185,6 @@ export async function createTask(draft: TaskDraft): Promise<Task> {
   return task;
 }
 
-/** Persists explicit sort_order values after a drag-and-drop reorder — one entry per moved task. */
-export async function setTaskSortOrders(entries: { id: string; sortOrder: number }[]): Promise<void> {
-  const db = await getDb();
-  await db.withTransactionAsync(async () => {
-    for (const { id, sortOrder } of entries) {
-      await db.runAsync('UPDATE tasks SET sort_order = ? WHERE id = ?', [sortOrder, id]);
-    }
-  });
-}
 
 /** As a recurring task's next instance: same shape as the source, fresh id/dates, linked by seriesId. */
 export async function createNextRecurringInstance(source: Task, deadlineAt: string): Promise<Task> {

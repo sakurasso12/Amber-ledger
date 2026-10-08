@@ -1,17 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
-import { EmptyState, Fab, LayoutScreen, QuickAddBar, ReorderableList } from '@/components/ui';
+import { EmptyState, Fab, LayoutScreen, QuickAddBar } from '@/components/ui';
 import { TaskListItem } from '@/components/task/TaskListItem';
-import { ReorderableTaskRow, REORDER_ROW_HEIGHT } from '@/components/task/ReorderableTaskRow';
-import { TaskFilterBar } from '@/components/task/TaskFilterBar';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
-import { applyTaskFilters, uniqueTags } from '@/lib/taskFilters';
+import { activeTasks } from '@/lib/taskFilters';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 
@@ -21,18 +19,13 @@ export function TasksScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tasks = useTaskStore((s) => s.tasks);
-  const filters = useTaskStore((s) => s.filters);
-  const setFilters = useTaskStore((s) => s.setFilters);
   const setStatus = useTaskStore((s) => s.setStatus);
-  const reorderTasks = useTaskStore((s) => s.reorderTasks);
   const addTask = useTaskStore((s) => s.addTask);
   const removeTask = useTaskStore((s) => s.removeTask);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const availableTags = useMemo(() => uniqueTags(tasks), [tasks]);
-  const visibleTasks = useMemo(() => applyTaskFilters(tasks, filters), [tasks, filters]);
-  const isManualSort = filters.sortBy === 'manual';
+  const visibleTasks = useMemo(() => activeTasks(tasks), [tasks]);
   const selectionMode = selectedIds.size > 0;
 
   function toggleSelect(id: string) {
@@ -96,20 +89,6 @@ export function TasksScreen() {
   let list: React.ReactNode;
   if (visibleTasks.length === 0) {
     list = <EmptyState icon="📋" title={tr.tasksScreen.emptyTitle} subtitle={tr.tasksScreen.emptySubtitle} />;
-  } else if (isManualSort) {
-    list = (
-      <ScrollView contentContainerStyle={styles.listContent}>
-        <ReorderableList
-          items={visibleTasks}
-          keyExtractor={(t) => t.id}
-          itemHeight={REORDER_ROW_HEIGHT}
-          onReorder={reorderTasks}
-          renderItem={(task, dragHandleProps, isDragging) => (
-            <ReorderableTaskRow task={task} dragHandleProps={dragHandleProps} isDragging={isDragging} />
-          )}
-        />
-      </ScrollView>
-    );
   } else if (layout.tasks === 'focus' && focusTask) {
     // Vertical: one task in focus, the rest as a compact list below.
     list = (
@@ -158,10 +137,6 @@ export function TasksScreen() {
 
   return (
     <LayoutScreen title={tr.tasksScreen.header} count={visibleTasks.length} headerOverride={selectionBar}>
-      <View style={styles.filterWrapper}>
-        <TaskFilterBar filters={filters} onChange={setFilters} availableTags={availableTags} />
-      </View>
-
       {list}
 
       {quickAddOpen && !selectionMode ? (
@@ -196,7 +171,6 @@ const styles = StyleSheet.create({
   },
   selectionCount: { fontSize: 16, fontWeight: '700', flex: 1 },
   selectionAction: { padding: 2 },
-  filterWrapper: { paddingHorizontal: 16, marginBottom: 8 },
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   sectionTitle: { fontSize: 18, fontWeight: '800' },
   focusHeader: { gap: 14, marginBottom: 10 },

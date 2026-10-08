@@ -43,8 +43,7 @@ export interface Task {
   seriesId: string | null;
   /** Local file:// URI of an attached photo, or null. */
   imageUri: string | null;
-  /** Manual drag-and-drop order, used when TaskFilters.sortBy === 'manual'. New tasks are appended
-   * (max existing + 1). */
+  /** Creation order (max existing + 1). Kept in the database; the list itself sorts by deadline. */
   sortOrder: number;
   /** If set, completing this task logs a matching expense automatically. */
   expenseOnComplete: ExpenseOnComplete | null;
@@ -66,13 +65,4 @@ export interface TaskDraft {
   imageUri: string | null;
   expenseOnComplete: ExpenseOnComplete | null;
   subtasks: Omit<SubTask, 'id' | 'taskId'>[];
-}
-
-export type TaskSortKey = 'deadline' | 'priority' | 'tag' | 'status' | 'created' | 'manual';
-
-export interface TaskFilters {
-  status: TaskStatus | 'all';
-  priority: Priority | 'all';
-  tag: string | 'all';
-  sortBy: TaskSortKey;
 }

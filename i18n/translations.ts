@@ -1,22 +1,13 @@
 export interface Translation {
   localeCode: string;
   tabs: { tasks: string; calendar: string; finance: string; stats: string; settings: string };
-  status: { all: string; notStarted: string; inProgress: string; done: string };
-  priority: { any: string; low: string; medium: string; high: string };
+  status: { notStarted: string; inProgress: string; done: string };
+  priority: { low: string; medium: string; high: string };
   weekdaysShort: string[];
   tasksScreen: {
     header: string;
     emptyTitle: string;
     emptySubtitle: string;
-    allTags: string;
-    sortLabel: string;
-    sortDeadline: string;
-    sortPriority: string;
-    sortTag: string;
-    sortStatus: string;
-    sortCreated: string;
-    sortManual: string;
-    filtersLabel: string;
     quickAddPlaceholder: string;
     selectedCount: (count: number) => string;
   };
@@ -329,22 +320,13 @@ export interface Translation {
 const ru: Translation = {
   localeCode: 'ru-RU',
   tabs: { tasks: 'Задачи', calendar: 'Календарь', finance: 'Финансы', stats: 'Статистика', settings: 'Настройки' },
-  status: { all: 'Все', notStarted: 'Не начато', inProgress: 'В процессе', done: 'Готово' },
-  priority: { any: 'Любой приоритет', low: 'Низкий', medium: 'Средний', high: 'Высокий' },
+  status: { notStarted: 'Не начато', inProgress: 'В процессе', done: 'Готово' },
+  priority: { low: 'Низкий', medium: 'Средний', high: 'Высокий' },
   weekdaysShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
   tasksScreen: {
     header: 'Задачи',
     emptyTitle: 'Пока нет задач',
     emptySubtitle: 'Нажми «+», чтобы добавить первую задачу',
-    allTags: 'Все теги',
-    sortLabel: 'Сортировка:',
-    sortDeadline: 'По дедлайну',
-    sortPriority: 'По приоритету',
-    sortTag: 'По тегу',
-    sortStatus: 'По статусу',
-    sortCreated: 'По дате создания',
-    sortManual: 'Вручную',
-    filtersLabel: 'Фильтры',
     quickAddPlaceholder: 'Быстро добавить задачу...',
     selectedCount: (count) => `Выбрано: ${count}`,
   },
@@ -687,22 +669,13 @@ const ru: Translation = {
 const uk: Translation = {
   localeCode: 'uk-UA',
   tabs: { tasks: 'Завдання', calendar: 'Календар', finance: 'Фінанси', stats: 'Статистика', settings: 'Налаштування' },
-  status: { all: 'Усі', notStarted: 'Не розпочато', inProgress: 'У процесі', done: 'Готово' },
-  priority: { any: 'Будь-який пріоритет', low: 'Низький', medium: 'Середній', high: 'Високий' },
+  status: { notStarted: 'Не розпочато', inProgress: 'У процесі', done: 'Готово' },
+  priority: { low: 'Низький', medium: 'Середній', high: 'Високий' },
   weekdaysShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
   tasksScreen: {
     header: 'Завдання',
     emptyTitle: 'Поки що немає завдань',
     emptySubtitle: 'Натисни «+», щоб додати перше завдання',
-    allTags: 'Усі теги',
-    sortLabel: 'Сортування:',
-    sortDeadline: 'За дедлайном',
-    sortPriority: 'За пріоритетом',
-    sortTag: 'За тегом',
-    sortStatus: 'За статусом',
-    sortCreated: 'За датою створення',
-    sortManual: 'Вручну',
-    filtersLabel: 'Фільтри',
     quickAddPlaceholder: 'Швидко додати завдання...',
     selectedCount: (count) => `Вибрано: ${count}`,
   },
@@ -1043,22 +1016,13 @@ const uk: Translation = {
 const en: Translation = {
   localeCode: 'en-US',
   tabs: { tasks: 'Tasks', calendar: 'Calendar', finance: 'Finance', stats: 'Stats', settings: 'Settings' },
-  status: { all: 'All', notStarted: 'Not started', inProgress: 'In progress', done: 'Done' },
-  priority: { any: 'Any priority', low: 'Low', medium: 'Medium', high: 'High' },
+  status: { notStarted: 'Not started', inProgress: 'In progress', done: 'Done' },
+  priority: { low: 'Low', medium: 'Medium', high: 'High' },
   weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   tasksScreen: {
     header: 'Tasks',
     emptyTitle: 'No tasks yet',
     emptySubtitle: 'Tap "+" to add your first task',
-    allTags: 'All tags',
-    sortLabel: 'Sort:',
-    sortDeadline: 'By deadline',
-    sortPriority: 'By priority',
-    sortTag: 'By tag',
-    sortStatus: 'By status',
-    sortCreated: 'By date created',
-    sortManual: 'Manual',
-    filtersLabel: 'Filters',
     quickAddPlaceholder: 'Quick add a task...',
     selectedCount: (count) => `Selected: ${count}`,
   },
