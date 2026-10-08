@@ -9,6 +9,8 @@ import type * as NotificationsModule from 'expo-notifications';
  */
 const unavailable = Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
-export const Notifications: typeof NotificationsModule = unavailable
-  ? ({} as typeof NotificationsModule)
-  : require('expo-notifications');
+// In Expo Go every member is a do-nothing function, so even top-level calls (impl.ts sets the
+// notification handler on load) are harmless when Fast Refresh re-runs those files.
+const inert = new Proxy({}, { get: () => () => undefined }) as typeof NotificationsModule;
+
+export const Notifications: typeof NotificationsModule = unavailable ? inert : require('expo-notifications');
