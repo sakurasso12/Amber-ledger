@@ -11,6 +11,7 @@ import { haptics } from '@/lib/haptics';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { TextField } from '@/components/ui/TextField';
+import { RAIL_OVERLAP } from '@/components/ui/LayoutScreen';
 
 /**
  * Wraps anything that shows money. While Finance is locked the content stays in place but is
@@ -59,8 +60,12 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
     }
   }
 
+  // In Vertical the content slides a little under the title rail; keep the blur off the rail
+  // so the screen title stays readable.
+  const railInset = theme.layout.header === 'vertical' ? RAIL_OVERLAP : 0;
+
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View style={[StyleSheet.absoluteFill, { left: railInset }]}>
       <BlurView
         blurTarget={target}
         blurMethod="dimezisBlurViewSdk31Plus"

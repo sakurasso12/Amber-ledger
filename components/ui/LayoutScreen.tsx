@@ -3,6 +3,9 @@ import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Screen } from './Screen';
+
+/** How far Vertical's content reaches left over the rail's empty edge. */
+export const RAIL_OVERLAP = 12;
 import { Text } from './Text';
 
 interface LayoutScreenProps {
@@ -86,7 +89,7 @@ const styles = StyleSheet.create({
 
   railRow: { flex: 1, flexDirection: 'row' },
   rail: { width: 36, alignItems: 'center', paddingTop: 14 },
-  railContent: { flex: 1, marginLeft: -12, marginRight: 6 },
+  railContent: { flex: 1, marginLeft: -RAIL_OVERLAP, marginRight: 6 },
   railLetter: { fontSize: 19, fontWeight: '800', lineHeight: 21 },
   railCount: { marginTop: 10, minWidth: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   railCountText: { fontSize: 13, fontWeight: '800' },
