@@ -1,4 +1,5 @@
-import * as Notifications from 'expo-notifications';
+import type * as NotificationTypes from 'expo-notifications';
+import { Notifications } from './expoNotifications';
 
 export const TASK_REMINDER_CATEGORY = 'task-reminder';
 
@@ -25,7 +26,7 @@ export async function registerNotificationCategories(labels: {
 /** Listens for a snooze action tap and reschedules the same notification content that many
  * minutes later — reuses whatever title/body/taskId the original notification carried, so it
  * doesn't need to look the task back up in the store. Call once at app startup. */
-export function listenForSnoozeActions(): Notifications.EventSubscription {
+export function listenForSnoozeActions(): NotificationTypes.EventSubscription {
   return Notifications.addNotificationResponseReceivedListener(async (response) => {
     const minutes = SNOOZE_MINUTES[response.actionIdentifier];
     if (!minutes) return;

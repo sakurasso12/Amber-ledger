@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import * as Notifications from 'expo-notifications';
+import { Notifications } from './expoNotifications';
 import { getTranslation } from '@/i18n';
 
 export async function hasNotificationPermission(): Promise<boolean> {

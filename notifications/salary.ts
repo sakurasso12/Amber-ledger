@@ -1,4 +1,4 @@
-import * as Notifications from 'expo-notifications';
+import { Notifications } from './expoNotifications';
 import { setHours, startOfDay } from 'date-fns';
 import { AppSettings } from '@/types';
 import { PayrollState } from '@/lib/earnings';
