@@ -1,4 +1,5 @@
-import * as Notifications from 'expo-notifications';
+import type * as NotificationTypes from 'expo-notifications';
+import { Notifications } from './expoNotifications';
 import { Task } from '@/types';
 import { getTranslation } from '@/i18n';
 import { nextOccurrence } from '@/lib/recurrence';
@@ -37,7 +38,7 @@ async function scheduleOne(
   taskId: string,
   title: string,
   body: string,
-  trigger: Notifications.NotificationTriggerInput
+  trigger: NotificationTypes.NotificationTriggerInput
 ): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     identifier,
@@ -51,7 +52,7 @@ async function scheduleOne(
  * `deadlineAt` is otherwise irrelevant once a task repeats. Only handles `interval === 1` (repeat
  * every day/week/month), which is what expo's native DAILY/WEEKLY/MONTHLY triggers can express;
  * callers must use `scheduleFallbackOccurrences` for larger intervals. */
-function buildRecurringTriggers(task: Task, reminderAt: Date): Notifications.SchedulableNotificationTriggerInput[] {
+function buildRecurringTriggers(task: Task, reminderAt: Date): NotificationTypes.SchedulableNotificationTriggerInput[] {
   const rule = task.recurrenceRule!;
   const hour = reminderAt.getHours();
   const minute = reminderAt.getMinutes();

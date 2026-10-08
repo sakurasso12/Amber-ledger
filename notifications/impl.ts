@@ -1,4 +1,4 @@
-import * as Notifications from 'expo-notifications';
+import { Notifications } from './expoNotifications';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

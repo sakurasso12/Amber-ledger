@@ -1,4 +1,4 @@
-import * as Notifications from 'expo-notifications';
+import { Notifications } from './expoNotifications';
 import { AppSettings, Category, Expense } from '@/types';
 import { monthRange, weekRange } from '@/lib/dateRanges';
 import { totalExpenses } from '@/lib/expenses';
