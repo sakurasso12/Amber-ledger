@@ -19,6 +19,7 @@ import { useTranslation } from '@/i18n';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { useFinanceLockLifecycle } from '@/store/useFinanceLock';
 import { Onboarding } from '@/components/onboarding/Onboarding';
+import { preloadSounds } from '@/lib/sounds';
 
 /**
  * JS stack (not the native one) because Android's native stack has no swipe-back: here every
@@ -30,6 +31,7 @@ const MODAL = { presentation: 'modal', ...TransitionPresets.ModalPresentationIOS
 function RootStack() {
   const theme = useTheme();
   useFinanceLockLifecycle();
+  useEffect(() => preloadSounds(), []);
   return (
     <>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
