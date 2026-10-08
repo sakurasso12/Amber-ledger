@@ -44,6 +44,27 @@ Tasks created, completed and overdue per week; earnings per week and spending by
 
 ## ✨ Features
 
+### 🔥 Habits & streaks
+Turn on **Count streak** for a task that repeats every day or on certain weekdays, and it becomes
+a habit card at the top of Tasks: the flame with your streak, dots for the last few times, and a
+tap to mark today done. Only the scheduled days count, so a Mon/Thu habit isn't broken by Tuesday.
+Each habit can have its own photo — and a small **1×1 streak widget** for the home screen shows
+it too (tap the widget to choose which habit it follows).
+
+### 🎯 Level ring
+Every task you finish fills one segment of a ring of 10, with a little sound. Ten tasks — the ring
+fills up and starts again: 7/10, then 10/20, 20/30…
+
+### ✋ Arrange it your way
+Tap the ✏️ pencil on Tasks, Finance, Stats or Calendar and the cards become movable: hold one,
+drag it where you like, and it lands with a jelly wobble. Task cards come in three sizes
+(half-width square, row, big card), most Finance and Stats cards can be full or half width, and
+every card can have its own corners — square, rounded, round or leaf-shaped.
+
+### 👋 First launch
+A short setup the first time you open the app: pick your language, create your profile, and get a
+quick tour of what each screen does.
+
 ### 🔔 Notifications
 Reminders before deadlines, a pinned notification for important tasks, budget alerts and a
 payday reminder.
@@ -95,6 +116,7 @@ Keystore.
 - **React Native + Expo** (SDK 57), **TypeScript**, routing with **expo-router**
 - **SQLite** (expo-sqlite) for storage, **zustand** for state
 - Own UI kit, charts and calendar (react-native-svg) — no UI or chart libraries
+- Animations with **Reanimated**, drag & drop with **react-native-sortables**, sounds with **expo-audio**
 - APKs are built with **EAS Build**
 
 The idea, the design, every feature and every change to the interface are my own initiative —
