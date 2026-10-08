@@ -87,7 +87,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   paydayDay: 1,
   themeMode: 'system',
   accentColor: null,
-  language: 'ru',
+  language: 'en',
   reminderMinutesBefore: 30,
   notificationsEnabled: true,
   budgetLimitWeek: null,

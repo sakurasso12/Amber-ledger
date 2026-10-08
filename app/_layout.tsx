@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { Stack } from 'expo-router';
+import { Dimensions, View } from 'react-native';
+import Stack, { TransitionPresets } from 'expo-router/js-stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { SkeletonScreen } from '@/components/ui';
@@ -18,8 +19,12 @@ import { useTranslation } from '@/i18n';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { useFinanceLockLifecycle } from '@/store/useFinanceLock';
 
-/** Editors and lists open as sheets sliding up from the bottom, like iOS modals. */
-const MODAL = { presentation: 'modal', animation: 'slide_from_bottom' } as const;
+/**
+ * JS stack (not the native one) because Android's native stack has no swipe-back: here every
+ * pushed screen follows the finger when swiped right from anywhere and pops on release, like iOS.
+ * Editors and lists open as iOS-style sheets that slide up and can be swiped down.
+ */
+const MODAL = { presentation: 'modal', ...TransitionPresets.ModalPresentationIOS, gestureEnabled: true } as const;
 
 function RootStack() {
   const theme = useTheme();
@@ -30,9 +35,12 @@ function RootStack() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: theme.colors.background },
-          // iOS-style push (parallax slide) for settings sub-screens on Android too.
-          animation: 'ios_from_right',
+          cardStyle: { backgroundColor: theme.colors.background },
+          ...TransitionPresets.SlideFromRightIOS,
+          gestureEnabled: true,
+          gestureDirection: 'horizontal',
+          // Swipe back from anywhere on the screen, not only the thin left edge.
+          gestureResponseDistance: Dimensions.get('window').width,
         }}
       >
         <Stack.Screen name="(tabs)" />
@@ -119,10 +127,12 @@ function AppGate({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <AppGate>
-        <RootStack />
-      </AppGate>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <AppGate>
+          <RootStack />
+        </AppGate>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

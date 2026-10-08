@@ -8,7 +8,10 @@ import { getRandomBytes } from 'expo-crypto';
  *   scrypt$<N>$<r>$<p>$<salt hex>$<hash hex>
  * The parameters are kept in the string so they can be raised later without breaking old hashes.
  */
-const N = 2 ** 14;
+// Pure-JS scrypt on Hermes has no JIT: N = 2^14 took ~19 s and looked like a freeze, so the cost
+// is set for ~1 s on a phone. That's enough for a local unlock password (the database itself
+// isn't encrypted). Raise it once native crypto is available — old hashes keep their own N.
+const N = 2 ** 10;
 const R = 8;
 const P = 1;
 const KEY_LENGTH = 32;

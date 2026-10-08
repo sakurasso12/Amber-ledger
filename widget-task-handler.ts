@@ -35,7 +35,7 @@ interface WidgetSettings {
 }
 
 async function readWidgetSettings(): Promise<WidgetSettings> {
-  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'ru', moneyHidden: false };
+  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'en', moneyHidden: false };
   try {
     const raw = await getSetting('app-settings');
     const settings = raw ? JSON.parse(raw)?.state?.settings : null;
