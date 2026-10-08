@@ -106,6 +106,8 @@ export interface AppSettings {
   taskManualOrder: string[];
   /** Editable card boards (Finance, Stats tabs): saved order and half/full sizes per board. */
   moduleLayouts: Record<string, { order: string[]; sizes: Record<string, 'half' | 'full'> }>;
+  /** Calendar: the user's order of each day's expenses (date key → expense ids). */
+  expenseDayOrder: Record<string, string[]>;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -157,4 +159,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   taskOrderMode: 'deadline',
   taskManualOrder: [],
   moduleLayouts: {},
+  expenseDayOrder: {},
 };

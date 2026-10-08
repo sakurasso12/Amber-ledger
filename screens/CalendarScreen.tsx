@@ -1,21 +1,22 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Sortable from 'react-native-sortables';
 import { Text } from '@/components/ui/Text';
 import { addMonths } from 'date-fns';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { CustomizableCard, EmptyState, LayoutScreen } from '@/components/ui';
+import { CustomizableCard, EditLayoutButton, EmptyState, LayoutScreen } from '@/components/ui';
+import { LayoutEditItem } from '@/components/ui/LayoutEditItem';
+import { useFinanceLocked } from '@/store/useFinanceLock';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
 import { MonthCalendar, DayMarker } from '@/components/calendar/MonthCalendar';
 import { toDateKey, todayKey } from '@/lib/dateRanges';
 import { priorityColor } from '@/theme/theme';
 import { useTranslation } from '@/i18n';
-
-type DayItem = { kind: 'task'; id: string } | { kind: 'expense'; id: string };
 
 export function CalendarScreen() {
   const theme = useTheme();
@@ -55,18 +56,23 @@ export function CalendarScreen() {
         .sort((a, b) => (a.deadlineAt ?? '').localeCompare(b.deadlineAt ?? '')),
     [tasks, selectedDate]
   );
-  const expensesForDay = useMemo(
-    () => expenses.filter((e) => e.date === selectedDate),
-    [expenses, selectedDate]
-  );
+  // The day's expenses in the order the user dragged them into (new ones on top), per day.
+  const dayOrders = useSettingsStore((s) => s.settings.expenseDayOrder);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const expensesForDay = useMemo(() => {
+    const rank = new Map((dayOrders[selectedDate] ?? []).map((id, i) => [id, i]));
+    const day = expenses.filter((e) => e.date === selectedDate);
+    return [...day.filter((e) => !rank.has(e.id)), ...day.filter((e) => rank.has(e.id)).sort((a, b) => rank.get(a.id)! - rank.get(b.id)!)];
+  }, [expenses, selectedDate, dayOrders]);
 
-  const dayItems: DayItem[] = useMemo(
-    () => [
-      ...tasksForDay.map((t): DayItem => ({ kind: 'task', id: t.id })),
-      ...expensesForDay.map((e): DayItem => ({ kind: 'expense', id: e.id })),
-    ],
-    [tasksForDay, expensesForDay]
-  );
+  // Only the expenses can be rearranged here (pencil); nothing to do while finances are locked.
+  const [editing, setEditing] = useState(false);
+  const [drops, setDrops] = useState<Record<string, number>>({});
+  const locked = useFinanceLocked();
+  useEffect(() => {
+    if (locked || expensesForDay.length < 2) setEditing(false);
+  }, [locked, expensesForDay.length]);
+  const itemCount = tasksForDay.length + expensesForDay.length;
 
   const monthLabel = month.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' });
   const selectedDateObj = new Date(`${selectedDate}T12:00:00`);
@@ -74,7 +80,15 @@ export function CalendarScreen() {
   const dayMode = theme.layout.expenses;
 
   return (
-    <LayoutScreen title={tr.calendarScreen.header} count={dayItems.length}>
+    <LayoutScreen
+      title={tr.calendarScreen.header}
+      count={itemCount}
+      right={
+        expensesForDay.length > 1 ? (
+          <EditLayoutButton editing={editing} onToggle={() => setEditing((v) => !v)} disabled={locked} />
+        ) : undefined
+      }
+    >
 
       <View style={styles.calendarWrapper}>
         <CustomizableCard widgetId="calendar-month">
@@ -91,45 +105,63 @@ export function CalendarScreen() {
         </CustomizableCard>
       </View>
 
-      <FlatList
-        data={dayItems}
-        keyExtractor={(item) => `${item.kind}-${item.id}`}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          theme.layout.tasks === 'focus' ? (
-            // Vertical: the selected day as a big date heading above its items.
-            <View style={styles.dayHero}>
-              <Text style={[styles.dayHeroNumber, { color: theme.colors.primary }]}>{selectedDateObj.getDate()}</Text>
-              <View>
-                <Text style={[styles.dayHeroWeekday, { color: theme.colors.text }]}>
-                  {selectedDateObj.toLocaleDateString(tr.localeCode, { weekday: 'long' })}
-                </Text>
-                <Text style={[styles.dayHeroMonth, { color: theme.colors.textMuted }]}>
-                  {selectedDateObj.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' })}
-                </Text>
-              </View>
+      <ScrollView contentContainerStyle={styles.listContent}>
+        {theme.layout.tasks === 'focus' ? (
+          // Vertical: the selected day as a big date heading above its items.
+          <View style={styles.dayHero}>
+            <Text style={[styles.dayHeroNumber, { color: theme.colors.primary }]}>{selectedDateObj.getDate()}</Text>
+            <View>
+              <Text style={[styles.dayHeroWeekday, { color: theme.colors.text }]}>
+                {selectedDateObj.toLocaleDateString(tr.localeCode, { weekday: 'long' })}
+              </Text>
+              <Text style={[styles.dayHeroMonth, { color: theme.colors.textMuted }]}>
+                {selectedDateObj.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' })}
+              </Text>
             </View>
-          ) : null
-        }
-        renderItem={({ item }) => {
-          if (item.kind === 'task') {
-            const task = tasks.find((t) => t.id === item.id);
-            return task ? <TaskListItem task={task} onCycleStatus={setStatus} /> : null;
-          }
-          const expense = expenses.find((e) => e.id === item.id);
-          return expense ? (
-            <ExpenseListItem
-              expense={expense}
-              category={categoryById.get(expense.categoryId)}
-              currency={currency}
-              onPress={() => router.push(`/expense/${expense.id}`)}
-              variant={dayMode === 'big' ? 'big' : 'row'}
-            />
-          ) : null;
-        }}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-        ListEmptyComponent={<EmptyState icon="🗓️" title={tr.calendarScreen.emptyDay} />}
-      />
+          </View>
+        ) : null}
+
+        {itemCount === 0 ? <EmptyState icon="🗓️" title={tr.calendarScreen.emptyDay} /> : null}
+
+        <View style={styles.items}>
+          {tasksForDay.map((task) => (
+            <TaskListItem key={task.id} task={task} onCycleStatus={setStatus} />
+          ))}
+        </View>
+
+        {expensesForDay.length > 0 ? (
+          <Sortable.Flex
+            flexDirection="column"
+            rowGap={8}
+            sortEnabled={editing}
+            dragActivationDelay={150}
+            activeItemScale={0.95}
+            activeItemShadowOpacity={0.25}
+            inactiveItemOpacity={1}
+            hapticsEnabled
+            onDragEnd={({ order }) =>
+              updateSettings({ expenseDayOrder: { ...dayOrders, [selectedDate]: order(expensesForDay).map((e) => e.id) } })
+            }
+            onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
+          >
+            {expensesForDay.map((expense) => (
+              <View key={expense.id}>
+                <LayoutEditItem dropCount={drops[expense.id] ?? 0}>
+                  <View pointerEvents={editing ? 'none' : 'auto'}>
+                    <ExpenseListItem
+                      expense={expense}
+                      category={categoryById.get(expense.categoryId)}
+                      currency={currency}
+                      onPress={() => router.push(`/expense/${expense.id}`)}
+                      variant={dayMode === 'big' ? 'big' : 'row'}
+                    />
+                  </View>
+                </LayoutEditItem>
+              </View>
+            ))}
+          </Sortable.Flex>
+        ) : null}
+      </ScrollView>
     </LayoutScreen>
   );
 }
@@ -150,5 +182,6 @@ const styles = StyleSheet.create({
   navArrow: { fontSize: 24, fontWeight: '700', paddingHorizontal: 12 },
   monthLabel: { fontSize: 16, fontWeight: '700', textTransform: 'capitalize', minWidth: 160, textAlign: 'center' },
   calendarWrapper: { paddingHorizontal: 12, marginBottom: 12 },
-  listContent: { paddingHorizontal: 16, paddingBottom: 32 },
+  listContent: { paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
+  items: { gap: 8 },
 });
