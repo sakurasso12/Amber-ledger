@@ -212,7 +212,7 @@ export interface Translation {
     minutes: string;
     streakChoose: string;
   };
-  layoutEdit: { edit: string; done: string; perRow: string };
+  layoutEdit: { edit: string; done: string; perRow: string; order: string; byDeadline: string; ownOrder: string; resize: string };
   level: { tasksDone: string; sound: string; soundHint: string };
   habitWidget: { title: string; subtitle: string; empty: string; done: string };
   defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
@@ -595,7 +595,7 @@ const ru: Translation = {
     minutes: 'мин',
     streakChoose: 'Нажми, чтобы выбрать',
   },
-  layoutEdit: { edit: 'Изменить расположение', done: 'Готово', perRow: 'В ряд' },
+  layoutEdit: { edit: 'Изменить расположение', done: 'Готово', perRow: 'В ряд', order: 'Порядок', byDeadline: 'По дедлайну', ownOrder: 'Свой', resize: 'Размер' },
   level: { tasksDone: 'Выполнено задач', sound: 'Звук выполнения', soundHint: 'Играет, когда задача выполнена' },
   habitWidget: {
     title: 'Виджет серии',
@@ -982,7 +982,7 @@ const uk: Translation = {
     minutes: 'хв',
     streakChoose: 'Натисни, щоб вибрати',
   },
-  layoutEdit: { edit: 'Змінити розташування', done: 'Готово', perRow: 'У ряд' },
+  layoutEdit: { edit: 'Змінити розташування', done: 'Готово', perRow: 'У ряд', order: 'Порядок', byDeadline: 'За дедлайном', ownOrder: 'Свій', resize: 'Розмір' },
   level: { tasksDone: 'Виконано задач', sound: 'Звук виконання', soundHint: 'Грає, коли задачу виконано' },
   habitWidget: {
     title: 'Віджет серії',
@@ -1369,7 +1369,7 @@ const en: Translation = {
     minutes: 'min',
     streakChoose: 'Tap to choose',
   },
-  layoutEdit: { edit: 'Edit layout', done: 'Done', perRow: 'Per row' },
+  layoutEdit: { edit: 'Edit layout', done: 'Done', perRow: 'Per row', order: 'Order', byDeadline: 'By deadline', ownOrder: 'My own', resize: 'Size' },
   level: { tasksDone: 'Tasks done', sound: 'Task done sound', soundHint: 'Plays when a task is done' },
   habitWidget: {
     title: 'Streak widget',

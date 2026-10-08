@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,10 +7,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
 import { EmptyState, Fab, LayoutScreen, QuickAddBar } from '@/components/ui';
-import { TaskListItem } from '@/components/task/TaskListItem';
+import { TaskBoard } from '@/components/task/TaskBoard';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
 import { TaskModules } from '@/components/task/TaskModules';
-import { activeTasks } from '@/lib/taskFilters';
+import { activeTasks, manualOrder } from '@/lib/taskFilters';
 import { buildHabits } from '@/lib/streaks';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
@@ -75,65 +76,57 @@ export function TasksScreen() {
   }
 
   const layout = theme.layout;
-  const rowProps = (task: (typeof visibleTasks)[number]) => ({
-    task,
-    onCycleStatus: setStatus,
-    selectionMode,
-    selected: selectedIds.has(task.id),
-    onToggleSelect: () => toggleSelect(task.id),
-    onLongPress: () => (selectionMode ? toggleSelect(task.id) : startSelection(task.id)),
-  });
+  const orderMode = useSettingsStore((st) => st.settings.taskOrderMode);
+  const savedOrder = useSettingsStore((st) => st.settings.taskManualOrder);
+  const orderedTasks = useMemo(
+    () => (orderMode === 'manual' ? manualOrder(visibleTasks, savedOrder) : visibleTasks),
+    [visibleTasks, orderMode, savedOrder]
+  );
 
   // "Focus" layout: the soonest task with a deadline gets the hero card.
   const focusTask = useMemo(
     () => [...visibleTasks].filter((t) => t.deadlineAt).sort((x, y) => x.deadlineAt!.localeCompare(y.deadlineAt!))[0] ?? visibleTasks[0],
     [visibleTasks]
   );
+  const showFocus = layout.tasks === 'focus' && !!focusTask && !selectionMode;
 
-  // Habit squares sit at the top of the list and scroll with it.
-  const habits = selectionMode ? null : <TaskModules habits={habitList} editing={editingLayout} />;
+  const board = (boardTasks: typeof visibleTasks) => (
+    <TaskBoard
+      tasks={boardTasks}
+      editing={editingLayout}
+      onCycleStatus={setStatus}
+      selection={{ active: selectionMode, selectedIds, toggle: toggleSelect, start: startSelection }}
+    />
+  );
 
-  let list: React.ReactNode;
+  // One scrolling column: habit squares, then (Vertical) the task in focus, then every task card.
+  let body: React.ReactNode;
   if (visibleTasks.length === 0) {
-    list = (
-      <>
-        <View style={styles.habitsAlone}>{habits}</View>
-        <EmptyState icon="📋" title={tr.tasksScreen.emptyTitle} subtitle={tr.tasksScreen.emptySubtitle} />
-      </>
-    );
-  } else if (layout.tasks === 'focus' && focusTask) {
-    // Vertical: one task in focus, the rest as a compact list below.
-    list = (
-      <FlatList
-        data={visibleTasks.filter((t) => t.id !== focusTask.id)}
-        keyExtractor={(t) => t.id}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <View style={styles.focusHeader}>
-            {habits}
-            <FocusTaskCard task={focusTask} onDone={() => setStatus(focusTask.id, 'done')} />
-            {visibleTasks.length > 1 ? (
-              <Text style={[styles.sectionTitle, { color: theme.colors.textMuted }]}>{tr.layoutText.next}</Text>
-            ) : null}
-          </View>
-        }
-        renderItem={({ item }) => <TaskListItem {...rowProps(item)} />}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-      />
+    body = <EmptyState icon="📋" title={tr.tasksScreen.emptyTitle} subtitle={tr.tasksScreen.emptySubtitle} />;
+  } else if (showFocus) {
+    body = (
+      <View style={styles.focusHeader}>
+        <FocusTaskCard task={focusTask} editing={editingLayout} onDone={() => setStatus(focusTask.id, 'done')} />
+        {visibleTasks.length > 1 ? (
+          <Text style={[styles.sectionTitle, { color: theme.colors.textMuted }]}>{tr.layoutText.next}</Text>
+        ) : null}
+        {board(orderedTasks.filter((t) => t.id !== focusTask.id))}
+      </View>
     );
   } else {
-    list = (
-      <FlatList
-        data={visibleTasks}
-        keyExtractor={(t) => t.id}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={habits}
-        ListHeaderComponentStyle={styles.habitsHeader}
-        renderItem={({ item }) => <TaskListItem {...rowProps(item)} />}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-      />
-    );
+    body = board(orderedTasks);
   }
+
+  const list = (
+    <ScrollView contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
+      {selectionMode ? null : (
+        <View style={styles.habitsHeader}>
+          <TaskModules habits={habitList} editing={editingLayout} />
+        </View>
+      )}
+      {body}
+    </ScrollView>
+  );
 
   const selectionBar = selectionMode ? (
     <View style={styles.selectionBar}>
@@ -156,7 +149,7 @@ export function TasksScreen() {
       count={visibleTasks.length + habitList.length}
       headerOverride={selectionBar}
       right={
-        // Pencil: rearrange the squares; the check mark ends editing.
+        // Pencil: rearrange and resize the cards; the check mark ends editing.
         <Pressable
           onPress={() => {
             haptics.tap();
@@ -181,7 +174,7 @@ export function TasksScreen() {
         />
       ) : null}
 
-      {!selectionMode ? (
+      {!selectionMode && !editingLayout ? (
         <Fab
           onPress={() => router.push('/task/new')}
           onLongPress={() => setQuickAddOpen(true)}
@@ -207,7 +200,6 @@ const styles = StyleSheet.create({
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   sectionTitle: { fontSize: 18, fontWeight: '800' },
   focusHeader: { gap: 14, marginBottom: 10 },
-  habitsAlone: { paddingHorizontal: 16 },
   habitsHeader: { marginBottom: 14 },
   editButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
 });

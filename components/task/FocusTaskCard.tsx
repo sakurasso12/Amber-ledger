@@ -11,8 +11,18 @@ import { useTranslation } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { formatDuration } from '@/widget/widgetShared';
 
-/** "Vertical" layout: the nearest task as one huge card with a countdown and a big Done button. */
-export function FocusTaskCard({ task, onDone }: { task: Task; onDone: () => void }) {
+interface FocusTaskCardProps {
+  task: Task;
+  onDone: () => void;
+  /** Small caps line above the title — "In focus" by default; size-L task cards show the priority. */
+  kicker?: string;
+  /** While the layout is being edited: no opening, no ticking off. */
+  editing?: boolean;
+}
+
+/** One task as a big card with a countdown and a big Done button — the Vertical layout's "In
+ * focus" card, and size L in the task list. */
+export function FocusTaskCard({ task, onDone, kicker, editing = false }: FocusTaskCardProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
@@ -30,6 +40,7 @@ export function FocusTaskCard({ task, onDone }: { task: Task; onDone: () => void
 
   return (
     <PressableScale
+      disabled={editing}
       onPress={() => router.push(`/task/${task.id}`)}
       // overflow: hidden clips the photo to the card's exact (leaf-shaped) corners.
       style={[styles.card, cardSurface(theme), photo && styles.photoCard]}
@@ -42,7 +53,7 @@ export function FocusTaskCard({ task, onDone }: { task: Task; onDone: () => void
       ) : null}
       <View style={styles.kickerRow}>
         <View style={[styles.dot, { backgroundColor: priorityColor(theme, task.priority) }]} />
-        <Text style={[styles.kicker, { color: mutedColor }]}>{tr.layoutText.focus}</Text>
+        <Text style={[styles.kicker, { color: mutedColor }]}>{kicker ?? tr.layoutText.focus}</Text>
       </View>
       <Text style={[styles.title, { color: textColor }, photo && styles.photoText]} numberOfLines={3}>
         {task.title}
@@ -57,6 +68,7 @@ export function FocusTaskCard({ task, onDone }: { task: Task; onDone: () => void
         {countdown}
       </Text>
       <Pressable
+        disabled={editing}
         onPress={() => {
           haptics.success();
           onDone();

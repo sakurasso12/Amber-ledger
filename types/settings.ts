@@ -98,6 +98,12 @@ export interface AppSettings {
   layoutHintSeen: boolean;
   /** Per-card corner shape (card id → 'square' | 'rounded' | 'round' | 'leaf'); absent = theme. */
   cardShapes: Record<string, 'square' | 'rounded' | 'round' | 'leaf'>;
+  /** Task card size per task series (series id, or task id): S square, M row (default), L big card. */
+  taskCardSizes: Record<string, 'S' | 'M' | 'L'>;
+  /** Task list order: by deadline (default) or the user's own, set by dragging in edit mode. */
+  taskOrderMode: 'deadline' | 'manual';
+  /** The user's own order, as task series keys. */
+  taskManualOrder: string[];
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -145,4 +151,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   tasksModuleColumns: 2,
   layoutHintSeen: false,
   cardShapes: {},
+  taskCardSizes: {},
+  taskOrderMode: 'deadline',
+  taskManualOrder: [],
 };
