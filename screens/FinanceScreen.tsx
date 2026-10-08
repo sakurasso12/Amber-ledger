@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   tileCard: { gap: 4 },
   budgetLabelStack: { gap: 2 },
-  statLabel: { fontSize: 12, fontWeight: '700' },
+  statLabel: { fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
   statValue: { fontSize: 24, fontWeight: '800' },
   bigSectionTitle: { fontSize: 34, fontWeight: '800', letterSpacing: 2, marginTop: 12 },
 });
