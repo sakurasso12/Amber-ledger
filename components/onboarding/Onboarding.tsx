@@ -20,8 +20,8 @@ const STEPS: Step[] = ['language', 'profile', 'tour'];
 /** Each language names itself, so the list reads right before anything is picked. */
 const LANGUAGES: { value: AppLanguage; label: string; code: string }[] = [
   { value: 'en', label: 'English', code: 'EN' },
-  { value: 'uk', label: 'Українська', code: 'UK' },
   { value: 'ru', label: 'Русский', code: 'RU' },
+  { value: 'uk', label: 'Українська', code: 'UK' },
 ];
 
 const AVATAR_SIZE = 104;
@@ -118,7 +118,7 @@ function LanguageStep({ onNext }: { onNext: () => void }) {
           <Ionicons name="language" size={38} color={theme.colors.primary} />
         </View>
         {/* Before a language is chosen, ask in all three. */}
-        <Text style={[styles.title, { color: theme.colors.text }]}>Language · Мова · Язык</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Language · Язык · Мова</Text>
         <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>Amber Ledger</Text>
       </View>
 
