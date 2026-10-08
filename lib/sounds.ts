@@ -9,24 +9,23 @@ let player: AudioPlayer | null = null;
  */
 export function preloadSounds(): void {
   if (player) return;
-  // Duck whatever music is playing for a moment instead of stopping it.
-  setAudioModeAsync({ interruptionMode: 'duckOthers', playsInSilentMode: false, shouldPlayInBackground: false }).catch(() => {});
+  // Like other Android media (games, YouTube): follow the media volume, not the ringer — expo-audio
+  // otherwise drops play() whenever the phone is on silent/vibrate, and Do Not Disturb counts as
+  // silent. Mixed over any music that's playing instead of pausing it.
+  setAudioModeAsync({ interruptionMode: 'mixWithOthers', playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => {});
   player = createAudioPlayer(require('@/assets/sounds/level-up.mp3'));
 }
 
 /** The "done" sound — every completed task. Off in Settings → Notifications. */
 export function playDoneSound(): void {
-  if (!useSettingsStore.getState().settings.soundEffects) {
-    console.log('[sound] off in settings');
-    return;
-  }
+  if (!useSettingsStore.getState().settings.soundEffects) return;
   try {
     preloadSounds();
     const p = player!;
-    console.log('[sound] play — loaded:', p.isLoaded, 'volume:', p.volume, 'muted:', p.muted);
+    // Rewind first and only then play: a seek that lands after play() leaves the player paused.
     const start = () => {
-      p.seekTo(0).catch(() => {});
-      p.play();
+      if (p.currentTime > 0) p.seekTo(0).then(() => p.play(), () => p.play());
+      else p.play();
     };
     if (p.isLoaded) {
       start();

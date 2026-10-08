@@ -6,7 +6,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
-import { droppedKey, LayoutEditItem, useLayoutHint } from './LayoutEditItem';
+import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from './LayoutEditItem';
 import { LayoutEditingContext } from './LayoutEditing';
 import { Text } from './Text';
 
@@ -41,7 +41,7 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
   const { showHint, markSeen } = useLayoutHint(boardId);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [width, setWidth] = useState(0);
-  const [drops, setDrops] = useState<Record<string, number>>({});
+  const [jellies] = useState(createJellyRegistry);
 
   const list = useMemo(() => ordered(modules, saved?.order ?? []), [modules, saved?.order]);
   const sizeOf = (m: BoardModule): ModuleSize => {
@@ -83,16 +83,15 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
               save({ order: order(list).map((m) => m.key) });
               markSeen();
             }}
-            onActiveItemDropped={({ key }) => {
-              const k = droppedKey(key);
-              setDrops((d) => ({ ...d, [k]: (d[k] ?? 0) + 1 }));
-            }}
+            onActiveItemDropped={({ key }) => jellies.get(droppedKey(key))?.()}
+            reorderTriggerOrigin="touch"
+            dropAnimationDuration={200}
           >
             {list.map((m, index) => {
               const size = sizeOf(m);
               return (
                 <View key={m.key} style={{ width: size === 'half' ? half : width }}>
-                  <LayoutEditItem hint={editing && index === 0 && showHint} dropCount={drops[m.key] ?? 0}>
+                  <LayoutEditItem hint={editing && index === 0 && showHint} jellies={jellies} jellyKey={m.key}>
                     {m.render(size)}
                     {editing ? (
                       <>

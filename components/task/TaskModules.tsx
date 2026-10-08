@@ -6,7 +6,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Habit } from '@/lib/streaks';
 import { SegmentedControl, Text } from '@/components/ui';
-import { droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
+import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { LayoutEditingContext } from '@/components/ui/LayoutEditing';
 import { useTranslation } from '@/i18n';
 import { HabitCard } from './HabitCard';
@@ -45,7 +45,7 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
   const { showHint, markSeen } = useLayoutHint('tasks-modules');
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [width, setWidth] = useState(0);
-  const [drops, setDrops] = useState<Record<string, number>>({});
+  const [jellies] = useState(createJellyRegistry);
 
   const hasFocus = !!focus;
   const modules = useMemo(
@@ -99,14 +99,13 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
                 updateSettings({ tasksModuleOrder: order(modules).map((m) => m.key) });
                 markSeen();
               }}
-              onActiveItemDropped={({ key }) => {
-              const k = droppedKey(key);
-              setDrops((d) => ({ ...d, [k]: (d[k] ?? 0) + 1 }));
-            }}
+              onActiveItemDropped={({ key }) => jellies.get(droppedKey(key))?.()}
+            reorderTriggerOrigin="touch"
+            dropAnimationDuration={200}
             >
               {modules.map((item, index) => (
                 <View key={item.key} style={{ width: item.key === FOCUS_KEY ? width : size }}>
-                  <LayoutEditItem hint={editing && index === 0 && showHint} dropCount={drops[item.key] ?? 0}>
+                  <LayoutEditItem hint={editing && index === 0 && showHint} jellies={jellies} jellyKey={item.key}>
                     {item.key === FOCUS_KEY ? focus : item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
                     {/* The faint outline that marks each module's place while editing. */}
                     {editing ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.outline, { borderColor: theme.colors.primary }]} /> : null}

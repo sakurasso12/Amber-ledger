@@ -12,8 +12,13 @@ import Animated, {
 import { useSettingsStore } from '@/store/useSettingsStore';
 
 const EASE = Easing.inOut(Easing.quad);
-// The jelly squashes with ease-in: slow start, quick snap into each wobble.
-const JELLY_EASE = Easing.in(Easing.quad);
+// Each wobble eases in and out (sine) — soft start like ease-in, but no hard stop between wobbles.
+const JELLY_EASE = Easing.inOut(Easing.sin);
+
+/** Per board: item key → "play the jelly now". Called straight from the drop callback, so the
+ * wobble starts the moment the card lands instead of after a React re-render. */
+export type JellyRegistry = Map<string, () => void>;
+export const createJellyRegistry = (): JellyRegistry => new Map();
 
 /**
  * Whether a board still needs the "you can drag these" sway — per board, so each screen shows it
@@ -38,13 +43,14 @@ interface LayoutEditItemProps {
   children: React.ReactNode;
   /** Sway side to side for a couple of seconds — "these can be moved" when edit mode opens. */
   hint?: boolean;
-  /** Bumped every time this item is dropped; each bump plays the jelly wobble. */
-  dropCount?: number;
+  /** Registers this item's jelly under `jellyKey`, for the board's drop callback to play. */
+  jellies?: JellyRegistry;
+  jellyKey?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 /** Wraps a module in an editable layout: the hint sway and the jelly settle after a drop. */
-export function LayoutEditItem({ children, hint = false, dropCount = 0, style }: LayoutEditItemProps) {
+export function LayoutEditItem({ children, hint = false, jellies, jellyKey, style }: LayoutEditItemProps) {
   const rotate = useSharedValue(0);
   const scaleX = useSharedValue(1);
   const scaleY = useSharedValue(1);
@@ -63,12 +69,18 @@ export function LayoutEditItem({ children, hint = false, dropCount = 0, style }:
   }, [hint, rotate]);
 
   useEffect(() => {
-    if (dropCount === 0) return;
-    // Jelly: stretch wide and flat, then tall and thin, settling in smaller and smaller wobbles.
-    const step = (value: number, duration: number) => withTiming(value, { duration, easing: JELLY_EASE });
-    scaleX.value = withSequence(step(1.12, 120), step(0.9, 130), step(1.06, 120), step(0.97, 110), step(1.01, 100), step(1, 90));
-    scaleY.value = withSequence(step(0.88, 120), step(1.1, 130), step(0.95, 120), step(1.03, 110), step(0.99, 100), step(1, 90));
-  }, [dropCount, scaleX, scaleY]);
+    if (!jellies || !jellyKey) return;
+    const play = () => {
+      // Jelly: wide and flat, then tall and thin, settling in smaller and smaller wobbles.
+      const step = (value: number, duration: number) => withTiming(value, { duration, easing: JELLY_EASE });
+      scaleX.value = withSequence(step(1.08, 150), step(0.94, 160), step(1.04, 150), step(0.98, 140), step(1.01, 130), step(1, 120));
+      scaleY.value = withSequence(step(0.92, 150), step(1.06, 160), step(0.97, 150), step(1.02, 140), step(0.99, 130), step(1, 120));
+    };
+    jellies.set(jellyKey, play);
+    return () => {
+      if (jellies.get(jellyKey) === play) jellies.delete(jellyKey);
+    };
+  }, [jellies, jellyKey, scaleX, scaleY]);
 
   const animated = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotate.value}deg` }, { scaleX: scaleX.value }, { scaleY: scaleY.value }],

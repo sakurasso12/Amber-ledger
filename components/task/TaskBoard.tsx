@@ -9,7 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { taskKey } from '@/lib/taskFilters';
 import { haptics } from '@/lib/haptics';
 import { SegmentedControl, Text } from '@/components/ui';
-import { droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
+import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { useTranslation } from '@/i18n';
 import { Task, TaskStatus } from '@/types';
 import { TaskListItem } from './TaskListItem';
@@ -45,7 +45,7 @@ export function TaskBoard({ tasks, editing, selection, onCycleStatus }: TaskBoar
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const setStatus = useTaskStore((s) => s.setStatus);
   const [width, setWidth] = useState(0);
-  const [drops, setDrops] = useState<Record<string, number>>({});
+  const [jellies] = useState(createJellyRegistry);
   const { showHint, markSeen } = useLayoutHint('tasks-board');
 
   const sizeOf = (task: Task): Size => (selection.active ? 'M' : (sizes[taskKey(task)] ?? 'M'));
@@ -112,14 +112,13 @@ export function TaskBoard({ tasks, editing, selection, onCycleStatus }: TaskBoar
               updateSettings({ taskOrderMode: 'manual', taskManualOrder: order(tasks).map(taskKey) });
               markSeen();
             }}
-            onActiveItemDropped={({ key }) => {
-              const k = droppedKey(key);
-              setDrops((d) => ({ ...d, [k]: (d[k] ?? 0) + 1 }));
-            }}
+            onActiveItemDropped={({ key }) => jellies.get(droppedKey(key))?.()}
+            reorderTriggerOrigin="touch"
+            dropAnimationDuration={200}
           >
             {tasks.map((task, index) => (
               <View key={task.id} style={{ width: sizeOf(task) === 'S' ? half : width }}>
-                <LayoutEditItem hint={editing && index === 0 && showHint} dropCount={drops[task.id] ?? 0}>
+                <LayoutEditItem hint={editing && index === 0 && showHint} jellies={jellies} jellyKey={task.id}>
                   {renderCard(task)}
                   {editing ? (
                     // The corner button cycles the size: S → M → L.

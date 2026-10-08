@@ -9,7 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { CustomizableCard, EditLayoutButton, EmptyState, LayoutScreen } from '@/components/ui';
-import { droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
+import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
@@ -67,7 +67,7 @@ export function CalendarScreen() {
 
   // Only the expenses can be rearranged here (pencil); nothing to do while finances are locked.
   const [editing, setEditing] = useState(false);
-  const [drops, setDrops] = useState<Record<string, number>>({});
+  const [jellies] = useState(createJellyRegistry);
   const { showHint, markSeen } = useLayoutHint('calendar-expenses');
   const locked = useFinanceLocked();
   useEffect(() => {
@@ -144,14 +144,13 @@ export function CalendarScreen() {
               updateSettings({ expenseDayOrder: { ...dayOrders, [selectedDate]: order(expensesForDay).map((e) => e.id) } });
               markSeen();
             }}
-            onActiveItemDropped={({ key }) => {
-              const k = droppedKey(key);
-              setDrops((d) => ({ ...d, [k]: (d[k] ?? 0) + 1 }));
-            }}
+            onActiveItemDropped={({ key }) => jellies.get(droppedKey(key))?.()}
+            reorderTriggerOrigin="touch"
+            dropAnimationDuration={200}
           >
             {expensesForDay.map((expense, index) => (
               <View key={expense.id}>
-                <LayoutEditItem hint={editing && index === 0 && showHint} dropCount={drops[expense.id] ?? 0}>
+                <LayoutEditItem hint={editing && index === 0 && showHint} jellies={jellies} jellyKey={expense.id}>
                   <View pointerEvents={editing ? 'none' : 'auto'}>
                     <ExpenseListItem
                       expense={expense}
