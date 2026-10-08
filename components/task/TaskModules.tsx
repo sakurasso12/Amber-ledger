@@ -32,6 +32,7 @@ export function TaskModules({ habits, editing }: { habits: Habit[]; editing: boo
   const tr = useTranslation();
   const savedOrder = useSettingsStore((s) => s.settings.tasksModuleOrder);
   const columns = useSettingsStore((s) => s.settings.tasksModuleColumns);
+  const hintSeen = useSettingsStore((s) => s.settings.layoutHintSeen);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [width, setWidth] = useState(0);
   const [drops, setDrops] = useState<Record<string, number>>({});
@@ -84,10 +85,10 @@ export function TaskModules({ habits, editing }: { habits: Habit[]; editing: boo
             inactiveItemOpacity={1}
             activeItemShadowOpacity={0.25}
             hapticsEnabled
-            onDragEnd={({ data }) => updateSettings({ tasksModuleOrder: data.map((m) => m.key) })}
+            onDragEnd={({ data }) => updateSettings({ tasksModuleOrder: data.map((m) => m.key), layoutHintSeen: true })}
             onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
             renderItem={({ item, index }) => (
-              <LayoutEditItem hint={editing && index === 0} dropCount={drops[item.key] ?? 0}>
+              <LayoutEditItem hint={editing && index === 0 && !hintSeen} dropCount={drops[item.key] ?? 0}>
                 {item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
               </LayoutEditItem>
             )}

@@ -94,6 +94,8 @@ export interface AppSettings {
   tasksModuleOrder: string[];
   /** Squares per row on Tasks: 2 (default) or 3. */
   tasksModuleColumns: 2 | 3;
+  /** Something was dragged in an editable layout at least once — the sway hint isn't needed any more. */
+  layoutHintSeen: boolean;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -139,4 +141,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   soundEffects: true,
   tasksModuleOrder: [],
   tasksModuleColumns: 2,
+  layoutHintSeen: false,
 };
