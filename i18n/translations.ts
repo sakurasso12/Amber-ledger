@@ -594,7 +594,7 @@ const ru: Translation = {
     streakChoose: 'Нажми, чтобы выбрать',
   },
   layoutEdit: { edit: 'Изменить расположение', done: 'Готово', perRow: 'В ряд' },
-  level: { tasksDone: 'Выполнено задач', sound: 'Звук уровня', soundHint: 'Играет, когда кольцо из 10 задач заполняется' },
+  level: { tasksDone: 'Выполнено задач', sound: 'Звук выполнения', soundHint: 'Играет, когда задача выполнена' },
   habitWidget: {
     title: 'Виджет серии',
     subtitle: 'Какую привычку показывать на этом виджете?',
@@ -980,7 +980,7 @@ const uk: Translation = {
     streakChoose: 'Натисни, щоб вибрати',
   },
   layoutEdit: { edit: 'Змінити розташування', done: 'Готово', perRow: 'У ряд' },
-  level: { tasksDone: 'Виконано задач', sound: 'Звук рівня', soundHint: 'Грає, коли кільце з 10 задач заповнюється' },
+  level: { tasksDone: 'Виконано задач', sound: 'Звук виконання', soundHint: 'Грає, коли задачу виконано' },
   habitWidget: {
     title: 'Віджет серії',
     subtitle: 'Яку звичку показувати на цьому віджеті?',
@@ -1366,7 +1366,7 @@ const en: Translation = {
     streakChoose: 'Tap to choose',
   },
   layoutEdit: { edit: 'Edit layout', done: 'Done', perRow: 'Per row' },
-  level: { tasksDone: 'Tasks done', sound: 'Level-up sound', soundHint: 'Plays when the ring of 10 tasks fills up' },
+  level: { tasksDone: 'Tasks done', sound: 'Task done sound', soundHint: 'Plays when a task is done' },
   habitWidget: {
     title: 'Streak widget',
     subtitle: 'Which habit should this widget show?',

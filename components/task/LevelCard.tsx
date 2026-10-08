@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Animated, {
@@ -12,10 +12,8 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import { useAudioPlayer } from 'expo-audio';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
-import { useSettingsStore } from '@/store/useSettingsStore';
 import { completedCount, levelLabel, levelOf, segmentsFilled, TASKS_PER_LEVEL } from '@/lib/level';
 import { haptics } from '@/lib/haptics';
 import { CustomizableCard, Text } from '@/components/ui';
@@ -27,6 +25,12 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const GAP = 6;
 const SEGMENT = 360 / TASKS_PER_LEVEL;
 const FILL = { duration: 750, easing: Easing.inOut(Easing.cubic) };
+
+/**
+ * The total this card last showed. Kept outside the component: the grid can remount its items
+ * when the data changes, and a fresh ref would forget the old total and skip the animation.
+ */
+let lastShownTotal: number | null = null;
 
 /** SVG arc from `fromDeg` to `toDeg` (0° = top, clockwise) on a circle of radius r around c. */
 function arc(c: number, r: number, fromDeg: number, toDeg: number): string {
@@ -52,31 +56,24 @@ function FilledSegment({ index, progress, c, r, stroke, color, cap }: { index: n
 
 /**
  * Square in the Tasks grid: all tasks ever done as a ring of 10 segments. Every 10th task fills
- * the ring — the level-up sound plays and it starts over ("10/20", "20/30"…).
+ * the ring with a pulse and it starts over ("10/20", "20/30"…).
  */
 export function LevelCard({ size }: { size: number }) {
   const theme = useTheme();
   const tr = useTranslation();
   const tasks = useTaskStore((s) => s.tasks);
-  const soundOn = useSettingsStore((s) => s.settings.soundEffects);
   const total = useMemo(() => completedCount(tasks), [tasks]);
-  const player = useAudioPlayer(require('@/assets/sounds/level-up.mp3'));
-
-  const progress = useSharedValue(segmentsFilled(total));
+  const progress = useSharedValue(segmentsFilled(lastShownTotal ?? total));
   const pulse = useSharedValue(1);
-  const previous = useRef(total);
 
+  // The sound itself plays from the task store on every completion; the level-up adds a buzz.
   function levelUp() {
     haptics.success();
-    if (soundOn) {
-      player.seekTo(0);
-      player.play();
-    }
   }
 
   useEffect(() => {
-    const before = previous.current;
-    previous.current = total;
+    const before = lastShownTotal ?? total;
+    lastShownTotal = total;
     if (total === before) return;
     const target = segmentsFilled(total);
 
