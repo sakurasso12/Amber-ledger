@@ -15,6 +15,8 @@ import { LevelCard } from './LevelCard';
 const GAP = 10;
 const LEVEL_KEY = 'level';
 
+const FOCUS_KEY = 'focus';
+
 type Module = { key: string; habit: Habit | null };
 
 /** Puts modules in the saved order; new ones (a just-created habit) go at the end. */
@@ -28,7 +30,14 @@ function ordered(modules: Module[], saved: string[]): Module[] {
  * if chosen). In edit mode (the pencil) they can be dragged around: the picked one shrinks, the
  * rest slide out of its way, and it settles with a jelly wobble.
  */
-export function TaskModules({ habits, editing }: { habits: Habit[]; editing: boolean }) {
+interface TaskModulesProps {
+  habits: Habit[];
+  editing: boolean;
+  /** Vertical's "In focus" card — full width, moves around among the squares like they do. */
+  focus?: React.ReactNode;
+}
+
+export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const savedOrder = useSettingsStore((s) => s.settings.tasksModuleOrder);
@@ -38,12 +47,20 @@ export function TaskModules({ habits, editing }: { habits: Habit[]; editing: boo
   const [width, setWidth] = useState(0);
   const [drops, setDrops] = useState<Record<string, number>>({});
 
+  const hasFocus = !!focus;
   const modules = useMemo(
-    () => ordered([{ key: LEVEL_KEY, habit: null }, ...habits.map((habit) => ({ key: habit.seriesId, habit }))], savedOrder),
-    [habits, savedOrder]
+    () =>
+      ordered(
+        [
+          { key: LEVEL_KEY, habit: null },
+          ...habits.map((habit) => ({ key: habit.seriesId, habit })),
+          ...(hasFocus ? [{ key: FOCUS_KEY, habit: null }] : []),
+        ],
+        savedOrder
+      ),
+    [habits, savedOrder, hasFocus]
   );
   const size = Math.floor((width - GAP * (columns - 1)) / columns);
-  const rows = Math.ceil(modules.length / columns);
 
   return (
     <LayoutEditingContext.Provider value={editing}>
@@ -65,20 +82,11 @@ export function TaskModules({ habits, editing }: { habits: Habit[]; editing: boo
         ) : null}
 
         <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-          {/* The faint grid behind the squares while editing — where things can go. */}
-          {editing && width > 0 ? (
-            <Animated.View entering={FadeIn.duration(250)} exiting={FadeOut.duration(150)} style={[StyleSheet.absoluteFill, styles.cells]} pointerEvents="none">
-              {Array.from({ length: rows * columns }, (_, i) => (
-                <View key={i} style={[styles.cell, { width: size, height: size, borderColor: theme.colors.border }]} />
-              ))}
-            </Animated.View>
-          ) : null}
-
           {width > 0 ? (
-            <Sortable.Grid
-              data={modules}
-              keyExtractor={(m) => m.key}
-              columns={columns}
+            // Flex rather than a grid: the squares and the full-width focus card share one order.
+            <Sortable.Flex
+              flexDirection="row"
+              flexWrap="wrap"
               rowGap={GAP}
               columnGap={GAP}
               sortEnabled={editing}
@@ -87,14 +95,19 @@ export function TaskModules({ habits, editing }: { habits: Habit[]; editing: boo
               inactiveItemOpacity={1}
               activeItemShadowOpacity={0.25}
               hapticsEnabled
-              onDragEnd={({ data }) => updateSettings({ tasksModuleOrder: data.map((m) => m.key), layoutHintSeen: true })}
+              onDragEnd={({ order }) => updateSettings({ tasksModuleOrder: order(modules).map((m) => m.key), layoutHintSeen: true })}
               onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
-              renderItem={({ item, index }) => (
-                <LayoutEditItem hint={editing && index === 0 && !hintSeen} dropCount={drops[item.key] ?? 0}>
-                  {item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
-                </LayoutEditItem>
-              )}
-            />
+            >
+              {modules.map((item, index) => (
+                <View key={item.key} style={{ width: item.key === FOCUS_KEY ? width : size }}>
+                  <LayoutEditItem hint={editing && index === 0 && !hintSeen} dropCount={drops[item.key] ?? 0}>
+                    {item.key === FOCUS_KEY ? focus : item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
+                    {/* The faint outline that marks each module's place while editing. */}
+                    {editing ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.outline, { borderColor: theme.colors.primary }]} /> : null}
+                  </LayoutEditItem>
+                </View>
+              ))}
+            </Sortable.Flex>
           ) : null}
         </View>
       </View>
@@ -107,6 +120,5 @@ const styles = StyleSheet.create({
   columnsRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   columnsLabel: { fontSize: 13, fontWeight: '600' },
   columnsControl: { width: 120 },
-  cells: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
-  cell: { borderWidth: 1, borderStyle: 'dashed', borderRadius: 18, opacity: 0.6 },
+  outline: { borderWidth: 1, borderStyle: 'dashed', borderRadius: 20, opacity: 0.35, margin: -4 },
 });

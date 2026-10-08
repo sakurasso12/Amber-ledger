@@ -104,9 +104,9 @@ export function TasksScreen() {
   if (visibleTasks.length === 0) {
     body = <EmptyState icon="📋" title={tr.tasksScreen.emptyTitle} subtitle={tr.tasksScreen.emptySubtitle} />;
   } else if (showFocus) {
+    // The focus card itself lives among the modules above (it can be dragged there); here the rest.
     body = (
       <View style={styles.focusHeader}>
-        <FocusTaskCard task={focusTask} editing={editingLayout} onDone={() => setStatus(focusTask.id, 'done')} />
         {visibleTasks.length > 1 ? (
           <Text style={[styles.sectionTitle, { color: theme.colors.textMuted }]}>{tr.layoutText.next}</Text>
         ) : null}
@@ -121,7 +121,11 @@ export function TasksScreen() {
     <ScrollView contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
       {selectionMode ? null : (
         <View style={styles.habitsHeader}>
-          <TaskModules habits={habitList} editing={editingLayout} />
+          <TaskModules
+            habits={habitList}
+            editing={editingLayout}
+            focus={showFocus ? <FocusTaskCard task={focusTask} editing={editingLayout} onDone={() => setStatus(focusTask.id, 'done')} /> : undefined}
+          />
         </View>
       )}
       {body}
