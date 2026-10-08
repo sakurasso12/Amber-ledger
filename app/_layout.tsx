@@ -21,7 +21,7 @@ import { useFinanceLockLifecycle } from '@/store/useFinanceLock';
 
 /**
  * JS stack (not the native one) because Android's native stack has no swipe-back: here every
- * pushed screen follows the finger when swiped right from anywhere and pops on release, like iOS.
+ * pushed screen follows the finger when swiped right from its left side and pops on release, like iOS.
  * Editors and lists open as iOS-style sheets that slide up and can be swiped down.
  */
 const MODAL = { presentation: 'modal', ...TransitionPresets.ModalPresentationIOS, gestureEnabled: true } as const;
@@ -39,8 +39,9 @@ function RootStack() {
           ...TransitionPresets.SlideFromRightIOS,
           gestureEnabled: true,
           gestureDirection: 'horizontal',
-          // Swipe back from anywhere on the screen, not only the thin left edge.
-          gestureResponseDistance: Dimensions.get('window').width,
+          // Swipe back starts from the left quarter of the screen. Full width stole vertical scrolls:
+          // the stack's pan activates after just 5 px sideways, which most scrolls drift by.
+          gestureResponseDistance: Math.round(Dimensions.get('window').width * 0.25),
         }}
       >
         <Stack.Screen name="(tabs)" />
