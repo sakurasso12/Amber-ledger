@@ -45,7 +45,7 @@ export function SettingsScreen() {
       icon: '🔒',
       title: tr.securitySettings.title,
       value: settings.financeLockEnabled
-        ? `${settings.financeLockMethod === 'fingerprint' ? tr.securitySettings.methodFingerprint : settings.financeLockMethod === 'device' ? tr.securitySettings.methodDevice : tr.securitySettings.methodPassword} · ${settings.financeLockMinutes} ${tr.securitySettings.minutes}`
+        ? `${settings.financeLockMethod === 'device' ? tr.securitySettings.methodDevice : tr.securitySettings.methodPassword} · ${settings.financeLockMinutes} ${tr.securitySettings.minutes}`
         : tr.settingsScreen.notSet,
       route: '/settings/security',
     },

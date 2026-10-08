@@ -79,8 +79,7 @@ Everything about the look can be changed — except the font (coming soon):
 Your money is nobody else's business. Turn on **Finance lock** in *Settings → Security* and every
 amount — Finance, Stats, Calendar and the widget — stays blurred until you unlock it with:
 
-- **fingerprint** (face unlock works too on phones that support it, e.g. Samsung),
-- your **phone's PIN / pattern**,
+- your **fingerprint or phone PIN / pattern** (face unlock works too on phones that support it, e.g. Samsung),
 - or your **profile password**.
 
 It locks again after the time you choose (0–30 minutes after unlocking; 0 = as soon as you leave

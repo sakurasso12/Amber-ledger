@@ -12,8 +12,7 @@ import { FINANCE_LOCK_MAX_MINUTES, FinanceLockMethod } from '@/types';
 import { useTranslation } from '@/i18n';
 
 const METHODS: { value: FinanceLockMethod; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { value: 'fingerprint', icon: 'finger-print' },
-  { value: 'device', icon: 'phone-portrait-outline' },
+  { value: 'device', icon: 'finger-print' },
   { value: 'password', icon: 'key-outline' },
 ];
 
@@ -30,21 +29,12 @@ export function SecuritySettingsScreen() {
   const hasPassword = settings.profilePasswordSet;
 
   useEffect(() => {
-    deviceAuthAvailable().then((available) => {
-      setHasBiometrics(available);
-      // No fingerprint enrolled → fall back to the phone's own lock check.
-      if (!available && useSettingsStore.getState().settings.financeLockMethod === 'fingerprint') {
-        updateSettings({ financeLockMethod: 'device' });
-      }
-    });
-  }, [updateSettings]);
+    // Without an enrolled fingerprint the phone's PIN/pattern does the job — just say so.
+    deviceAuthAvailable().then(setHasBiometrics);
+  }, []);
 
   const methodLabel = (method: FinanceLockMethod) =>
-    method === 'fingerprint'
-      ? tr.securitySettings.methodFingerprint
-      : method === 'device'
-        ? tr.securitySettings.methodDevice
-        : tr.securitySettings.methodPassword;
+    method === 'device' ? tr.securitySettings.methodDevice : tr.securitySettings.methodPassword;
 
   function toggleLock(enabled: boolean) {
     updateSettings({ financeLockEnabled: enabled });
@@ -93,17 +83,14 @@ export function SecuritySettingsScreen() {
               <View style={[styles.methodList, cardSurface(theme)]}>
                 {METHODS.map(({ value, icon }, i) => {
                   const selected = settings.financeLockMethod === value;
-                  const unavailable = value === 'fingerprint' && !hasBiometrics;
                   return (
                     <PressableScale
                       key={value}
                       scaleTo={0.98}
-                      disabled={unavailable}
                       onPress={() => updateSettings({ financeLockMethod: value })}
                       style={[
                         styles.methodRow,
                         i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.border },
-                        unavailable && { opacity: 0.4 },
                       ]}
                     >
                       <Ionicons name={icon} size={22} color={selected ? theme.colors.primary : theme.colors.textMuted} />
