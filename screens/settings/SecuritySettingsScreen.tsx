@@ -6,9 +6,16 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { deviceAuthAvailable, lockFinances } from '@/store/useFinanceLock';
-import { Button, Screen, SegmentedControl, SubScreenHeader, Text, TextField } from '@/components/ui';
+import { Ionicons } from '@expo/vector-icons';
+import { Button, PressableScale, Screen, SubScreenHeader, Text, TextField } from '@/components/ui';
 import { FINANCE_LOCK_MAX_MINUTES, FinanceLockMethod } from '@/types';
 import { useTranslation } from '@/i18n';
+
+const METHODS: { value: FinanceLockMethod; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { value: 'fingerprint', icon: 'finger-print' },
+  { value: 'device', icon: 'phone-portrait-outline' },
+  { value: 'password', icon: 'key-outline' },
+];
 
 /** Settings → Security: whether Finance is locked, how to unlock it, and how soon it re-locks. */
 export function SecuritySettingsScreen() {
@@ -23,8 +30,21 @@ export function SecuritySettingsScreen() {
   const hasPassword = settings.profilePasswordSet;
 
   useEffect(() => {
-    deviceAuthAvailable().then(setHasBiometrics);
-  }, []);
+    deviceAuthAvailable().then((available) => {
+      setHasBiometrics(available);
+      // No fingerprint enrolled → fall back to the phone's own lock check.
+      if (!available && useSettingsStore.getState().settings.financeLockMethod === 'fingerprint') {
+        updateSettings({ financeLockMethod: 'device' });
+      }
+    });
+  }, [updateSettings]);
+
+  const methodLabel = (method: FinanceLockMethod) =>
+    method === 'fingerprint'
+      ? tr.securitySettings.methodFingerprint
+      : method === 'device'
+        ? tr.securitySettings.methodDevice
+        : tr.securitySettings.methodPassword;
 
   function toggleLock(enabled: boolean) {
     updateSettings({ financeLockEnabled: enabled });
@@ -70,15 +90,34 @@ export function SecuritySettingsScreen() {
           <>
             <View style={styles.field}>
               <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.securitySettings.method}</Text>
-              <SegmentedControl<FinanceLockMethod>
-                value={settings.financeLockMethod}
-                onChange={(financeLockMethod) => updateSettings({ financeLockMethod })}
-                segments={[
-                  { value: 'device', label: tr.securitySettings.methodDevice },
-                  { value: 'password', label: tr.securitySettings.methodPassword },
-                ]}
-              />
-              {settings.financeLockMethod === 'device' && !hasBiometrics ? (
+              <View style={[styles.methodList, cardSurface(theme)]}>
+                {METHODS.map(({ value, icon }, i) => {
+                  const selected = settings.financeLockMethod === value;
+                  const unavailable = value === 'fingerprint' && !hasBiometrics;
+                  return (
+                    <PressableScale
+                      key={value}
+                      scaleTo={0.98}
+                      disabled={unavailable}
+                      onPress={() => updateSettings({ financeLockMethod: value })}
+                      style={[
+                        styles.methodRow,
+                        i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.border },
+                        unavailable && { opacity: 0.4 },
+                      ]}
+                    >
+                      <Ionicons name={icon} size={22} color={selected ? theme.colors.primary : theme.colors.textMuted} />
+                      <Text style={[styles.methodLabel, { color: theme.colors.text }]}>{methodLabel(value)}</Text>
+                      <Ionicons
+                        name={selected ? 'radio-button-on' : 'radio-button-off'}
+                        size={22}
+                        color={selected ? theme.colors.primary : theme.colors.textMuted}
+                      />
+                    </PressableScale>
+                  );
+                })}
+              </View>
+              {!hasBiometrics ? (
                 <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.securitySettings.noBiometrics}</Text>
               ) : null}
             </View>
@@ -114,6 +153,9 @@ const styles = StyleSheet.create({
   hint: { fontSize: 12, lineHeight: 17 },
   field: { gap: 8 },
   label: { fontSize: 12, fontWeight: '600' },
+  methodList: { overflow: 'hidden' },
+  methodRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
+  methodLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
   minutesRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   minutesInput: { width: 72 },
 });

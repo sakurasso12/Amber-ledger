@@ -47,9 +47,16 @@ export function useFinanceLocked(): boolean {
   return enabled && !isUnlocked(until);
 }
 
-/** Fingerprint (or the phone's PIN/pattern as fallback). Returns true on success. */
-export async function unlockWithDevice(prompt: string, cancelLabel: string): Promise<boolean> {
-  const result = await LocalAuthentication.authenticateAsync({ promptMessage: prompt, cancelLabel });
+/** System check: fingerprint only, or (fingerprintOnly = false) with the phone's PIN/pattern as
+ * fallback. Android can't ask for the PIN alone while a fingerprint is enrolled. */
+export async function unlockWithDevice(prompt: string, cancelLabel: string, fingerprintOnly: boolean): Promise<boolean> {
+  const result = await LocalAuthentication.authenticateAsync({
+    promptMessage: prompt,
+    cancelLabel,
+    disableDeviceFallback: fingerprintOnly,
+    // No extra "Confirm" tap after a match — straight in.
+    requireConfirmation: false,
+  });
   if (result.success) unlockFinances();
   return result.success;
 }

@@ -67,7 +67,8 @@ export interface AppSettings {
   profilePasswordSet: boolean;
   /** Settings → Security: hide money behind a lock (Finance tab, Stats → Finance, money widgets). */
   financeLockEnabled: boolean;
-  /** device = fingerprint with the phone's own PIN/pattern as fallback; password = profile password. */
+  /** fingerprint = fingerprint only, prompted as soon as locked Finance opens; device = the phone's
+   * own lock screen check (fingerprint or its PIN/pattern); password = profile password. */
   financeLockMethod: FinanceLockMethod;
   /** Minutes after leaving the app before Finance locks again (0 = at once, max 30). */
   financeLockMinutes: number;
@@ -76,7 +77,7 @@ export interface AppSettings {
   financeUnlockedUntil: string | null;
 }
 
-export type FinanceLockMethod = 'device' | 'password';
+export type FinanceLockMethod = 'fingerprint' | 'device' | 'password';
 export const FINANCE_LOCK_MAX_MINUTES = 30;
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -107,7 +108,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   profileAvatarUri: null,
   profilePasswordSet: false,
   financeLockEnabled: false,
-  financeLockMethod: 'device',
+  financeLockMethod: 'fingerprint',
   financeLockMinutes: 4,
   financeUnlockedUntil: null,
 };

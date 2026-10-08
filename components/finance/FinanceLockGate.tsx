@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { BlurTargetView, BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,9 +43,18 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
   const [error, setError] = useState(false);
 
   async function handleDevice() {
-    const ok = await unlockWithDevice(tr.financeLock.prompt, tr.financeLock.cancel);
+    const ok = await unlockWithDevice(tr.financeLock.prompt, tr.financeLock.cancel, method === 'fingerprint');
     if (ok) haptics.success();
   }
+
+  // Fingerprint mode: ask straight away when the locked screen comes into view — no extra tap.
+  // Once per visit, so cancelling doesn't bring the prompt back in a loop; the button stays as a retry.
+  useFocusEffect(
+    useCallback(() => {
+      if (method === 'fingerprint') handleDevice();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [method])
+  );
 
   async function handlePassword() {
     setChecking(true);
