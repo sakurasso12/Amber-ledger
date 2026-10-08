@@ -12,6 +12,10 @@ export function canCountStreak(rule: RecurrenceRule | null): boolean {
   return !!rule && rule.freq !== 'monthly';
 }
 
+/** Id of a habit's card — its background photo and shape are stored under it (the streak widget
+ * on the home screen reuses the photo). Per series, so it survives the move to the next day. */
+export const habitCardId = (seriesId: string) => `habit-${seriesId}`;
+
 /** One dot in the "last few times" row. */
 export type HabitMark = 'done' | 'late' | 'missed';
 

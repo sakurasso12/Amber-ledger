@@ -96,6 +96,8 @@ export interface AppSettings {
   tasksModuleColumns: 2 | 3;
   /** Something was dragged in an editable layout at least once — the sway hint isn't needed any more. */
   layoutHintSeen: boolean;
+  /** Per-card corner shape (card id → 'square' | 'rounded' | 'round' | 'leaf'); absent = theme. */
+  cardShapes: Record<string, 'square' | 'rounded' | 'round' | 'leaf'>;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -142,4 +144,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   tasksModuleOrder: [],
   tasksModuleColumns: 2,
   layoutHintSeen: false,
+  cardShapes: {},
 };

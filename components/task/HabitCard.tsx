@@ -4,12 +4,11 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { parseISO } from 'date-fns';
 import { useTheme } from '@/theme/ThemeProvider';
-import { cardSurface } from '@/theme/surfaces';
 import { SPRING } from '@/theme/motion';
 import { useTaskStore } from '@/store/useTaskStore';
-import { Habit, HabitMark } from '@/lib/streaks';
+import { Habit, habitCardId, HabitMark } from '@/lib/streaks';
 import { haptics } from '@/lib/haptics';
-import { PressableScale, Text } from '@/components/ui';
+import { CustomizableCard, PressableScale, Text } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 
 const DOTS = 7;
@@ -69,36 +68,41 @@ export function HabitCard({ habit, size, editing = false }: { habit: Habit; size
       onLongPress={editing ? undefined : () => habit.current && router.push(`/task/${habit.current.id}`)}
       disabled={editing}
       scaleTo={0.94}
-      style={[styles.card, cardSurface(theme), { width: size, height: size, padding: 14 * k, gap: 6 * k }]}
+      style={{ width: size, height: size }}
     >
-      <View style={styles.top}>
-        <Animated.Text style={[styles.flame, { fontSize: 28 * k, opacity: active ? 1 : 0.3, transform: [{ scale: flame }] }]}>🔥</Animated.Text>
-        <Text style={[styles.count, { fontSize: 34 * k, color: active ? theme.colors.text : theme.colors.textMuted }]}>{habit.streak}</Text>
-      </View>
-      <Text style={[styles.title, { fontSize: Math.max(11, 15 * k), color: theme.colors.text }]} numberOfLines={2}>
-        {habit.title}
-      </Text>
-      <View style={styles.spacer} />
-      <View style={[styles.dots, { gap: 5 * k }]}>
-        {dots.map((mark, i) => (
-          <View
-            key={i}
-            style={[
-              styles.dot,
-              { width: 10 * k, height: 10 * k, borderRadius: 5 * k },
-              { backgroundColor: dotColor(mark), borderColor: mark ? theme.colors.primary : theme.colors.border },
-              mark === 'missed' && { borderColor: theme.colors.textMuted },
-            ]}
-          />
-        ))}
-      </View>
-      {footer}
+      {/* Photo and shape come from the card's ⋮ menu, stored per habit series. */}
+      <CustomizableCard widgetId={habitCardId(habit.seriesId)} padding={14 * k} style={styles.fill}>
+        <View style={[styles.fill, { gap: 6 * k }]}>
+          <View style={styles.top}>
+            <Animated.Text style={[styles.flame, { fontSize: 28 * k, opacity: active ? 1 : 0.3, transform: [{ scale: flame }] }]}>🔥</Animated.Text>
+            <Text style={[styles.count, { fontSize: 34 * k, color: active ? theme.colors.text : theme.colors.textMuted }]}>{habit.streak}</Text>
+          </View>
+          <Text style={[styles.title, { fontSize: Math.max(11, 15 * k), color: theme.colors.text }]} numberOfLines={2}>
+            {habit.title}
+          </Text>
+          <View style={styles.spacer} />
+          <View style={[styles.dots, { gap: 5 * k }]}>
+            {dots.map((mark, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  { width: 10 * k, height: 10 * k, borderRadius: 5 * k },
+                  { backgroundColor: dotColor(mark), borderColor: mark ? theme.colors.primary : theme.colors.border },
+                  mark === 'missed' && { borderColor: theme.colors.textMuted },
+                ]}
+              />
+            ))}
+          </View>
+          {footer}
+        </View>
+      </CustomizableCard>
     </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 14, gap: 6 },
+  fill: { flex: 1 },
   top: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   flame: { fontSize: 28 },
   count: { fontSize: 34, fontWeight: '800', fontVariant: ['tabular-nums'] },

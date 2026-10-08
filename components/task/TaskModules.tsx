@@ -7,6 +7,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { Habit } from '@/lib/streaks';
 import { SegmentedControl, Text } from '@/components/ui';
 import { LayoutEditItem } from '@/components/ui/LayoutEditItem';
+import { LayoutEditingContext } from '@/components/ui/LayoutEditing';
 import { useTranslation } from '@/i18n';
 import { HabitCard } from './HabitCard';
 import { LevelCard } from './LevelCard';
@@ -45,57 +46,59 @@ export function TaskModules({ habits, editing }: { habits: Habit[]; editing: boo
   const rows = Math.ceil(modules.length / columns);
 
   return (
-    <View style={styles.wrap}>
-      {editing ? (
-        <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} style={styles.columnsRow}>
-          <Text style={[styles.columnsLabel, { color: theme.colors.textMuted }]}>{tr.layoutEdit.perRow}</Text>
-          <View style={styles.columnsControl}>
-            <SegmentedControl
-              value={String(columns)}
-              onChange={(value) => updateSettings({ tasksModuleColumns: value === '3' ? 3 : 2 })}
-              segments={[
-                { value: '2', label: '2' },
-                { value: '3', label: '3' },
-              ]}
-            />
-          </View>
-        </Animated.View>
-      ) : null}
-
-      <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-        {/* The faint grid behind the squares while editing — where things can go. */}
-        {editing && width > 0 ? (
-          <Animated.View entering={FadeIn.duration(250)} exiting={FadeOut.duration(150)} style={[StyleSheet.absoluteFill, styles.cells]} pointerEvents="none">
-            {Array.from({ length: rows * columns }, (_, i) => (
-              <View key={i} style={[styles.cell, { width: size, height: size, borderColor: theme.colors.border }]} />
-            ))}
+    <LayoutEditingContext.Provider value={editing}>
+      <View style={styles.wrap}>
+        {editing ? (
+          <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} style={styles.columnsRow}>
+            <Text style={[styles.columnsLabel, { color: theme.colors.textMuted }]}>{tr.layoutEdit.perRow}</Text>
+            <View style={styles.columnsControl}>
+              <SegmentedControl
+                value={String(columns)}
+                onChange={(value) => updateSettings({ tasksModuleColumns: value === '3' ? 3 : 2 })}
+                segments={[
+                  { value: '2', label: '2' },
+                  { value: '3', label: '3' },
+                ]}
+              />
+            </View>
           </Animated.View>
         ) : null}
 
-        {width > 0 ? (
-          <Sortable.Grid
-            data={modules}
-            keyExtractor={(m) => m.key}
-            columns={columns}
-            rowGap={GAP}
-            columnGap={GAP}
-            sortEnabled={editing}
-            dragActivationDelay={150}
-            activeItemScale={0.9}
-            inactiveItemOpacity={1}
-            activeItemShadowOpacity={0.25}
-            hapticsEnabled
-            onDragEnd={({ data }) => updateSettings({ tasksModuleOrder: data.map((m) => m.key), layoutHintSeen: true })}
-            onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
-            renderItem={({ item, index }) => (
-              <LayoutEditItem hint={editing && index === 0 && !hintSeen} dropCount={drops[item.key] ?? 0}>
-                {item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
-              </LayoutEditItem>
-            )}
-          />
-        ) : null}
+        <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+          {/* The faint grid behind the squares while editing — where things can go. */}
+          {editing && width > 0 ? (
+            <Animated.View entering={FadeIn.duration(250)} exiting={FadeOut.duration(150)} style={[StyleSheet.absoluteFill, styles.cells]} pointerEvents="none">
+              {Array.from({ length: rows * columns }, (_, i) => (
+                <View key={i} style={[styles.cell, { width: size, height: size, borderColor: theme.colors.border }]} />
+              ))}
+            </Animated.View>
+          ) : null}
+
+          {width > 0 ? (
+            <Sortable.Grid
+              data={modules}
+              keyExtractor={(m) => m.key}
+              columns={columns}
+              rowGap={GAP}
+              columnGap={GAP}
+              sortEnabled={editing}
+              dragActivationDelay={150}
+              activeItemScale={0.9}
+              inactiveItemOpacity={1}
+              activeItemShadowOpacity={0.25}
+              hapticsEnabled
+              onDragEnd={({ data }) => updateSettings({ tasksModuleOrder: data.map((m) => m.key), layoutHintSeen: true })}
+              onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
+              renderItem={({ item, index }) => (
+                <LayoutEditItem hint={editing && index === 0 && !hintSeen} dropCount={drops[item.key] ?? 0}>
+                  {item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
+                </LayoutEditItem>
+              )}
+            />
+          ) : null}
+        </View>
       </View>
-    </View>
+    </LayoutEditingContext.Provider>
   );
 }
 

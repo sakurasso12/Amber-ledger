@@ -108,7 +108,8 @@ export interface Translation {
     addButton: string;
   };
   workCalendar: { worked: string; off: string };
-  widgetMenu: { pick: string; remove: string };
+  widgetMenu: { pick: string; remove: string; shape: string };
+  cardShape: { title: string; theme: string; square: string; rounded: string; round: string; leaf: string };
   categoryPicker: { label: string };
   expenseEditor: {
     headerNew: string;
@@ -460,7 +461,8 @@ const ru: Translation = {
     addButton: 'Добавить повторяющуюся трату',
   },
   workCalendar: { worked: 'Рабочих', off: 'Выходных' },
-  widgetMenu: { pick: '🖼️ Выбрать картинку', remove: '✕ Удалить картинку' },
+  widgetMenu: { pick: '🖼️ Выбрать картинку', remove: '✕ Удалить картинку', shape: '▢ Форма карточки' },
+  cardShape: { title: 'Форма карточки', theme: 'Как в теме', square: 'Квадратные', rounded: 'Скруглённые', round: 'Круглые', leaf: 'Лист' },
   categoryPicker: { label: 'Категория' },
   expenseEditor: {
     headerNew: 'Новая трата',
@@ -848,7 +850,8 @@ const uk: Translation = {
     addButton: 'Додати повторювану витрату',
   },
   workCalendar: { worked: 'Робочих', off: 'Вихідних' },
-  widgetMenu: { pick: '🖼️ Вибрати картинку', remove: '✕ Видалити картинку' },
+  widgetMenu: { pick: '🖼️ Вибрати картинку', remove: '✕ Видалити картинку', shape: '▢ Форма картки' },
+  cardShape: { title: 'Форма картки', theme: 'Як у темі', square: 'Квадратні', rounded: 'Заокруглені', round: 'Круглі', leaf: 'Листок' },
   categoryPicker: { label: 'Категорія' },
   expenseEditor: {
     headerNew: 'Нова витрата',
@@ -1234,7 +1237,8 @@ const en: Translation = {
     addButton: 'Add recurring expense',
   },
   workCalendar: { worked: 'Worked', off: 'Off' },
-  widgetMenu: { pick: '🖼️ Choose picture', remove: '✕ Remove picture' },
+  widgetMenu: { pick: '🖼️ Choose picture', remove: '✕ Remove picture', shape: '▢ Card shape' },
+  cardShape: { title: 'Card shape', theme: 'Theme default', square: 'Square', rounded: 'Rounded', round: 'Round', leaf: 'Leaf' },
   categoryPicker: { label: 'Category' },
   expenseEditor: {
     headerNew: 'New Expense',

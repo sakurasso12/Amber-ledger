@@ -18,7 +18,7 @@ import { TodayWidget, WidgetTask } from './widget/TodayWidget';
 import { DayOffWidget } from './widget/DayOffWidget';
 import { NextTaskWidget } from './widget/NextTaskWidget';
 import { StreakWidget } from './widget/StreakWidget';
-import { buildHabits } from '@/lib/streaks';
+import { buildHabits, habitCardId } from '@/lib/streaks';
 
 export const WIDGET_NAME = 'AmberLedgerToday';
 export const DAY_OFF_WIDGET_NAME = 'AmberLedgerDayOff';
@@ -37,10 +37,12 @@ interface WidgetSettings {
   moneyHidden: boolean;
   /** Streak widget id → habit series id. */
   streakWidgets: Record<string, string>;
+  /** In-app card photos by card id — a streak widget shows its habit's photo. */
+  cardPhotos: Record<string, string>;
 }
 
 async function readWidgetSettings(): Promise<WidgetSettings> {
-  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'en', moneyHidden: false, streakWidgets: {} };
+  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'en', moneyHidden: false, streakWidgets: {}, cardPhotos: {} };
   try {
     const raw = await getSetting('app-settings');
     const settings = raw ? JSON.parse(raw)?.state?.settings : null;
@@ -54,6 +56,7 @@ async function readWidgetSettings(): Promise<WidgetSettings> {
         !!settings?.financeLockEnabled &&
         !(settings?.financeUnlockedUntil && new Date(settings.financeUnlockedUntil).getTime() > Date.now()),
       streakWidgets: settings?.streakWidgets ?? {},
+      cardPhotos: settings?.widgetBackgrounds ?? {},
     };
   } catch {
     return fallback;
@@ -82,8 +85,8 @@ async function readBackgroundAsDataUri(uri: string | null): Promise<string | nul
  * passing the photo's aspect ratio, scaled up to cover the widget, gives a proper centred crop.
  * Sizes are in dp (the library converts them to pixels).
  */
-async function widgetPhoto(widgetInfo: WidgetInfo, settings: WidgetSettings): Promise<WidgetPhoto | null> {
-  const image = await readBackgroundAsDataUri(settings.backgrounds[widgetInfo.widgetName] ?? null);
+async function widgetPhoto(widgetInfo: WidgetInfo, settings: WidgetSettings, uri?: string | null): Promise<WidgetPhoto | null> {
+  const image = await readBackgroundAsDataUri(uri !== undefined ? uri : settings.backgrounds[widgetInfo.widgetName] ?? null);
   if (!image) return null;
   const widgetWidth = Math.max(1, widgetInfo.width);
   const widgetHeight = Math.max(1, widgetInfo.height);
@@ -174,7 +177,12 @@ export async function buildStreakWidget(widgetInfo: WidgetInfo) {
     habit: habit ? { title: habit.title, streak: habit.streak, doneToday: habit.doneToday } : null,
     pickUri: `amberledger://habit-widget?widgetId=${widgetInfo.widgetId}`,
     ...widgetLook(settings),
-    photo: await widgetPhoto(widgetInfo, settings),
+    // The habit's own card photo wins; otherwise the streak widgets' shared background.
+    photo: await widgetPhoto(
+      widgetInfo,
+      settings,
+      (seriesId && settings.cardPhotos[habitCardId(seriesId)]) || settings.backgrounds[STREAK_WIDGET_NAME] || null
+    ),
     width: widgetInfo.width,
     tr: translations[settings.language].homeWidgets,
   });

@@ -8,11 +8,13 @@ interface WidgetMenuProps {
   hasImage: boolean;
   onPickImage: () => void;
   onRemoveImage: () => void;
+  /** Adds "Card shape" to the menu. */
+  onPickShape?: () => void;
   tint?: 'light' | 'dark';
 }
 
-/** The "⋮" button in a widget's corner — opens a tiny menu to set or clear its background image. */
-export function WidgetMenu({ hasImage, onPickImage, onRemoveImage, tint }: WidgetMenuProps) {
+/** The "⋮" button in a widget's corner — a tiny menu: background picture, and the card's shape. */
+export function WidgetMenu({ hasImage, onPickImage, onRemoveImage, onPickShape, tint }: WidgetMenuProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const [open, setOpen] = useState(false);
@@ -45,6 +47,17 @@ export function WidgetMenu({ hasImage, onPickImage, onRemoveImage, tint }: Widge
                 }}
               >
                 <Text style={{ color: theme.colors.danger, fontSize: 15, fontWeight: '600' }}>{tr.widgetMenu.remove}</Text>
+              </Pressable>
+            ) : null}
+            {onPickShape ? (
+              <Pressable
+                style={styles.item}
+                onPress={() => {
+                  setOpen(false);
+                  onPickShape();
+                }}
+              >
+                <Text style={{ color: theme.colors.text, fontSize: 15, fontWeight: '600' }}>{tr.widgetMenu.shape}</Text>
               </Pressable>
             ) : null}
           </View>
