@@ -9,7 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { EmptyState, Fab, LayoutScreen, QuickAddBar } from '@/components/ui';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
-import { HabitStrip } from '@/components/task/HabitStrip';
+import { HabitGrid } from '@/components/task/HabitGrid';
 import { activeTasks } from '@/lib/taskFilters';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
@@ -87,9 +87,17 @@ export function TasksScreen() {
     [visibleTasks]
   );
 
+  // Habit squares sit at the top of the list and scroll with it.
+  const habits = selectionMode ? null : <HabitGrid />;
+
   let list: React.ReactNode;
   if (visibleTasks.length === 0) {
-    list = <EmptyState icon="📋" title={tr.tasksScreen.emptyTitle} subtitle={tr.tasksScreen.emptySubtitle} />;
+    list = (
+      <>
+        <View style={styles.habitsAlone}>{habits}</View>
+        <EmptyState icon="📋" title={tr.tasksScreen.emptyTitle} subtitle={tr.tasksScreen.emptySubtitle} />
+      </>
+    );
   } else if (layout.tasks === 'focus' && focusTask) {
     // Vertical: one task in focus, the rest as a compact list below.
     list = (
@@ -99,6 +107,7 @@ export function TasksScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.focusHeader}>
+            {habits}
             <FocusTaskCard task={focusTask} onDone={() => setStatus(focusTask.id, 'done')} />
             {visibleTasks.length > 1 ? (
               <Text style={[styles.sectionTitle, { color: theme.colors.textMuted }]}>{tr.layoutText.next}</Text>
@@ -115,6 +124,8 @@ export function TasksScreen() {
         data={visibleTasks}
         keyExtractor={(t) => t.id}
         contentContainerStyle={styles.listContent}
+        ListHeaderComponent={habits}
+        ListHeaderComponentStyle={styles.habitsHeader}
         renderItem={({ item }) => <TaskListItem {...rowProps(item)} />}
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
       />
@@ -138,8 +149,6 @@ export function TasksScreen() {
 
   return (
     <LayoutScreen title={tr.tasksScreen.header} count={visibleTasks.length} headerOverride={selectionBar}>
-      {!selectionMode ? <HabitStrip /> : null}
-
       {list}
 
       {quickAddOpen && !selectionMode ? (
@@ -177,4 +186,6 @@ const styles = StyleSheet.create({
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   sectionTitle: { fontSize: 18, fontWeight: '800' },
   focusHeader: { gap: 14, marginBottom: 10 },
+  habitsAlone: { paddingHorizontal: 16 },
+  habitsHeader: { marginBottom: 14 },
 });
