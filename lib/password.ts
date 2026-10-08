@@ -35,4 +35,4 @@ export async function verifyPassword(password: string, stored: string): Promise<
   return difference === 0;
 }
 
-export const MIN_PASSWORD_LENGTH = 6;
+export const MIN_PASSWORD_LENGTH = 4;
