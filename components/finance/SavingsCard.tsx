@@ -180,7 +180,8 @@ function SavingsEditor({ visible, onClose }: { visible: boolean; onClose: () => 
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // paddingRight keeps the rate clear of the card's ⋮ menu in the top-right corner.
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 28 },
   title: { fontSize: 16, fontWeight: '700', flex: 1 },
   rate: { fontSize: 13, fontWeight: '700' },
   balance: { fontSize: 30, fontWeight: '800', marginTop: 6 },

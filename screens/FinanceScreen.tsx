@@ -167,6 +167,7 @@ export function FinanceScreen() {
             <CustomizableCard widgetId="finance-work-calendar">
               <WorkCalendar />
             </CustomizableCard>
+            <SavingsCard />
             <Text
               style={[
                 styles.sectionTitle,
@@ -189,8 +190,6 @@ export function FinanceScreen() {
         ListHeaderComponent={listHeader}
         renderItem={({ item }) => renderExpense(item, expenseMode === 'big' ? 'big' : 'row')}
         ItemSeparatorComponent={() => <View style={{ height: expenseMode === 'big' ? 12 : 8 }} />}
-        // The savings cushion sits at the very bottom, after the expenses.
-        ListFooterComponent={<View style={styles.savingsFooter}><SavingsCard /></View>}
         ListEmptyComponent={<EmptyState icon="💰" title={tr.financeScreen.emptyTitle} subtitle={tr.financeScreen.emptySubtitle} />}
       />
 
@@ -215,7 +214,6 @@ export function FinanceScreen() {
 }
 
 const styles = StyleSheet.create({
-  savingsFooter: { marginTop: 20 },
   container: { flex: 1 },
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   topSection: { gap: 14, marginBottom: 14 },
