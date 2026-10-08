@@ -50,6 +50,8 @@ export const useSettingsStore = create<SettingsState>()(
         // Layouts and themes that were tried and dropped fall back to the defaults.
         if (!LAYOUTS[settings.layoutId]) settings.layoutId = DEFAULT_SETTINGS.layoutId;
         if (!DESIGNS[settings.designId]) settings.designId = DEFAULT_SETTINGS.designId;
+        // 'fingerprint' was merged into 'device' (fingerprint or phone PIN).
+        if (settings.financeLockMethod !== 'password') settings.financeLockMethod = 'device';
         return { ...current, settings };
       },
       onRehydrateStorage: () => () => {

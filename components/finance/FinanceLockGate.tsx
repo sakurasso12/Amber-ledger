@@ -44,7 +44,7 @@ function LockOverlay({ target }: { target: React.RefObject<View | null> }) {
   const [error, setError] = useState(false);
 
   async function handleDevice() {
-    const ok = await unlockWithDevice(tr.financeLock.prompt, tr.financeLock.cancel, method === 'fingerprint');
+    const ok = await unlockWithDevice(tr.financeLock.prompt, tr.financeLock.cancel);
     if (ok) haptics.success();
   }
 

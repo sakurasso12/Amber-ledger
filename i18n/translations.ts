@@ -279,7 +279,6 @@ export interface Translation {
     needPassword: string;
     goToProfile: string;
     method: string;
-    methodFingerprint: string;
     methodDevice: string;
     methodPassword: string;
     noBiometrics: string;
@@ -631,8 +630,7 @@ const ru: Translation = {
     needPassword: 'Сначала задайте пароль профиля — он нужен на случай, если отпечаток не сработает.',
     goToProfile: 'Открыть профиль',
     method: 'Способ разблокировки',
-    methodFingerprint: 'Отпечаток пальца',
-    methodDevice: 'Блокировка телефона (отпечаток или PIN/ключ)',
+    methodDevice: 'Отпечаток или PIN телефона',
     methodPassword: 'Пароль профиля',
     noBiometrics: 'На телефоне не настроен отпечаток — будет использоваться PIN или ключ телефона.',
     relockAfter: 'Блокировать через',
@@ -981,8 +979,7 @@ const uk: Translation = {
     needPassword: 'Спершу задайте пароль профілю — він потрібен на випадок, якщо відбиток не спрацює.',
     goToProfile: 'Відкрити профіль',
     method: 'Спосіб розблокування',
-    methodFingerprint: 'Відбиток пальця',
-    methodDevice: 'Блокування телефону (відбиток або PIN/ключ)',
+    methodDevice: 'Відбиток або PIN телефону',
     methodPassword: 'Пароль профілю',
     noBiometrics: 'На телефоні не налаштовано відбиток — використовуватиметься PIN або ключ телефону.',
     relockAfter: 'Блокувати через',
@@ -1331,8 +1328,7 @@ const en: Translation = {
     needPassword: 'Set a profile password first — it\'s the way in if the fingerprint fails.',
     goToProfile: 'Open profile',
     method: 'Unlock with',
-    methodFingerprint: 'Fingerprint',
-    methodDevice: 'Phone lock (fingerprint or PIN/pattern)',
+    methodDevice: 'Fingerprint or phone PIN',
     methodPassword: 'Profile password',
     noBiometrics: 'No fingerprint set up on this phone — its PIN or pattern will be used.',
     relockAfter: 'Lock after',
