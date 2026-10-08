@@ -182,7 +182,7 @@ export function FinanceScreen() {
 
   return (
     <LayoutScreen title={tr.financeScreen.header} right={<FinanceMenuHeader />}>
-      <FinanceLockGate>
+      <FinanceLockGate clearRail>
       <FlatList
         data={expenses}
         keyExtractor={(expense) => expense.id}

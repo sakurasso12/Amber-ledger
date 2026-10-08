@@ -19,10 +19,12 @@ export function HomeWidgetSettingsScreen() {
   const settings = useSettingsStore((s) => s.settings);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
 
-  const widgets: { key: WidgetKey; label: string; aspectRatio: number }[] = [
-    { key: 'AmberLedgerToday', label: tr.homeWidgetSettings.big, aspectRatio: 2 },
-    { key: 'AmberLedgerNextTask', label: tr.homeWidgetSettings.medium, aspectRatio: 1 },
-    { key: 'AmberLedgerDayOff', label: tr.homeWidgetSettings.small, aspectRatio: 2 },
+  // Previews keep the widgets' real sizes relative to each other: the big one is 4 cells wide,
+  // the others 2, so they're drawn at full and half width.
+  const widgets: { key: WidgetKey; label: string; width: `${number}%`; aspectRatio: number }[] = [
+    { key: 'AmberLedgerToday', label: tr.homeWidgetSettings.big, width: '100%', aspectRatio: 2 },
+    { key: 'AmberLedgerNextTask', label: tr.homeWidgetSettings.medium, width: '50%', aspectRatio: 1 },
+    { key: 'AmberLedgerDayOff', label: tr.homeWidgetSettings.small, width: '50%', aspectRatio: 2 },
   ];
 
   const uriFor = (key: WidgetKey) =>
@@ -60,15 +62,15 @@ export function HomeWidgetSettingsScreen() {
       <SubScreenHeader title={tr.homeWidgetSettings.title} />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
         <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.homeWidgetSettings.hint}</Text>
-        {widgets.map(({ key, label, aspectRatio }) => {
+        {widgets.map(({ key, label, width, aspectRatio }) => {
           const uri = uriFor(key);
           return (
             <View key={key} style={styles.section}>
               <Text style={[styles.label, { color: theme.colors.text }]}>{label}</Text>
               {uri ? (
-                <Image source={{ uri }} style={[styles.preview, { aspectRatio }]} resizeMode="cover" />
+                <Image source={{ uri }} style={[styles.preview, { width, aspectRatio }]} resizeMode="cover" />
               ) : (
-                <View style={[styles.preview, styles.placeholder, { aspectRatio, borderColor: theme.colors.border }]}>
+                <View style={[styles.preview, styles.placeholder, { width, aspectRatio, borderColor: theme.colors.border }]}>
                   <Text style={{ color: theme.colors.textMuted }}>{tr.backgroundSettings.notSet}</Text>
                 </View>
               )}
@@ -95,7 +97,7 @@ const styles = StyleSheet.create({
   hint: { fontSize: 13, lineHeight: 18, marginTop: -4 },
   section: { gap: 10 },
   label: { fontSize: 15, fontWeight: '700' },
-  preview: { width: '100%', maxHeight: 220, borderRadius: 16, alignSelf: 'center' },
+  preview: { borderRadius: 16, alignSelf: 'center' },
   placeholder: { borderWidth: 1, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   buttons: { flexDirection: 'row', gap: 10 },
   button: { flex: 1 },
