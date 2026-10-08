@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
+import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useTaskStore } from '@/store/useTaskStore';
 import { Chip, Screen, SubScreenHeader, TextField } from '@/components/ui';
@@ -52,6 +53,19 @@ export function NotificationsSettingsScreen() {
           <TextField value={reminderMinutes} onChangeText={commitMinutes} keyboardType="number-pad" />
         </View>
         <Text style={[styles.note, { color: theme.colors.textMuted }]}>{tr.notificationsSettings.note}</Text>
+
+        <View style={[styles.soundRow, cardSurface(theme)]}>
+          <View style={styles.soundText}>
+            <Text style={{ color: theme.colors.text, fontSize: 15, fontWeight: '600' }}>🔊 {tr.level.sound}</Text>
+            <Text style={[styles.note, { color: theme.colors.textMuted }]}>{tr.level.soundHint}</Text>
+          </View>
+          <Switch
+            value={settings.soundEffects}
+            onValueChange={(soundEffects) => updateSettings({ soundEffects })}
+            trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
+            thumbColor={theme.colors.surface}
+          />
+        </View>
       </View>
     </Screen>
   );
@@ -62,4 +76,6 @@ const styles = StyleSheet.create({
   field: { gap: 6 },
   fieldLabel: { fontSize: 12, fontWeight: '600' },
   note: { fontSize: 12, lineHeight: 18 },
+  soundRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
+  soundText: { flex: 1, gap: 2 },
 });

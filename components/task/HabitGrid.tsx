@@ -10,6 +10,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { Habit, HabitMark } from '@/lib/streaks';
 import { haptics } from '@/lib/haptics';
 import { PressableScale, Text } from '@/components/ui';
+import { LevelCard } from './LevelCard';
 import { useTranslation } from '@/i18n';
 
 const DOTS = 7;
@@ -18,17 +19,24 @@ const GAP = 10;
 /**
  * Habits (recurring tasks with "Count streak" on) as square cards, two per row, at the top of the
  * task list: the streak with a flame, the last few times as dots, and a tap to mark today done.
- * Renders nothing when there are no habits.
+ * The level ring (all tasks ever done) is always the first square.
  */
 export function HabitGrid({ habits }: { habits: Habit[] }) {
   // Measured, so the squares fit both layouts (Vertical has the title rail on the left).
   const [width, setWidth] = useState(0);
-  if (habits.length === 0) return null;
   const size = Math.floor((width - GAP) / 2);
 
+  // The level ring always leads; habit squares follow.
   return (
     <View style={styles.grid} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-      {width > 0 ? habits.map((habit) => <HabitCard key={habit.seriesId} habit={habit} size={size} />) : null}
+      {width > 0 ? (
+        <>
+          <LevelCard size={size} />
+          {habits.map((habit) => (
+            <HabitCard key={habit.seriesId} habit={habit} size={size} />
+          ))}
+        </>
+      ) : null}
     </View>
   );
 }

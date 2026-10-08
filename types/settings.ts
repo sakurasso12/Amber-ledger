@@ -88,6 +88,8 @@ export interface AppSettings {
   onboardingDone: boolean;
   /** Home screen streak widgets: widget id → habit series id it shows (picked by tapping it). */
   streakWidgets: Record<string, string>;
+  /** Level-up sound when the task ring fills. */
+  soundEffects: boolean;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -130,4 +132,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   savingsOpenedAt: null,
   onboardingDone: false,
   streakWidgets: {},
+  soundEffects: true,
 };

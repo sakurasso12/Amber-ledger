@@ -50,7 +50,7 @@ export function CustomizableCard({ widgetId, children, style }: CustomizableCard
         resizeMode="cover"
         style={[styles.base, cardSurface(theme), styles.clip, style]}
       >
-        <View style={[{ padding: theme.design.cardPadding }, { backgroundColor: `${theme.colors.background}80` }]}>
+        <View style={[styles.inner, { padding: theme.design.cardPadding }, { backgroundColor: `${theme.colors.background}80` }]}>
           {menu}
           {children}
         </View>
@@ -60,7 +60,7 @@ export function CustomizableCard({ widgetId, children, style }: CustomizableCard
 
   return (
     <View style={[styles.base, cardSurface(theme), style]}>
-      <View style={{ padding: theme.design.cardPadding }}>
+      <View style={[styles.inner, { padding: theme.design.cardPadding }]}>
         {menu}
         {children}
       </View>
@@ -72,5 +72,7 @@ const styles = StyleSheet.create({
   // overflow stays visible for the elevated design, otherwise Android clips its shadow.
   base: {},
   clip: { overflow: 'hidden' },
+  // Fills cards given a fixed size (e.g. the square level card) so their content can centre.
+  inner: { flexGrow: 1 },
   menuAnchor: { position: 'absolute', top: 6, right: 6, zIndex: 1 },
 });

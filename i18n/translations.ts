@@ -211,6 +211,7 @@ export interface Translation {
     minutes: string;
     streakChoose: string;
   };
+  level: { tasksDone: string; sound: string; soundHint: string };
   habitWidget: { title: string; subtitle: string; empty: string; done: string };
   defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
   layoutText: {
@@ -591,6 +592,7 @@ const ru: Translation = {
     minutes: 'мин',
     streakChoose: 'Нажми, чтобы выбрать',
   },
+  level: { tasksDone: 'Выполнено задач', sound: 'Звук уровня', soundHint: 'Играет, когда кольцо из 10 задач заполняется' },
   habitWidget: {
     title: 'Виджет серии',
     subtitle: 'Какую привычку показывать на этом виджете?',
@@ -975,6 +977,7 @@ const uk: Translation = {
     minutes: 'хв',
     streakChoose: 'Натисни, щоб вибрати',
   },
+  level: { tasksDone: 'Виконано задач', sound: 'Звук рівня', soundHint: 'Грає, коли кільце з 10 задач заповнюється' },
   habitWidget: {
     title: 'Віджет серії',
     subtitle: 'Яку звичку показувати на цьому віджеті?',
@@ -1359,6 +1362,7 @@ const en: Translation = {
     minutes: 'min',
     streakChoose: 'Tap to choose',
   },
+  level: { tasksDone: 'Tasks done', sound: 'Level-up sound', soundHint: 'Plays when the ring of 10 tasks fills up' },
   habitWidget: {
     title: 'Streak widget',
     subtitle: 'Which habit should this widget show?',
