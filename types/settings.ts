@@ -90,6 +90,10 @@ export interface AppSettings {
   streakWidgets: Record<string, string>;
   /** Level-up sound when the task ring fills. */
   soundEffects: boolean;
+  /** Tasks screen squares (level ring, habits): saved drag-and-drop order of their keys. */
+  tasksModuleOrder: string[];
+  /** Squares per row on Tasks: 2 (default) or 3. */
+  tasksModuleColumns: 2 | 3;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -133,4 +137,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboardingDone: false,
   streakWidgets: {},
   soundEffects: true,
+  tasksModuleOrder: [],
+  tasksModuleColumns: 2,
 };

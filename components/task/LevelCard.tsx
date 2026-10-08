@@ -23,8 +23,8 @@ import { useTranslation } from '@/i18n';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-/** Gap between segments, in degrees. */
-const GAP = 7;
+/** Visible gap between segments, in degrees (the rounded stroke ends are taken out of the segment). */
+const GAP = 6;
 const SEGMENT = 360 / TASKS_PER_LEVEL;
 const FILL = { duration: 750, easing: Easing.inOut(Easing.cubic) };
 
@@ -40,9 +40,9 @@ function arc(c: number, r: number, fromDeg: number, toDeg: number): string {
 }
 
 /** One ring segment, filled up to how far `progress` (0–10) has reached into it. */
-function FilledSegment({ index, progress, c, r, stroke, color }: { index: number; progress: SharedValue<number>; c: number; r: number; stroke: number; color: string }) {
-  const start = index * SEGMENT + GAP / 2;
-  const length = SEGMENT - GAP;
+function FilledSegment({ index, progress, c, r, stroke, color, cap }: { index: number; progress: SharedValue<number>; c: number; r: number; stroke: number; color: string; cap: number }) {
+  const start = index * SEGMENT + GAP / 2 + cap;
+  const length = SEGMENT - GAP - cap * 2;
   const props = useAnimatedProps(() => {
     const fraction = Math.min(1, Math.max(0, progress.value - index));
     return { d: arc(c, r, start, start + fraction * length) };
@@ -100,6 +100,8 @@ export function LevelCard({ size }: { size: number }) {
   const stroke = ring * 0.11;
   const c = ring / 2;
   const r = c - stroke / 2 - 1;
+  // How many degrees a rounded stroke end sticks out past the arc — trimmed so the gaps stay visible.
+  const cap = ((stroke / 2 / r) * 180) / Math.PI;
 
   return (
     <CustomizableCard widgetId="tasks-level" style={{ width: size, height: size }}>
@@ -109,7 +111,7 @@ export function LevelCard({ size }: { size: number }) {
             {Array.from({ length: TASKS_PER_LEVEL }, (_, i) => (
               <Path
                 key={`bg${i}`}
-                d={arc(c, r, i * SEGMENT + GAP / 2, (i + 1) * SEGMENT - GAP / 2)}
+                d={arc(c, r, i * SEGMENT + GAP / 2 + cap, (i + 1) * SEGMENT - GAP / 2 - cap)}
                 stroke={theme.colors.border}
                 strokeWidth={stroke}
                 strokeLinecap="round"
@@ -117,7 +119,7 @@ export function LevelCard({ size }: { size: number }) {
               />
             ))}
             {Array.from({ length: TASKS_PER_LEVEL }, (_, i) => (
-              <FilledSegment key={`fg${i}`} index={i} progress={progress} c={c} r={r} stroke={stroke} color={theme.colors.primary} />
+              <FilledSegment key={`fg${i}`} index={i} progress={progress} c={c} r={r} stroke={stroke} cap={cap} color={theme.colors.primary} />
             ))}
           </Svg>
           <View style={[StyleSheet.absoluteFill, styles.center]}>

@@ -9,7 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { EmptyState, Fab, LayoutScreen, QuickAddBar } from '@/components/ui';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
-import { HabitGrid } from '@/components/task/HabitGrid';
+import { TaskModules } from '@/components/task/TaskModules';
 import { activeTasks } from '@/lib/taskFilters';
 import { buildHabits } from '@/lib/streaks';
 import { haptics } from '@/lib/haptics';
@@ -25,6 +25,7 @@ export function TasksScreen() {
   const addTask = useTaskStore((s) => s.addTask);
   const removeTask = useTaskStore((s) => s.removeTask);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [editingLayout, setEditingLayout] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const visibleTasks = useMemo(() => activeTasks(tasks), [tasks]);
@@ -90,7 +91,7 @@ export function TasksScreen() {
   );
 
   // Habit squares sit at the top of the list and scroll with it.
-  const habits = selectionMode ? null : <HabitGrid habits={habitList} />;
+  const habits = selectionMode ? null : <TaskModules habits={habitList} editing={editingLayout} />;
 
   let list: React.ReactNode;
   if (visibleTasks.length === 0) {
@@ -150,7 +151,25 @@ export function TasksScreen() {
   ) : undefined;
 
   return (
-    <LayoutScreen title={tr.tasksScreen.header} count={visibleTasks.length + habitList.length} headerOverride={selectionBar}>
+    <LayoutScreen
+      title={tr.tasksScreen.header}
+      count={visibleTasks.length + habitList.length}
+      headerOverride={selectionBar}
+      right={
+        // Pencil: rearrange the squares; the check mark ends editing.
+        <Pressable
+          onPress={() => {
+            haptics.tap();
+            setEditingLayout((v) => !v);
+          }}
+          hitSlop={10}
+          accessibilityLabel={editingLayout ? tr.layoutEdit.done : tr.layoutEdit.edit}
+          style={[styles.editButton, { backgroundColor: editingLayout ? theme.colors.primary : `${theme.colors.primary}1F` }]}
+        >
+          <Ionicons name={editingLayout ? 'checkmark' : 'pencil'} size={18} color={editingLayout ? theme.colors.primaryText : theme.colors.primary} />
+        </Pressable>
+      }
+    >
       {list}
 
       {quickAddOpen && !selectionMode ? (
@@ -190,4 +209,5 @@ const styles = StyleSheet.create({
   focusHeader: { gap: 14, marginBottom: 10 },
   habitsAlone: { paddingHorizontal: 16 },
   habitsHeader: { marginBottom: 14 },
+  editButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
 });

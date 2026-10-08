@@ -10,44 +10,24 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { Habit, HabitMark } from '@/lib/streaks';
 import { haptics } from '@/lib/haptics';
 import { PressableScale, Text } from '@/components/ui';
-import { LevelCard } from './LevelCard';
 import { useTranslation } from '@/i18n';
 
 const DOTS = 7;
-const GAP = 10;
+/** Size the card's type was designed at; smaller squares (3 per row) scale everything down. */
+const BASE_SIZE = 170;
 
 /**
- * Habits (recurring tasks with "Count streak" on) as square cards, two per row, at the top of the
- * task list: the streak with a flame, the last few times as dots, and a tap to mark today done.
- * The level ring (all tasks ever done) is always the first square.
+ * A habit (recurring task with "Count streak" on) as a square: the streak with a flame, the last
+ * few times as dots, and a tap to mark today done. While the layout is being edited, taps do nothing.
  */
-export function HabitGrid({ habits }: { habits: Habit[] }) {
-  // Measured, so the squares fit both layouts (Vertical has the title rail on the left).
-  const [width, setWidth] = useState(0);
-  const size = Math.floor((width - GAP) / 2);
-
-  // The level ring always leads; habit squares follow.
-  return (
-    <View style={styles.grid} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-      {width > 0 ? (
-        <>
-          <LevelCard size={size} />
-          {habits.map((habit) => (
-            <HabitCard key={habit.seriesId} habit={habit} size={size} />
-          ))}
-        </>
-      ) : null}
-    </View>
-  );
-}
-
-function HabitCard({ habit, size }: { habit: Habit; size: number }) {
+export function HabitCard({ habit, size, editing = false }: { habit: Habit; size: number; editing?: boolean }) {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
   const setStatus = useTaskStore((s) => s.setStatus);
   const flame = useRef(new Animated.Value(1)).current;
   const active = habit.streak > 0;
+  const k = Math.min(1.15, Math.max(0.6, size / BASE_SIZE));
 
   function handlePress() {
     if (!habit.canCompleteNow || !habit.current) {
@@ -85,25 +65,27 @@ function HabitCard({ habit, size }: { habit: Habit; size: number }) {
 
   return (
     <PressableScale
-      onPress={handlePress}
-      onLongPress={() => habit.current && router.push(`/task/${habit.current.id}`)}
+      onPress={editing ? undefined : handlePress}
+      onLongPress={editing ? undefined : () => habit.current && router.push(`/task/${habit.current.id}`)}
+      disabled={editing}
       scaleTo={0.94}
-      style={[styles.card, cardSurface(theme), { width: size, height: size }]}
+      style={[styles.card, cardSurface(theme), { width: size, height: size, padding: 14 * k, gap: 6 * k }]}
     >
       <View style={styles.top}>
-        <Animated.Text style={[styles.flame, { opacity: active ? 1 : 0.3, transform: [{ scale: flame }] }]}>🔥</Animated.Text>
-        <Text style={[styles.count, { color: active ? theme.colors.text : theme.colors.textMuted }]}>{habit.streak}</Text>
+        <Animated.Text style={[styles.flame, { fontSize: 28 * k, opacity: active ? 1 : 0.3, transform: [{ scale: flame }] }]}>🔥</Animated.Text>
+        <Text style={[styles.count, { fontSize: 34 * k, color: active ? theme.colors.text : theme.colors.textMuted }]}>{habit.streak}</Text>
       </View>
-      <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={2}>
+      <Text style={[styles.title, { fontSize: Math.max(11, 15 * k), color: theme.colors.text }]} numberOfLines={2}>
         {habit.title}
       </Text>
       <View style={styles.spacer} />
-      <View style={styles.dots}>
+      <View style={[styles.dots, { gap: 5 * k }]}>
         {dots.map((mark, i) => (
           <View
             key={i}
             style={[
               styles.dot,
+              { width: 10 * k, height: 10 * k, borderRadius: 5 * k },
               { backgroundColor: dotColor(mark), borderColor: mark ? theme.colors.primary : theme.colors.border },
               mark === 'missed' && { borderColor: theme.colors.textMuted },
             ]}
@@ -116,7 +98,6 @@ function HabitCard({ habit, size }: { habit: Habit; size: number }) {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
   card: { padding: 14, gap: 6 },
   top: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   flame: { fontSize: 28 },
