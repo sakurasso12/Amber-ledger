@@ -3,6 +3,9 @@
 Hi everyone! I made **Amber Ledger** — an offline **task manager + personal finance tracker for
 Android** (iOS may come later). No account, no cloud, no ads: everything stays on your phone.
 
+It all started because I kept forgetting when my doctor appointments were. One reminder app turned
+into tasks, money, work shifts and widgets — and now my head is a lot lighter.
+
 ## ⬇️ Download
 
 **[Download Amber-Ledger.apk](https://github.com/sakurasso12/Amber-ledger/releases/latest/download/Amber-Ledger.apk)**
