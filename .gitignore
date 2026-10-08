@@ -44,3 +44,7 @@ yarn-error.*
 .claude/
 CLAUDE.md
 AGENTS.md
+
+# Personal sounds (e.g. a game sound you may not redistribute) — used locally, never committed
+assets/sounds/local/*
+!assets/sounds/local/.gitkeep
