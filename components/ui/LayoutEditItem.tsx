@@ -9,8 +9,24 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 const EASE = Easing.inOut(Easing.quad);
+// The jelly squashes with ease-in: slow start, quick snap into each wobble.
+const JELLY_EASE = Easing.in(Easing.quad);
+
+/**
+ * Whether a board still needs the "you can drag these" sway — per board, so each screen shows it
+ * until something has been dragged there. `markSeen` goes in the board's drag-end handler.
+ */
+export function useLayoutHint(boardId: string) {
+  const seen = useSettingsStore((s) => s.settings.layoutHintsSeen.includes(boardId));
+  const markSeen = () => {
+    const { settings, updateSettings } = useSettingsStore.getState();
+    if (!settings.layoutHintsSeen.includes(boardId)) updateSettings({ layoutHintsSeen: [...settings.layoutHintsSeen, boardId] });
+  };
+  return { showHint: !seen, markSeen };
+}
 
 interface LayoutEditItemProps {
   children: React.ReactNode;
@@ -42,10 +58,10 @@ export function LayoutEditItem({ children, hint = false, dropCount = 0, style }:
 
   useEffect(() => {
     if (dropCount === 0) return;
-    // Jelly: stretch wide and flat, then tall and thin, settling in smaller wobbles.
-    const step = (value: number, duration: number) => withTiming(value, { duration, easing: EASE });
-    scaleX.value = withSequence(step(1.08, 110), step(0.95, 110), step(1.03, 100), step(0.99, 90), step(1, 80));
-    scaleY.value = withSequence(step(0.92, 110), step(1.05, 110), step(0.98, 100), step(1.01, 90), step(1, 80));
+    // Jelly: stretch wide and flat, then tall and thin, settling in smaller and smaller wobbles.
+    const step = (value: number, duration: number) => withTiming(value, { duration, easing: JELLY_EASE });
+    scaleX.value = withSequence(step(1.12, 120), step(0.9, 130), step(1.06, 120), step(0.97, 110), step(1.01, 100), step(1, 90));
+    scaleY.value = withSequence(step(0.88, 120), step(1.1, 130), step(0.95, 120), step(1.03, 110), step(0.99, 100), step(1, 90));
   }, [dropCount, scaleX, scaleY]);
 
   const animated = useAnimatedStyle(() => ({

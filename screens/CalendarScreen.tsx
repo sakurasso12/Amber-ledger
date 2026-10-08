@@ -9,7 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { CustomizableCard, EditLayoutButton, EmptyState, LayoutScreen } from '@/components/ui';
-import { LayoutEditItem } from '@/components/ui/LayoutEditItem';
+import { LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
@@ -68,6 +68,7 @@ export function CalendarScreen() {
   // Only the expenses can be rearranged here (pencil); nothing to do while finances are locked.
   const [editing, setEditing] = useState(false);
   const [drops, setDrops] = useState<Record<string, number>>({});
+  const { showHint, markSeen } = useLayoutHint('calendar-expenses');
   const locked = useFinanceLocked();
   useEffect(() => {
     if (locked || expensesForDay.length < 2) setEditing(false);
@@ -139,14 +140,15 @@ export function CalendarScreen() {
             activeItemShadowOpacity={0.25}
             inactiveItemOpacity={1}
             hapticsEnabled
-            onDragEnd={({ order }) =>
-              updateSettings({ expenseDayOrder: { ...dayOrders, [selectedDate]: order(expensesForDay).map((e) => e.id) } })
-            }
+            onDragEnd={({ order }) => {
+              updateSettings({ expenseDayOrder: { ...dayOrders, [selectedDate]: order(expensesForDay).map((e) => e.id) } });
+              markSeen();
+            }}
             onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
           >
-            {expensesForDay.map((expense) => (
+            {expensesForDay.map((expense, index) => (
               <View key={expense.id}>
-                <LayoutEditItem dropCount={drops[expense.id] ?? 0}>
+                <LayoutEditItem hint={editing && index === 0 && showHint} dropCount={drops[expense.id] ?? 0}>
                   <View pointerEvents={editing ? 'none' : 'auto'}>
                     <ExpenseListItem
                       expense={expense}

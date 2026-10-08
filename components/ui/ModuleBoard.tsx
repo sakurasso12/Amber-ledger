@@ -6,7 +6,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
-import { LayoutEditItem } from './LayoutEditItem';
+import { LayoutEditItem, useLayoutHint } from './LayoutEditItem';
 import { LayoutEditingContext } from './LayoutEditing';
 import { Text } from './Text';
 
@@ -38,7 +38,7 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
   const tr = useTranslation();
   const saved = useSettingsStore((s) => s.settings.moduleLayouts[boardId]);
   const allLayouts = useSettingsStore((s) => s.settings.moduleLayouts);
-  const hintSeen = useSettingsStore((s) => s.settings.layoutHintSeen);
+  const { showHint, markSeen } = useLayoutHint(boardId);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [width, setWidth] = useState(0);
   const [drops, setDrops] = useState<Record<string, number>>({});
@@ -81,7 +81,7 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
             hapticsEnabled
             onDragEnd={({ order }) => {
               save({ order: order(list).map((m) => m.key) });
-              if (!hintSeen) updateSettings({ layoutHintSeen: true });
+              markSeen();
             }}
             onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
           >
@@ -89,7 +89,7 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
               const size = sizeOf(m);
               return (
                 <View key={m.key} style={{ width: size === 'half' ? half : width }}>
-                  <LayoutEditItem hint={editing && index === 0 && !hintSeen} dropCount={drops[m.key] ?? 0}>
+                  <LayoutEditItem hint={editing && index === 0 && showHint} dropCount={drops[m.key] ?? 0}>
                     {m.render(size)}
                     {editing ? (
                       <>

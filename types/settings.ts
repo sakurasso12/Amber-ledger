@@ -94,8 +94,8 @@ export interface AppSettings {
   tasksModuleOrder: string[];
   /** Squares per row on Tasks: 2 (default) or 3. */
   tasksModuleColumns: 2 | 3;
-  /** Something was dragged in an editable layout at least once — the sway hint isn't needed any more. */
-  layoutHintSeen: boolean;
+  /** Editable boards where something was already dragged — their sway hint isn't needed any more. */
+  layoutHintsSeen: string[];
   /** Per-card corner shape (card id → 'square' | 'rounded' | 'round' | 'leaf'); absent = theme. */
   cardShapes: Record<string, 'square' | 'rounded' | 'round' | 'leaf'>;
   /** Task card size per task series (series id, or task id): S square, M row (default), L big card. */
@@ -153,7 +153,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   soundEffects: true,
   tasksModuleOrder: [],
   tasksModuleColumns: 2,
-  layoutHintSeen: false,
+  layoutHintsSeen: [],
   cardShapes: {},
   taskCardSizes: {},
   taskOrderMode: 'deadline',

@@ -6,7 +6,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Habit } from '@/lib/streaks';
 import { SegmentedControl, Text } from '@/components/ui';
-import { LayoutEditItem } from '@/components/ui/LayoutEditItem';
+import { LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { LayoutEditingContext } from '@/components/ui/LayoutEditing';
 import { useTranslation } from '@/i18n';
 import { HabitCard } from './HabitCard';
@@ -42,7 +42,7 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
   const tr = useTranslation();
   const savedOrder = useSettingsStore((s) => s.settings.tasksModuleOrder);
   const columns = useSettingsStore((s) => s.settings.tasksModuleColumns);
-  const hintSeen = useSettingsStore((s) => s.settings.layoutHintSeen);
+  const { showHint, markSeen } = useLayoutHint('tasks-modules');
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [width, setWidth] = useState(0);
   const [drops, setDrops] = useState<Record<string, number>>({});
@@ -95,12 +95,15 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
               inactiveItemOpacity={1}
               activeItemShadowOpacity={0.25}
               hapticsEnabled
-              onDragEnd={({ order }) => updateSettings({ tasksModuleOrder: order(modules).map((m) => m.key), layoutHintSeen: true })}
+              onDragEnd={({ order }) => {
+                updateSettings({ tasksModuleOrder: order(modules).map((m) => m.key) });
+                markSeen();
+              }}
               onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
             >
               {modules.map((item, index) => (
                 <View key={item.key} style={{ width: item.key === FOCUS_KEY ? width : size }}>
-                  <LayoutEditItem hint={editing && index === 0 && !hintSeen} dropCount={drops[item.key] ?? 0}>
+                  <LayoutEditItem hint={editing && index === 0 && showHint} dropCount={drops[item.key] ?? 0}>
                     {item.key === FOCUS_KEY ? focus : item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
                     {/* The faint outline that marks each module's place while editing. */}
                     {editing ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.outline, { borderColor: theme.colors.primary }]} /> : null}

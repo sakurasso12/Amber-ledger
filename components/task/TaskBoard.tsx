@@ -9,7 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { taskKey } from '@/lib/taskFilters';
 import { haptics } from '@/lib/haptics';
 import { SegmentedControl, Text } from '@/components/ui';
-import { LayoutEditItem } from '@/components/ui/LayoutEditItem';
+import { LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { useTranslation } from '@/i18n';
 import { Task, TaskStatus } from '@/types';
 import { TaskListItem } from './TaskListItem';
@@ -46,6 +46,7 @@ export function TaskBoard({ tasks, editing, selection, onCycleStatus }: TaskBoar
   const setStatus = useTaskStore((s) => s.setStatus);
   const [width, setWidth] = useState(0);
   const [drops, setDrops] = useState<Record<string, number>>({});
+  const { showHint, markSeen } = useLayoutHint('tasks-board');
 
   const sizeOf = (task: Task): Size => (selection.active ? 'M' : (sizes[taskKey(task)] ?? 'M'));
   const half = Math.floor((width - GAP) / 2);
@@ -106,15 +107,16 @@ export function TaskBoard({ tasks, editing, selection, onCycleStatus }: TaskBoar
             activeItemShadowOpacity={0.25}
             inactiveItemOpacity={1}
             hapticsEnabled
-            onDragEnd={({ order }) =>
+            onDragEnd={({ order }) => {
               // Dragging means "my own order" from now on.
-              updateSettings({ taskOrderMode: 'manual', taskManualOrder: order(tasks).map(taskKey), layoutHintSeen: true })
-            }
+              updateSettings({ taskOrderMode: 'manual', taskManualOrder: order(tasks).map(taskKey) });
+              markSeen();
+            }}
             onActiveItemDropped={({ key }) => setDrops((d) => ({ ...d, [key]: (d[key] ?? 0) + 1 }))}
           >
-            {tasks.map((task) => (
+            {tasks.map((task, index) => (
               <View key={task.id} style={{ width: sizeOf(task) === 'S' ? half : width }}>
-                <LayoutEditItem dropCount={drops[task.id] ?? 0}>
+                <LayoutEditItem hint={editing && index === 0 && showHint} dropCount={drops[task.id] ?? 0}>
                   {renderCard(task)}
                   {editing ? (
                     // The corner button cycles the size: S → M → L.
