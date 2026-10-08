@@ -48,6 +48,16 @@ Tasks created, completed and overdue per week; earnings per week and spending by
 Reminders before deadlines, a pinned notification for important tasks, budget alerts and a
 payday reminder.
 
+### 🛡️ Savings cushion
+A card in Finance for your savings account: enter the balance, the interest rate and the date you
+opened it — it shows when the account's year ends and roughly how much you'll have by then
+(monthly capitalisation, before tax on interest). It starts as a blurred question, so it only
+appears if you want it.
+
+| Savings card | Setting it up |
+|:---:|:---:|
+| <img src="docs/screenshots/savings-card.jpg" width="220"> | <img src="docs/screenshots/savings-editor.jpg" width="220"> |
+
 ### 🎨 Almost everything is customizable
 Everything about the look can be changed — except the font (coming soon):
 
