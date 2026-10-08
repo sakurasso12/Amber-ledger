@@ -53,6 +53,7 @@ function RootStack() {
         <Stack.Screen name="expense/planned" options={MODAL} />
         <Stack.Screen name="expense/recurring" options={MODAL} />
         <Stack.Screen name="category/manage" options={MODAL} />
+        <Stack.Screen name="habit-widget" />
       </Stack>
       <Onboarding />
     </>

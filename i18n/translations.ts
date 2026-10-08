@@ -209,7 +209,9 @@ export interface Translation {
     days: string;
     hours: string;
     minutes: string;
+    streakChoose: string;
   };
+  habitWidget: { title: string; subtitle: string; empty: string; done: string };
   defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
   layoutText: {
     noDeadline: string;
@@ -586,6 +588,13 @@ const ru: Translation = {
     days: 'д',
     hours: 'ч',
     minutes: 'мин',
+    streakChoose: 'Нажми, чтобы выбрать',
+  },
+  habitWidget: {
+    title: 'Виджет серии',
+    subtitle: 'Какую привычку показывать на этом виджете?',
+    empty: 'Привычек пока нет. Включи «Считать серию» у повторяющейся задачи.',
+    done: 'Готово — виджет обновится через секунду',
   },
   defaultCategories: { 'cat-food': 'Еда', 'cat-transport': 'Транспорт', 'cat-housing': 'Жильё', 'cat-fun': 'Развлечения', 'cat-other': 'Прочее' },
   layoutText: {
@@ -962,6 +971,13 @@ const uk: Translation = {
     days: 'д',
     hours: 'год',
     minutes: 'хв',
+    streakChoose: 'Натисни, щоб вибрати',
+  },
+  habitWidget: {
+    title: 'Віджет серії',
+    subtitle: 'Яку звичку показувати на цьому віджеті?',
+    empty: 'Звичок поки немає. Увімкни «Рахувати серію» у задачі, що повторюється.',
+    done: 'Готово — віджет оновиться за секунду',
   },
   defaultCategories: { 'cat-food': 'Їжа', 'cat-transport': 'Транспорт', 'cat-housing': 'Житло', 'cat-fun': 'Розваги', 'cat-other': 'Інше' },
   layoutText: {
@@ -1338,6 +1354,13 @@ const en: Translation = {
     days: 'd',
     hours: 'h',
     minutes: 'min',
+    streakChoose: 'Tap to choose',
+  },
+  habitWidget: {
+    title: 'Streak widget',
+    subtitle: 'Which habit should this widget show?',
+    empty: 'No habits yet. Turn on “Count streak” for a repeating task.',
+    done: 'Done — the widget updates in a second',
   },
   defaultCategories: { 'cat-food': 'Food', 'cat-transport': 'Transport', 'cat-housing': 'Housing', 'cat-fun': 'Fun', 'cat-other': 'Other' },
   layoutText: {

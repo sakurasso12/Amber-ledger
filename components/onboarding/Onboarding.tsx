@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
@@ -38,6 +39,7 @@ export function Onboarding() {
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState<Step>('language');
   const tourBack = useRef<(() => boolean) | null>(null);
+  const router = useRouter();
 
   // Start from the first step every time it opens.
   useEffect(() => {
@@ -51,6 +53,12 @@ export function Onboarding() {
     enter.setValue(0);
     setStep(next);
     Animated.spring(enter, { toValue: 1, ...SPRING, useNativeDriver: true }).start();
+  }
+
+  // Whatever screen it was started from, you land on Tasks.
+  function finish() {
+    updateSettings({ onboardingDone: true });
+    router.navigate('/');
   }
 
   function back() {
@@ -82,7 +90,7 @@ export function Onboarding() {
         >
           {step === 'language' ? <LanguageStep onNext={() => go('profile')} /> : null}
           {step === 'profile' ? <ProfileStep onBack={() => go('language')} onNext={() => go('tour')} /> : null}
-          {isTour ? <TourCards backRef={tourBack} onFinish={() => updateSettings({ onboardingDone: true })} /> : null}
+          {isTour ? <TourCards backRef={tourBack} onFinish={finish} /> : null}
         </Animated.View>
 
         {!isTour ? <StepDots step={STEPS.indexOf(step)} /> : null}

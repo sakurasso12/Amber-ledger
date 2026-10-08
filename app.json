@@ -85,6 +85,17 @@
               "targetCellHeight": 2,
               "resizeMode": "horizontal|vertical",
               "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "AmberLedgerStreak",
+              "label": "@string/widget_amberledgerstreak_label",
+              "description": "One habit's streak with a flame (1×1, tap to choose the habit)",
+              "minWidth": "40dp",
+              "minHeight": "40dp",
+              "targetCellWidth": 1,
+              "targetCellHeight": 1,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
             }
           ]
         }

@@ -16,6 +16,7 @@ const STRINGS = {
     widget_amberledgertoday_label: 'Amber Ledger — today',
     widget_amberledgerdayoff_label: 'Amber Ledger — day off',
     widget_amberledgernexttask_label: 'Amber Ledger — next task',
+    widget_amberledgerstreak_label: 'Amber Ledger — streak',
   },
   ru: {
     widget_amberledgertoday_label: 'Amber Ledger — сегодня',
@@ -24,6 +25,8 @@ const STRINGS = {
     widget_amberledgerdayoff_description: 'Когда ближайший выходной (маленький)',
     widget_amberledgernexttask_label: 'Amber Ledger — ближайшая задача',
     widget_amberledgernexttask_description: 'Ближайшая задача и сколько до неё осталось (средний)',
+    widget_amberledgerstreak_label: 'Amber Ledger — серия',
+    widget_amberledgerstreak_description: 'Серия одной привычки с огоньком (1×1, нажми, чтобы выбрать)',
   },
   uk: {
     widget_amberledgertoday_label: 'Amber Ledger — сьогодні',
@@ -32,6 +35,8 @@ const STRINGS = {
     widget_amberledgerdayoff_description: 'Коли найближчий вихідний (маленький)',
     widget_amberledgernexttask_label: 'Amber Ledger — найближча задача',
     widget_amberledgernexttask_description: 'Найближча задача і скільки до неї лишилося (середній)',
+    widget_amberledgerstreak_label: 'Amber Ledger — серія',
+    widget_amberledgerstreak_description: 'Серія однієї звички з вогником (1×1, натисни, щоб вибрати)',
   },
 };
 

@@ -86,6 +86,8 @@ export interface AppSettings {
   savingsOpenedAt: string | null;
   /** The welcome cards were shown (first launch). */
   onboardingDone: boolean;
+  /** Home screen streak widgets: widget id → habit series id it shows (picked by tapping it). */
+  streakWidgets: Record<string, string>;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -127,4 +129,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   savingsRatePercent: 0,
   savingsOpenedAt: null,
   onboardingDone: false,
+  streakWidgets: {},
 };

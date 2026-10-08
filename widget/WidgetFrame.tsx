@@ -17,16 +17,19 @@ interface WidgetFrameProps {
   padding?: number;
   justifyContent?: 'flex-start' | 'center' | 'space-between';
   flexDirection?: 'column' | 'row';
+  /** Where a tap goes — the app by default; the streak widget opens its habit picker. */
+  openUri?: string;
   children: React.ReactNode;
 }
 
 /** Outer shell shared by all home screen widgets: background colour or photo + scrim, and the
- * corner shape from the active layout. Tapping anywhere opens the app. */
-export function WidgetFrame({ palette, corners, photo, padding = 14, justifyContent, flexDirection = 'column', children }: WidgetFrameProps) {
+ * corner shape from the active layout. Tapping anywhere opens the app (or `openUri`). */
+export function WidgetFrame({ palette, corners, photo, padding = 14, justifyContent, flexDirection = 'column', openUri, children }: WidgetFrameProps) {
   const cornerStyle = widgetCornerStyle(palette.radius, corners);
   const content = (
     <FlexWidget
-      clickAction="OPEN_APP"
+      clickAction={openUri ? 'OPEN_URI' : 'OPEN_APP'}
+      clickActionData={openUri ? { uri: openUri } : undefined}
       style={{
         height: 'match_parent',
         width: 'match_parent',

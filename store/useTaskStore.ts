@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import * as tasksRepo from '@/db/tasksRepo';
 import { nextOccurrence } from '@/lib/recurrence';
 import { isHabit, isOnOrBeforeToday } from '@/lib/streaks';
+import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { cancelTaskReminder, clearStickyNotification, syncStickyNotification, syncTaskReminder } from '@/notifications';
 import { useSettingsStore } from './useSettingsStore';
 import { useFinanceStore } from './useFinanceStore';
@@ -96,6 +97,9 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
         syncNotificationsFor(nextTask);
       }
     }
+
+    // Home screen widgets (next task, streaks) show this right away instead of on the next tick.
+    refreshHomeWidget();
 
     if (status === 'done' && task.expenseOnComplete) {
       useFinanceStore.getState().addExpense({
