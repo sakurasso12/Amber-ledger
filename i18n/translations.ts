@@ -4,6 +4,19 @@ export interface Translation {
   status: { notStarted: string; inProgress: string; done: string };
   priority: { low: string; medium: string; high: string };
   weekdaysShort: string[];
+  onboarding: {
+    continue: string;
+    back: string;
+    profileTitle: string;
+    profileSubtitle: string;
+    passwordTitle: string;
+    passwordHint: string;
+    passwordPlaceholder: string;
+    repeatPlaceholder: string;
+    passwordAlreadySet: string;
+  };
+  whatsNew: { done: string; releases: Record<string, { title: string; text: string }[]> };
+  welcome: { slides: { title: string; text: string }[]; skip: string; next: string; start: string };
   tasksScreen: {
     header: string;
     emptyTitle: string;
@@ -57,7 +70,10 @@ export interface Translation {
     unitDays: string;
     unitWeeks: string;
     unitMonths: string;
+    streak: string;
+    streakHint: string;
   };
+  habits: { doneToday: string; markDone: string; next: (day: string) => string };
   calendarScreen: { header: string; emptyDay: string };
   financeScreen: {
     header: string;
@@ -93,7 +109,8 @@ export interface Translation {
     addButton: string;
   };
   workCalendar: { worked: string; off: string };
-  widgetMenu: { pick: string; remove: string };
+  widgetMenu: { pick: string; remove: string; shape: string };
+  cardShape: { title: string; theme: string; square: string; rounded: string; round: string; leaf: string };
   categoryPicker: { label: string };
   expenseEditor: {
     headerNew: string;
@@ -176,7 +193,7 @@ export interface Translation {
   languageSettings: { title: string; note: string };
   notificationsSettings: { title: string; enabled: string; disabled: string; reminderLabel: string; note: string };
   backgroundSettings: { title: string; notSet: string; pick: string; replace: string; remove: string };
-  homeWidgetSettings: { title: string; hint: string; big: string; medium: string; small: string };
+  homeWidgetSettings: { title: string; hint: string; big: string; medium: string; small: string; streak: string };
   homeWidgets: {
     todayTitle: string;
     noTasks: string;
@@ -194,7 +211,11 @@ export interface Translation {
     days: string;
     hours: string;
     minutes: string;
+    streakChoose: string;
   };
+  layoutEdit: { edit: string; done: string; perRow: string; order: string; byDeadline: string; ownOrder: string; resize: string };
+  level: { tasksDone: string; sound: string; soundHint: string };
+  habitWidget: { title: string; subtitle: string; empty: string; done: string };
   defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
   layoutText: {
     noDeadline: string;
@@ -322,6 +343,43 @@ const ru: Translation = {
   status: { notStarted: 'Не начато', inProgress: 'В процессе', done: 'Готово' },
   priority: { low: 'Низкий', medium: 'Средний', high: 'Высокий' },
   weekdaysShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+  onboarding: {
+    continue: 'Продолжить',
+    back: 'Назад',
+    profileTitle: 'Создай профиль',
+    profileSubtitle: 'Как тебя зовут? Фото — по желанию.',
+    passwordTitle: 'Пароль (необязательно)',
+    passwordHint: 'Нужен для блокировки финансов. Восстановить забытый пароль нельзя. Можно задать позже в настройках.',
+    passwordPlaceholder: 'Пароль',
+    repeatPlaceholder: 'Повтори пароль',
+    passwordAlreadySet: 'Пароль уже задан ✓',
+  },
+  whatsNew: {
+    done: 'Круто!',
+    releases: {
+      '1.2.0': [
+        { title: 'Что нового в 1.2.0', text: 'Небольшое большое обновление — пролистай, покажем главное.' },
+        { title: 'Привычки и серии 🔥', text: 'Включи «Считать серию» у повторяющейся задачи — она станет карточкой с огоньком наверху задач. Тап — сделано сегодня.' },
+        { title: 'Кольцо уровня', text: 'Каждая выполненная задача заполняет деление кольца — со звуком. Десять задач — новый круг.' },
+        { title: 'Расставь как нравится', text: 'Карандаш ✏️ на задачах, финансах, статистике и в календаре: перетаскивай карточки, меняй размер и форму углов.' },
+        { title: 'Виджет серии', text: 'Маленький квадрат 1×1 на рабочий стол — огонёк и число. Нажми на него, чтобы выбрать привычку.' },
+      ],
+    },
+  },
+  welcome: {
+    slides: [
+      { title: 'Добро пожаловать в Amber Ledger', text: 'Задачи и деньги в одном месте. Пролистай — покажем, что тут есть.' },
+      { title: 'Задачи', text: 'Сроки, приоритеты, подзадачи и повторы. Долгое нажатие на «+» — быстрое добавление.' },
+      { title: 'Привычки 🔥', text: 'Включи «Считать серию» у повторяющейся задачи — она станет карточкой со стриком наверху.' },
+      { title: 'Календарь', text: 'Задачи и рабочие смены по дням — весь месяц перед глазами.' },
+      { title: 'Финансы', text: 'Баланс, зарплата за период, траты, бюджеты и подушка накоплений.' },
+      { title: 'Статистика', text: 'Неделя в графиках: сделанные задачи и траты по категориям.' },
+      { title: 'Под себя', text: 'Темы, вертикальный макет, виджеты и блокировка финансов — всё в настройках.' },
+    ],
+    skip: 'Пропустить',
+    next: 'Далее',
+    start: 'Начать',
+  },
   tasksScreen: {
     header: 'Задачи',
     emptyTitle: 'Пока нет задач',
@@ -375,7 +433,10 @@ const ru: Translation = {
     unitDays: 'дней',
     unitWeeks: 'недель',
     unitMonths: 'месяцев',
+    streak: 'Считать серию',
+    streakHint: 'Задача станет привычкой с огоньком 🔥 наверху экрана задач',
   },
+  habits: { doneToday: 'Сделано', markDone: 'Отметить', next: (day) => `Далее: ${day}` },
   calendarScreen: { header: 'Календарь', emptyDay: 'На этот день ничего не запланировано' },
   financeScreen: {
     header: 'Финансы',
@@ -411,7 +472,8 @@ const ru: Translation = {
     addButton: 'Добавить повторяющуюся трату',
   },
   workCalendar: { worked: 'Рабочих', off: 'Выходных' },
-  widgetMenu: { pick: '🖼️ Выбрать картинку', remove: '✕ Удалить картинку' },
+  widgetMenu: { pick: '🖼️ Выбрать картинку', remove: '✕ Удалить картинку', shape: '▢ Форма карточки' },
+  cardShape: { title: 'Форма карточки', theme: 'Как в теме', square: 'Квадратные', rounded: 'Скруглённые', round: 'Круглые', leaf: 'Лист' },
   categoryPicker: { label: 'Категория' },
   expenseEditor: {
     headerNew: 'Новая трата',
@@ -523,6 +585,7 @@ const ru: Translation = {
     big: 'Большой · сегодня',
     medium: 'Средний · ближайшая задача',
     small: 'Маленький · выходной',
+    streak: 'Квадрат · серия',
   },
   homeWidgets: {
     todayTitle: 'Сегодня',
@@ -541,6 +604,15 @@ const ru: Translation = {
     days: 'д',
     hours: 'ч',
     minutes: 'мин',
+    streakChoose: 'Нажми, чтобы выбрать',
+  },
+  layoutEdit: { edit: 'Изменить расположение', done: 'Готово', perRow: 'В ряд', order: 'Порядок', byDeadline: 'По дедлайну', ownOrder: 'Свой', resize: 'Размер' },
+  level: { tasksDone: 'Выполнено задач', sound: 'Звук выполнения', soundHint: 'Играет, когда задача выполнена' },
+  habitWidget: {
+    title: 'Виджет серии',
+    subtitle: 'Какую привычку показывать на этом виджете?',
+    empty: 'Привычек пока нет. Включи «Считать серию» у повторяющейся задачи.',
+    done: 'Готово — виджет обновится через секунду',
   },
   defaultCategories: { 'cat-food': 'Еда', 'cat-transport': 'Транспорт', 'cat-housing': 'Жильё', 'cat-fun': 'Развлечения', 'cat-other': 'Прочее' },
   layoutText: {
@@ -670,6 +742,43 @@ const uk: Translation = {
   status: { notStarted: 'Не розпочато', inProgress: 'У процесі', done: 'Готово' },
   priority: { low: 'Низький', medium: 'Середній', high: 'Високий' },
   weekdaysShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
+  onboarding: {
+    continue: 'Продовжити',
+    back: 'Назад',
+    profileTitle: 'Створи профіль',
+    profileSubtitle: 'Як тебе звати? Фото — за бажанням.',
+    passwordTitle: 'Пароль (необов’язково)',
+    passwordHint: 'Потрібен для блокування фінансів. Відновити забутий пароль неможливо. Можна задати пізніше в налаштуваннях.',
+    passwordPlaceholder: 'Пароль',
+    repeatPlaceholder: 'Повтори пароль',
+    passwordAlreadySet: 'Пароль уже задано ✓',
+  },
+  whatsNew: {
+    done: 'Круто!',
+    releases: {
+      '1.2.0': [
+        { title: 'Що нового в 1.2.0', text: 'Невелике велике оновлення — погортай, покажемо головне.' },
+        { title: 'Звички й серії 🔥', text: 'Увімкни «Рахувати серію» у задачі, що повторюється, — вона стане карткою з вогником угорі задач. Тап — зроблено сьогодні.' },
+        { title: 'Кільце рівня', text: 'Кожна виконана задача заповнює поділку кільця — зі звуком. Десять задач — нове коло.' },
+        { title: 'Розстав як подобається', text: 'Олівець ✏️ на задачах, фінансах, статистиці та в календарі: перетягуй картки, змінюй розмір і форму кутів.' },
+        { title: 'Віджет серії', text: 'Маленький квадрат 1×1 на робочий стіл — вогник і число. Натисни, щоб вибрати звичку.' },
+      ],
+    },
+  },
+  welcome: {
+    slides: [
+      { title: 'Ласкаво просимо до Amber Ledger', text: 'Задачі й гроші в одному місці. Погортай — покажемо, що тут є.' },
+      { title: 'Задачі', text: 'Терміни, пріоритети, підзадачі та повтори. Довге натискання на «+» — швидке додавання.' },
+      { title: 'Звички 🔥', text: 'Увімкни «Рахувати серію» у задачі, що повторюється, — вона стане карткою зі стріком угорі.' },
+      { title: 'Календар', text: 'Задачі та робочі зміни по днях — увесь місяць перед очима.' },
+      { title: 'Фінанси', text: 'Баланс, зарплата за період, витрати, бюджети та подушка заощаджень.' },
+      { title: 'Статистика', text: 'Тиждень у графіках: виконані задачі та витрати за категоріями.' },
+      { title: 'Під себе', text: 'Теми, вертикальний макет, віджети та блокування фінансів — усе в налаштуваннях.' },
+    ],
+    skip: 'Пропустити',
+    next: 'Далі',
+    start: 'Почати',
+  },
   tasksScreen: {
     header: 'Завдання',
     emptyTitle: 'Поки що немає завдань',
@@ -723,7 +832,10 @@ const uk: Translation = {
     unitDays: 'днів',
     unitWeeks: 'тижнів',
     unitMonths: 'місяців',
+    streak: 'Рахувати серію',
+    streakHint: 'Задача стане звичкою з вогником 🔥 угорі екрана задач',
   },
+  habits: { doneToday: 'Зроблено', markDone: 'Позначити', next: (day) => `Далі: ${day}` },
   calendarScreen: { header: 'Календар', emptyDay: 'На цей день нічого не заплановано' },
   financeScreen: {
     header: 'Фінанси',
@@ -759,7 +871,8 @@ const uk: Translation = {
     addButton: 'Додати повторювану витрату',
   },
   workCalendar: { worked: 'Робочих', off: 'Вихідних' },
-  widgetMenu: { pick: '🖼️ Вибрати картинку', remove: '✕ Видалити картинку' },
+  widgetMenu: { pick: '🖼️ Вибрати картинку', remove: '✕ Видалити картинку', shape: '▢ Форма картки' },
+  cardShape: { title: 'Форма картки', theme: 'Як у темі', square: 'Квадратні', rounded: 'Заокруглені', round: 'Круглі', leaf: 'Листок' },
   categoryPicker: { label: 'Категорія' },
   expenseEditor: {
     headerNew: 'Нова витрата',
@@ -869,6 +982,7 @@ const uk: Translation = {
     big: 'Великий · сьогодні',
     medium: 'Середній · найближча задача',
     small: 'Малий · вихідний',
+    streak: 'Квадрат · серія',
   },
   homeWidgets: {
     todayTitle: 'Сьогодні',
@@ -887,6 +1001,15 @@ const uk: Translation = {
     days: 'д',
     hours: 'год',
     minutes: 'хв',
+    streakChoose: 'Натисни, щоб вибрати',
+  },
+  layoutEdit: { edit: 'Змінити розташування', done: 'Готово', perRow: 'У ряд', order: 'Порядок', byDeadline: 'За дедлайном', ownOrder: 'Свій', resize: 'Розмір' },
+  level: { tasksDone: 'Виконано задач', sound: 'Звук виконання', soundHint: 'Грає, коли задачу виконано' },
+  habitWidget: {
+    title: 'Віджет серії',
+    subtitle: 'Яку звичку показувати на цьому віджеті?',
+    empty: 'Звичок поки немає. Увімкни «Рахувати серію» у задачі, що повторюється.',
+    done: 'Готово — віджет оновиться за секунду',
   },
   defaultCategories: { 'cat-food': 'Їжа', 'cat-transport': 'Транспорт', 'cat-housing': 'Житло', 'cat-fun': 'Розваги', 'cat-other': 'Інше' },
   layoutText: {
@@ -1016,6 +1139,43 @@ const en: Translation = {
   status: { notStarted: 'Not started', inProgress: 'In progress', done: 'Done' },
   priority: { low: 'Low', medium: 'Medium', high: 'High' },
   weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  onboarding: {
+    continue: 'Continue',
+    back: 'Back',
+    profileTitle: 'Create your profile',
+    profileSubtitle: 'What should we call you? A photo is optional.',
+    passwordTitle: 'Password (optional)',
+    passwordHint: 'Used for the finance lock. A forgotten password can’t be recovered. You can set it later in Settings.',
+    passwordPlaceholder: 'Password',
+    repeatPlaceholder: 'Repeat password',
+    passwordAlreadySet: 'Password already set ✓',
+  },
+  whatsNew: {
+    done: 'Nice!',
+    releases: {
+      '1.2.0': [
+        { title: "What's new in 1.2.0", text: 'A small big update — swipe through for the highlights.' },
+        { title: 'Habits & streaks 🔥', text: 'Turn on “Count streak” for a repeating task and it becomes a flame card at the top of Tasks. Tap it when it’s done today.' },
+        { title: 'Level ring', text: 'Every task you finish fills a segment of the ring — with a sound. Ten tasks and a new round starts.' },
+        { title: 'Arrange it your way', text: 'The ✏️ pencil on Tasks, Finance, Stats and Calendar: drag cards around, change their size and corners.' },
+        { title: 'Streak widget', text: 'A tiny 1×1 square for your home screen — the flame and the number. Tap it to choose the habit.' },
+      ],
+    },
+  },
+  welcome: {
+    slides: [
+      { title: 'Welcome to Amber Ledger', text: 'Your tasks and your money in one place. Swipe through for a quick tour.' },
+      { title: 'Tasks', text: 'Deadlines, priorities, subtasks and repeats. Long-press + to add one in a second.' },
+      { title: 'Habits 🔥', text: 'Turn on “Count streak” for a repeating task and it becomes a streak card at the top.' },
+      { title: 'Calendar', text: 'Tasks and work shifts day by day — the whole month at a glance.' },
+      { title: 'Finance', text: 'Bank balance, pay per period, expenses, budgets and a savings cushion.' },
+      { title: 'Stats', text: 'Your week in charts: tasks done and spending by category.' },
+      { title: 'Make it yours', text: 'Themes, the Vertical layout, home screen widgets and a finance lock — all in Settings.' },
+    ],
+    skip: 'Skip',
+    next: 'Next',
+    start: 'Get started',
+  },
   tasksScreen: {
     header: 'Tasks',
     emptyTitle: 'No tasks yet',
@@ -1069,7 +1229,10 @@ const en: Translation = {
     unitDays: 'days',
     unitWeeks: 'weeks',
     unitMonths: 'months',
+    streak: 'Count streak',
+    streakHint: 'The task becomes a habit with a 🔥 at the top of Tasks',
   },
+  habits: { doneToday: 'Done', markDone: 'Mark done', next: (day) => `Next: ${day}` },
   calendarScreen: { header: 'Calendar', emptyDay: 'Nothing planned for this day' },
   financeScreen: {
     header: 'Finance',
@@ -1105,7 +1268,8 @@ const en: Translation = {
     addButton: 'Add recurring expense',
   },
   workCalendar: { worked: 'Worked', off: 'Off' },
-  widgetMenu: { pick: '🖼️ Choose picture', remove: '✕ Remove picture' },
+  widgetMenu: { pick: '🖼️ Choose picture', remove: '✕ Remove picture', shape: '▢ Card shape' },
+  cardShape: { title: 'Card shape', theme: 'Theme default', square: 'Square', rounded: 'Rounded', round: 'Round', leaf: 'Leaf' },
   categoryPicker: { label: 'Category' },
   expenseEditor: {
     headerNew: 'New Expense',
@@ -1215,6 +1379,7 @@ const en: Translation = {
     big: 'Large · today',
     medium: 'Medium · next task',
     small: 'Small · day off',
+    streak: 'Square · streak',
   },
   homeWidgets: {
     todayTitle: 'Today',
@@ -1233,6 +1398,15 @@ const en: Translation = {
     days: 'd',
     hours: 'h',
     minutes: 'min',
+    streakChoose: 'Tap to choose',
+  },
+  layoutEdit: { edit: 'Edit layout', done: 'Done', perRow: 'Per row', order: 'Order', byDeadline: 'By deadline', ownOrder: 'My own', resize: 'Size' },
+  level: { tasksDone: 'Tasks done', sound: 'Task done sound', soundHint: 'Plays when a task is done' },
+  habitWidget: {
+    title: 'Streak widget',
+    subtitle: 'Which habit should this widget show?',
+    empty: 'No habits yet. Turn on “Count streak” for a repeating task.',
+    done: 'Done — the widget updates in a second',
   },
   defaultCategories: { 'cat-food': 'Food', 'cat-transport': 'Transport', 'cat-housing': 'Housing', 'cat-fun': 'Fun', 'cat-other': 'Other' },
   layoutText: {

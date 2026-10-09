@@ -1,11 +1,22 @@
 import { ViewStyle } from 'react-native';
 import type { AppTheme } from './theme';
-import { cornerStyle } from './layouts';
+import { cornerStyle, Corners } from './layouts';
+
+/** A card's own corner shape, picked per card in edit mode; absent = whatever the theme does. */
+export type CardShape = 'square' | 'rounded' | 'round' | 'leaf';
+export const CARD_SHAPES: CardShape[] = ['square', 'rounded', 'round', 'leaf'];
+export const SHAPE_CORNERS: Record<CardShape, Corners> = {
+  square: { tl: 6, tr: 6, br: 6, bl: 6 },
+  rounded: { tl: 16, tr: 16, br: 16, bl: 16 },
+  round: { tl: 30, tr: 30, br: 30, bl: 30 },
+  leaf: { tl: 40, tr: 6, br: 40, bl: 6 },
+};
 
 /** Background, border, corner radius and shadow of a card in the active theme + layout. */
-export function cardSurface(theme: AppTheme): ViewStyle {
+export function cardSurface(theme: AppTheme, shape?: CardShape | null): ViewStyle {
   const base = themeCardSurface(theme);
-  return theme.layout.corners ? { ...base, ...cornerStyle(theme.layout.corners) } : base;
+  const corners = shape ? SHAPE_CORNERS[shape] : theme.layout.corners;
+  return corners ? { ...base, ...cornerStyle(corners) } : base;
 }
 
 function themeCardSurface(theme: AppTheme): ViewStyle {

@@ -14,6 +14,7 @@ interface TaskRow {
   recurrence_interval: number | null;
   recurrence_weekdays: string | null;
   recurrence_until: string | null;
+  recurrence_streak: number | null;
   series_id: string | null;
   image_uri: string | null;
   sort_order: number;
@@ -48,6 +49,7 @@ function rowToTask(row: TaskRow, subtasks: SubTask[], tags: string[]): Task {
           interval: row.recurrence_interval ?? 1,
           weekdays: row.recurrence_weekdays ? JSON.parse(row.recurrence_weekdays) : null,
           until: row.recurrence_until,
+          streak: row.recurrence_streak === 1,
         }
       : null,
     seriesId: row.series_id,
@@ -152,10 +154,10 @@ export async function createTask(draft: TaskDraft): Promise<Task> {
   await db.runAsync(
     `INSERT INTO tasks (
       id, title, description, deadline_at, priority, status, is_important,
-      recurrence_freq, recurrence_interval, recurrence_weekdays, recurrence_until,
+      recurrence_freq, recurrence_interval, recurrence_weekdays, recurrence_until, recurrence_streak,
       series_id, image_uri, sort_order, expense_category_id, expense_amount,
       created_at, updated_at, completed_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       task.id,
       task.title,
@@ -168,6 +170,7 @@ export async function createTask(draft: TaskDraft): Promise<Task> {
       task.recurrenceRule?.interval ?? null,
       task.recurrenceRule?.weekdays ? JSON.stringify(task.recurrenceRule.weekdays) : null,
       task.recurrenceRule?.until ?? null,
+      task.recurrenceRule?.streak ? 1 : 0,
       task.seriesId,
       task.imageUri,
       task.sortOrder,
@@ -215,7 +218,7 @@ export async function updateTask(task: Task): Promise<void> {
   await db.runAsync(
     `UPDATE tasks SET
       title = ?, description = ?, deadline_at = ?, priority = ?, status = ?, is_important = ?,
-      recurrence_freq = ?, recurrence_interval = ?, recurrence_weekdays = ?, recurrence_until = ?,
+      recurrence_freq = ?, recurrence_interval = ?, recurrence_weekdays = ?, recurrence_until = ?, recurrence_streak = ?,
       series_id = ?, image_uri = ?, expense_category_id = ?, expense_amount = ?, updated_at = ?, completed_at = ?
     WHERE id = ?`,
     [
@@ -229,6 +232,7 @@ export async function updateTask(task: Task): Promise<void> {
       task.recurrenceRule?.interval ?? null,
       task.recurrenceRule?.weekdays ? JSON.stringify(task.recurrenceRule.weekdays) : null,
       task.recurrenceRule?.until ?? null,
+      task.recurrenceRule?.streak ? 1 : 0,
       task.seriesId,
       task.imageUri,
       task.expenseOnComplete?.categoryId ?? null,

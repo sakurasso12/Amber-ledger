@@ -1,10 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
 import { SegmentedControl, TextField } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 import { RecurrenceFreq, RecurrenceRule } from '@/types';
+import { canCountStreak } from '@/lib/streaks';
 
 /** JS Date.getDay() values (0=Sun..6=Sat), in Mon-first display order. */
 const WEEKDAY_VALUES = [1, 2, 3, 4, 5, 6, 0];
@@ -14,9 +15,11 @@ type Mode = 'none' | RecurrenceFreq;
 interface RecurrencePickerProps {
   value: RecurrenceRule | null;
   onChange: (rule: RecurrenceRule | null) => void;
+  /** Tasks get the "Count streak" switch; recurring expenses don't. */
+  showStreak?: boolean;
 }
 
-export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
+export function RecurrencePicker({ value, onChange, showStreak = false }: RecurrencePickerProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const mode: Mode = value?.freq ?? 'none';
@@ -31,6 +34,8 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
       interval: value?.interval ?? 1,
       weekdays: next === 'weekly' ? value?.weekdays ?? [] : null,
       until: null,
+      // Monthly repeats aren't habits.
+      streak: next === 'monthly' ? false : value?.streak ?? false,
     });
   }
 
@@ -100,6 +105,22 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
           </Text>
         </View>
       ) : null}
+
+      {showStreak && value && canCountStreak(value) ? (
+        <View style={[styles.streakRow, { backgroundColor: theme.colors.surfaceAlt, borderColor: theme.colors.border }]}>
+          <Text style={styles.streakIcon}>🔥</Text>
+          <View style={styles.streakText}>
+            <Text style={{ color: theme.colors.text, fontSize: 15, fontWeight: '600' }}>{tr.recurrence.streak}</Text>
+            <Text style={{ color: theme.colors.textMuted, fontSize: 12, lineHeight: 16 }}>{tr.recurrence.streakHint}</Text>
+          </View>
+          <Switch
+            value={!!value.streak}
+            onValueChange={(streak) => onChange({ ...value, streak })}
+            trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
+            thumbColor={theme.colors.surface}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -111,4 +132,7 @@ const styles = StyleSheet.create({
   weekdayChip: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 100, borderWidth: 1 },
   intervalRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   intervalInput: { width: 60 },
+  streakRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, borderWidth: 1 },
+  streakIcon: { fontSize: 22 },
+  streakText: { flex: 1, gap: 2 },
 });

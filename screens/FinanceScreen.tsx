@@ -4,10 +4,10 @@ import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
-import { cardSurface } from '@/theme/surfaces';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { CustomizableCard, EmptyState, Fab, LayoutScreen, ProgressBar, QuickAddBar } from '@/components/ui';
+import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar } from '@/components/ui';
+import { useFinanceLocked } from '@/store/useFinanceLock';
 import { BalanceCard } from '@/components/finance/BalanceCard';
 import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
 import { FinanceMenuBody, FinanceMenuHeader } from '@/components/finance/FinanceMenu';
@@ -103,71 +103,93 @@ export function FinanceScreen() {
     />
   );
 
+  const [editingLayout, setEditingLayout] = useState(false);
+  const locked = useFinanceLocked();
+  // Nothing to rearrange behind the lock — and leaving edit mode when it locks.
+  useEffect(() => {
+    if (locked) setEditingLayout(false);
+  }, [locked]);
+
+  const spendTile = (key: string, label: string, value: number) => (
+    <CustomizableCard widgetId={`finance-${key}`} style={styles.tileCard}>
+      <Text style={[styles.statLabel, { color: theme.colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.statValue, { color: theme.colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
+        -{value.toFixed(0)} {settings.currency}
+      </Text>
+    </CustomizableCard>
+  );
+
+  // Half-width budget stacks each label over its numbers so nothing gets squeezed.
+  const budgetCard = (size: ModuleSize) => {
+    const row = (label: string, spent: number, limit: number) => (
+      <View style={styles.budgetRow}>
+        <View style={size === 'half' ? styles.budgetLabelStack : styles.budgetLabelRow}>
+          <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>{label}</Text>
+          <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }} numberOfLines={1} adjustsFontSizeToFit>
+            {spent.toFixed(0)} / {limit.toFixed(0)} {settings.currency}
+          </Text>
+        </View>
+        <ProgressBar ratio={spent / limit} color={theme.colors.success} />
+      </View>
+    );
+    return (
+      <CustomizableCard widgetId="finance-budget">
+        <Text style={[styles.sectionTitle, styles.budgetTitle, { color: theme.colors.text }]}>{tr.financeScreen.budgetTitle}</Text>
+        {settings.budgetLimitWeek ? row(tr.notificationsContent.perWeek, spentThisWeek, settings.budgetLimitWeek) : null}
+        {settings.budgetLimitMonth ? row(tr.notificationsContent.perMonth, spentThisMonth, settings.budgetLimitMonth) : null}
+      </CustomizableCard>
+    );
+  };
+
+  // The cards above the expenses, in the user's own order and sizes (pencil → edit).
+  const modules: BoardModule[] = [
+    {
+      key: 'balance',
+      sizes: ['full'],
+      render: () => (
+        <BalanceCard
+          bank={bank}
+          spentSinceSet={spentSinceSet}
+          creditedSinceSet={payroll.creditedSinceSet}
+          onEditBank={handleEditBank}
+          awaiting={awaitingTotal}
+          awaitingLabel={awaitingLabel}
+          accruing={payroll.accruing.amount}
+          accruingLabel={formatRangeLabel(payroll.accruing.range, tr.localeCode)}
+          plannedTotal={plannedTotal}
+          currency={settings.currency}
+        />
+      ),
+    },
+    { key: 'spend-week', sizes: ['half'], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
+    { key: 'spend-month', sizes: ['half'], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
+    ...(hasBudgetLimits ? [{ key: 'budget', sizes: ['full', 'half'] as ModuleSize[], render: budgetCard }] : []),
+    {
+      key: 'work-calendar',
+      sizes: ['full'],
+      render: () => (
+        <CustomizableCard widgetId="finance-work-calendar">
+          <WorkCalendar />
+        </CustomizableCard>
+      ),
+    },
+    ...(settings.savingsCard === 'off'
+      ? []
+      : [
+          {
+            key: 'savings',
+            // The opt-in question needs the full width; the card itself also fits in half.
+            sizes: (settings.savingsCard === 'ask' ? ['full'] : ['full', 'half']) as ModuleSize[],
+            render: (size: ModuleSize) => <SavingsCard compact={size === 'half'} />,
+          },
+        ]),
+  ];
+
   const listHeader = (
           <View style={styles.topSection}>
             {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
             <FinanceMenuBody />
-            <BalanceCard
-              bank={bank}
-              spentSinceSet={spentSinceSet}
-              creditedSinceSet={payroll.creditedSinceSet}
-              onEditBank={handleEditBank}
-              awaiting={awaitingTotal}
-              awaitingLabel={awaitingLabel}
-              accruing={payroll.accruing.amount}
-              accruingLabel={formatRangeLabel(payroll.accruing.range, tr.localeCode)}
-              plannedTotal={plannedTotal}
-              currency={settings.currency}
-            />
-            {expenseMode === 'big' ? (
-              // Vertical: this week and this month at a glance.
-              <View style={styles.pairRow}>
-                {[
-                  { label: tr.notificationsContent.perWeek, value: spentThisWeek },
-                  { label: tr.notificationsContent.perMonth, value: spentThisMonth },
-                ].map((stat) => (
-                  <View key={stat.label} style={[styles.statTile, cardSurface(theme)]}>
-                    <Text style={[styles.statLabel, { color: theme.colors.textMuted }]}>{stat.label}</Text>
-                    <Text style={[styles.statValue, { color: theme.colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
-                      -{stat.value.toFixed(0)} {settings.currency}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-            {hasBudgetLimits ? (
-              <CustomizableCard widgetId="finance-budget">
-                <Text style={[styles.sectionTitle, styles.budgetTitle, { color: theme.colors.text }]}>
-                  {tr.financeScreen.budgetTitle}
-                </Text>
-                {settings.budgetLimitWeek ? (
-                  <View style={styles.budgetRow}>
-                    <View style={styles.budgetLabelRow}>
-                      <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>{tr.notificationsContent.perWeek}</Text>
-                      <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }}>
-                        {spentThisWeek.toFixed(0)} / {settings.budgetLimitWeek.toFixed(0)} {settings.currency}
-                      </Text>
-                    </View>
-                    <ProgressBar ratio={spentThisWeek / settings.budgetLimitWeek} color={theme.colors.success} />
-                  </View>
-                ) : null}
-                {settings.budgetLimitMonth ? (
-                  <View style={styles.budgetRow}>
-                    <View style={styles.budgetLabelRow}>
-                      <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>{tr.notificationsContent.perMonth}</Text>
-                      <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }}>
-                        {spentThisMonth.toFixed(0)} / {settings.budgetLimitMonth.toFixed(0)} {settings.currency}
-                      </Text>
-                    </View>
-                    <ProgressBar ratio={spentThisMonth / settings.budgetLimitMonth} color={theme.colors.success} />
-                  </View>
-                ) : null}
-              </CustomizableCard>
-            ) : null}
-            <CustomizableCard widgetId="finance-work-calendar">
-              <WorkCalendar />
-            </CustomizableCard>
-            <SavingsCard />
+            <ModuleBoard boardId="finance" modules={modules} editing={editingLayout} />
             <Text
               style={[
                 styles.sectionTitle,
@@ -181,7 +203,15 @@ export function FinanceScreen() {
   );
 
   return (
-    <LayoutScreen title={tr.financeScreen.header} right={<FinanceMenuHeader />}>
+    <LayoutScreen
+      title={tr.financeScreen.header}
+      right={
+        <View style={styles.headerRight}>
+          <FinanceMenuHeader />
+          <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={locked} />
+        </View>
+      }
+    >
       <FinanceLockGate clearRail>
       <FlatList
         data={expenses}
@@ -203,11 +233,13 @@ export function FinanceScreen() {
         />
       ) : null}
 
-      <Fab
-        onPress={() => router.push('/expense/new')}
-        onLongPress={() => defaultQuickAddCategoryId && setQuickAddOpen(true)}
-        bottom={insets.bottom + 16}
-      />
+      {editingLayout ? null : (
+        <Fab
+          onPress={() => router.push('/expense/new')}
+          onLongPress={() => defaultQuickAddCategoryId && setQuickAddOpen(true)}
+          bottom={insets.bottom + 16}
+        />
+      )}
       </FinanceLockGate>
     </LayoutScreen>
   );
@@ -221,9 +253,10 @@ const styles = StyleSheet.create({
   budgetTitle: { marginTop: 0, marginBottom: 2 },
   budgetRow: { gap: 6, marginTop: 8 },
   budgetLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  pairRow: { flexDirection: 'row', gap: 10 },
-  statTile: { flex: 1, padding: 14, gap: 4 },
-  statLabel: { fontSize: 12, fontWeight: '700' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  tileCard: { gap: 4 },
+  budgetLabelStack: { gap: 2 },
+  statLabel: { fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
   statValue: { fontSize: 24, fontWeight: '800' },
   bigSectionTitle: { fontSize: 34, fontWeight: '800', letterSpacing: 2, marginTop: 12 },
 });

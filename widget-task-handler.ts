@@ -17,11 +17,14 @@ import type { AppLanguage } from '@/types';
 import { TodayWidget, WidgetTask } from './widget/TodayWidget';
 import { DayOffWidget } from './widget/DayOffWidget';
 import { NextTaskWidget } from './widget/NextTaskWidget';
+import { StreakWidget } from './widget/StreakWidget';
+import { buildHabits, habitCardId } from '@/lib/streaks';
 
 export const WIDGET_NAME = 'AmberLedgerToday';
 export const DAY_OFF_WIDGET_NAME = 'AmberLedgerDayOff';
 export const NEXT_TASK_WIDGET_NAME = 'AmberLedgerNextTask';
-export const ALL_WIDGET_NAMES = [WIDGET_NAME, DAY_OFF_WIDGET_NAME, NEXT_TASK_WIDGET_NAME];
+export const STREAK_WIDGET_NAME = 'AmberLedgerStreak';
+export const ALL_WIDGET_NAMES = [WIDGET_NAME, DAY_OFF_WIDGET_NAME, NEXT_TASK_WIDGET_NAME, STREAK_WIDGET_NAME];
 
 interface WidgetSettings {
   currency: string;
@@ -32,10 +35,14 @@ interface WidgetSettings {
   language: AppLanguage;
   /** Finance lock is on and not currently unlocked — widgets show •••• instead of amounts. */
   moneyHidden: boolean;
+  /** Streak widget id → habit series id. */
+  streakWidgets: Record<string, string>;
+  /** In-app card photos by card id — a streak widget shows its habit's photo. */
+  cardPhotos: Record<string, string>;
 }
 
 async function readWidgetSettings(): Promise<WidgetSettings> {
-  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'en', moneyHidden: false };
+  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'en', moneyHidden: false, streakWidgets: {}, cardPhotos: {} };
   try {
     const raw = await getSetting('app-settings');
     const settings = raw ? JSON.parse(raw)?.state?.settings : null;
@@ -48,6 +55,8 @@ async function readWidgetSettings(): Promise<WidgetSettings> {
       moneyHidden:
         !!settings?.financeLockEnabled &&
         !(settings?.financeUnlockedUntil && new Date(settings.financeUnlockedUntil).getTime() > Date.now()),
+      streakWidgets: settings?.streakWidgets ?? {},
+      cardPhotos: settings?.widgetBackgrounds ?? {},
     };
   } catch {
     return fallback;
@@ -76,8 +85,8 @@ async function readBackgroundAsDataUri(uri: string | null): Promise<string | nul
  * passing the photo's aspect ratio, scaled up to cover the widget, gives a proper centred crop.
  * Sizes are in dp (the library converts them to pixels).
  */
-async function widgetPhoto(widgetInfo: WidgetInfo, settings: WidgetSettings): Promise<WidgetPhoto | null> {
-  const image = await readBackgroundAsDataUri(settings.backgrounds[widgetInfo.widgetName] ?? null);
+async function widgetPhoto(widgetInfo: WidgetInfo, settings: WidgetSettings, uri?: string | null): Promise<WidgetPhoto | null> {
+  const image = await readBackgroundAsDataUri(uri !== undefined ? uri : settings.backgrounds[widgetInfo.widgetName] ?? null);
   if (!image) return null;
   const widgetWidth = Math.max(1, widgetInfo.width);
   const widgetHeight = Math.max(1, widgetInfo.height);
@@ -159,8 +168,29 @@ export async function buildNextTaskWidget(widgetInfo: WidgetInfo) {
   });
 }
 
+export async function buildStreakWidget(widgetInfo: WidgetInfo) {
+  const [tasks, settings] = await Promise.all([tasksRepo.listTasks(), readWidgetSettings()]);
+  const seriesId = settings.streakWidgets[String(widgetInfo.widgetId)];
+  const habit = seriesId ? buildHabits(tasks).find((h) => h.seriesId === seriesId) ?? null : null;
+
+  return React.createElement(StreakWidget, {
+    habit: habit ? { title: habit.title, streak: habit.streak, doneToday: habit.doneToday } : null,
+    pickUri: `amberledger://habit-widget?widgetId=${widgetInfo.widgetId}`,
+    ...widgetLook(settings),
+    // The habit's own card photo wins; otherwise the streak widgets' shared background.
+    photo: await widgetPhoto(
+      widgetInfo,
+      settings,
+      (seriesId && settings.cardPhotos[habitCardId(seriesId)]) || settings.backgrounds[STREAK_WIDGET_NAME] || null
+    ),
+    width: widgetInfo.width,
+    tr: translations[settings.language].homeWidgets,
+  });
+}
+
 /** Builds whichever of the app's home screen widgets `widgetInfo` refers to. */
 export async function buildWidget(widgetInfo: WidgetInfo) {
+  if (widgetInfo.widgetName === STREAK_WIDGET_NAME) return buildStreakWidget(widgetInfo);
   if (widgetInfo.widgetName === DAY_OFF_WIDGET_NAME) return buildDayOffWidget(widgetInfo);
   if (widgetInfo.widgetName === NEXT_TASK_WIDGET_NAME) return buildNextTaskWidget(widgetInfo);
   return buildTodayWidget(widgetInfo);

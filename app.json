@@ -2,7 +2,7 @@
   "expo": {
     "name": "Amber Ledger",
     "slug": "amber-ledger",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "scheme": "amberledger",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -83,6 +83,17 @@
               "minHeight": "110dp",
               "targetCellWidth": 2,
               "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "AmberLedgerStreak",
+              "label": "@string/widget_amberledgerstreak_label",
+              "description": "One habit's streak with a flame (1×1, tap to choose the habit)",
+              "minWidth": "40dp",
+              "minHeight": "40dp",
+              "targetCellWidth": 1,
+              "targetCellHeight": 1,
               "resizeMode": "horizontal|vertical",
               "updatePeriodMillis": 1800000
             }

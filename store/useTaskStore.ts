@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import * as tasksRepo from '@/db/tasksRepo';
 import { nextOccurrence } from '@/lib/recurrence';
+import { isHabit, isOnOrBeforeToday } from '@/lib/streaks';
+import { refreshHomeWidget } from '@/lib/widgetRefresh';
+import { playDoneSound } from '@/lib/sounds';
 import { cancelTaskReminder, clearStickyNotification, syncStickyNotification, syncTaskReminder } from '@/notifications';
 import { useSettingsStore } from './useSettingsStore';
 import { useFinanceStore } from './useFinanceStore';
@@ -40,6 +43,8 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
   },
 
   editTask: async (task) => {
+    // Marked done from the editor's status switch counts as completing it too.
+    if (task.status === 'done' && get().tasks.find((t) => t.id === task.id)?.status !== 'done') playDoneSound();
     await tasksRepo.updateTask(task);
     set((state) => ({ tasks: state.tasks.map((t) => (t.id === task.id ? task : t)) }));
     syncNotificationsFor(task);
@@ -79,18 +84,26 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
       status,
       completedAt: status === 'done' ? now : null,
     };
+    if (status === 'done' && task.status !== 'done') playDoneSound();
     await tasksRepo.updateTask(updated);
     set((state) => ({ tasks: state.tasks.map((t) => (t.id === taskId ? updated : t)) }));
     syncNotificationsFor(updated);
 
     if (status === 'done' && task.recurrenceRule) {
-      const deadlineAt = nextOccurrence(task.recurrenceRule, task.deadlineAt);
+      let deadlineAt = nextOccurrence(task.recurrenceRule, task.deadlineAt);
+      // A habit done late covers today too, so its next time is the first one after today.
+      while (deadlineAt && isHabit(task) && isOnOrBeforeToday(deadlineAt)) {
+        deadlineAt = nextOccurrence(task.recurrenceRule, deadlineAt);
+      }
       if (deadlineAt) {
         const nextTask = await tasksRepo.createNextRecurringInstance(task, deadlineAt);
         set((state) => ({ tasks: [nextTask, ...state.tasks] }));
         syncNotificationsFor(nextTask);
       }
     }
+
+    // Home screen widgets (next task, streaks) show this right away instead of on the next tick.
+    refreshHomeWidget();
 
     if (status === 'done' && task.expenseOnComplete) {
       useFinanceStore.getState().addExpense({

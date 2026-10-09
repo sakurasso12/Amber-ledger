@@ -18,6 +18,9 @@ import {
 import { useTranslation } from '@/i18n';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { useFinanceLockLifecycle } from '@/store/useFinanceLock';
+import { Onboarding } from '@/components/onboarding/Onboarding';
+import { WhatsNew } from '@/components/onboarding/WhatsNew';
+import { preloadSounds } from '@/lib/sounds';
 
 /**
  * JS stack (not the native one) because Android's native stack has no swipe-back: here every
@@ -29,6 +32,7 @@ const MODAL = { presentation: 'modal', ...TransitionPresets.ModalPresentationIOS
 function RootStack() {
   const theme = useTheme();
   useFinanceLockLifecycle();
+  useEffect(() => preloadSounds(), []);
   return (
     <>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
@@ -52,7 +56,10 @@ function RootStack() {
         <Stack.Screen name="expense/planned" options={MODAL} />
         <Stack.Screen name="expense/recurring" options={MODAL} />
         <Stack.Screen name="category/manage" options={MODAL} />
+        <Stack.Screen name="habit-widget" />
       </Stack>
+      <Onboarding />
+      <WhatsNew />
     </>
   );
 }

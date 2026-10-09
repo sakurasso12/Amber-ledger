@@ -62,6 +62,13 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     }
   }
 
+  if (currentVersion < 5) {
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(tasks)');
+    if (!columns.some((c) => c.name === 'recurrence_streak')) {
+      await db.execAsync('ALTER TABLE tasks ADD COLUMN recurrence_streak INTEGER NOT NULL DEFAULT 0');
+    }
+  }
+
   if (currentVersion < SCHEMA_VERSION) {
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }

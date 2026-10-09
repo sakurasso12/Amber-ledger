@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +6,8 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { CustomizableCard, LayoutScreen, SegmentedControl } from '@/components/ui';
+import { BoardModule, CustomizableCard, EditLayoutButton, LayoutScreen, ModuleBoard, ModuleSize, SegmentedControl } from '@/components/ui';
+import { useFinanceLocked } from '@/store/useFinanceLock';
 import { BarChart } from '@/components/charts/BarChart';
 import { CategoryBreakdownBars } from '@/components/charts/CategoryBreakdownBars';
 import { lastNWeeks, monthRange } from '@/lib/dateRanges';
@@ -70,57 +71,104 @@ export function StatsScreen() {
     );
   }
 
+  const [editingLayout, setEditingLayout] = useState(false);
+  const locked = useFinanceLocked();
+  const financeLocked = tab === 'finance' && locked;
+  useEffect(() => {
+    if (financeLocked) setEditingLayout(false);
+  }, [financeLocked]);
+
+  /**
+   * A weekly chart card. Full width: the last 8 weeks. Half width: this week's number big, with
+   * the last 4 weeks as a small chart under it.
+   */
+  const chartCard = (
+    id: string,
+    title: string,
+    series: { label: string; value: number }[],
+    color: string,
+    format: (n: number) => string = (n) => String(n)
+  ) => {
+    const card = (size: ModuleSize) => (
+      <CustomizableCard widgetId={id} style={styles.card}>
+        <Text style={[styles.cardTitle, { color: theme.colors.text }]} numberOfLines={size === 'half' ? 2 : 1}>
+          {title}
+        </Text>
+        {size === 'half' ? (
+          <>
+            <Text style={[styles.halfValue, { color }]} numberOfLines={1} adjustsFontSizeToFit>
+              {format(series[series.length - 1]?.value ?? 0)}
+            </Text>
+            <BarChart data={series.slice(-4)} color={color} height={90} formatValue={format} />
+          </>
+        ) : (
+          <BarChart data={series} color={color} formatValue={format} />
+        )}
+      </CustomizableCard>
+    );
+    return { key: id, sizes: ['full', 'half'] as ModuleSize[], render: card };
+  };
+
+  const taskModules: BoardModule[] = [
+    chartCard('stats-created', tr.stats.createdPerWeek, taskStats.map((w) => ({ label: w.label, value: w.created })), theme.colors.accent),
+    chartCard('stats-completed', tr.stats.completedPerWeek, taskStats.map((w) => ({ label: w.label, value: w.completed })), theme.colors.success),
+    chartCard('stats-overdue', tr.stats.overduePerWeek, taskStats.map((w) => ({ label: w.label, value: w.overdue })), theme.colors.danger),
+  ];
+
+  const financeModules: BoardModule[] = [
+    chartCard(
+      'stats-earnings',
+      tr.stats.earningsPerWeek,
+      earningsWeekly.map((w) => ({ label: w.label, value: w.amount })),
+      theme.colors.success,
+      (n) => n.toFixed(0)
+    ),
+    {
+      key: 'stats-categories',
+      // A list of categories with bars — needs the full width.
+      sizes: ['full'],
+      render: () => (
+        <CustomizableCard widgetId="stats-categories" style={styles.card}>
+          <View style={styles.rowBetween}>
+            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{tr.stats.expensesByCategory}</Text>
+            {top ? (
+              <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>
+                {tr.stats.topCategory} {categoryLabel({ id: top.categoryId, name: top.categoryName }, tr)}
+              </Text>
+            ) : null}
+          </View>
+          <CategoryBreakdownBars entries={breakdown} currency={settings.currency} />
+        </CustomizableCard>
+      ),
+    },
+  ];
+
   return (
-    <LayoutScreen title={tr.stats.header}>
+    <LayoutScreen
+      title={tr.stats.header}
+      right={<EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={financeLocked} />}
+    >
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
+        <SegmentedControl<Tab>
+          value={tab}
+          onChange={setTab}
+          segments={[
+            { value: 'tasks', label: tr.stats.tasksTab },
+            { value: 'finance', label: tr.stats.financeTab },
+          ]}
+        />
 
-      <SegmentedControl<Tab>
-        value={tab}
-        onChange={setTab}
-        segments={[
-          { value: 'tasks', label: tr.stats.tasksTab },
-          { value: 'finance', label: tr.stats.financeTab },
-        ]}
-      />
-
-      {tab === 'tasks' ? (
-        <>
-          {summary}
-          <CustomizableCard widgetId="stats-created" style={styles.card}>
-            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{tr.stats.createdPerWeek}</Text>
-            <BarChart data={taskStats.map((w) => ({ label: w.label, value: w.created }))} color={theme.colors.accent} />
-          </CustomizableCard>
-          <CustomizableCard widgetId="stats-completed" style={styles.card}>
-            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{tr.stats.completedPerWeek}</Text>
-            <BarChart data={taskStats.map((w) => ({ label: w.label, value: w.completed }))} color={theme.colors.success} />
-          </CustomizableCard>
-          <CustomizableCard widgetId="stats-overdue" style={styles.card}>
-            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{tr.stats.overduePerWeek}</Text>
-            <BarChart data={taskStats.map((w) => ({ label: w.label, value: w.overdue }))} color={theme.colors.danger} />
-          </CustomizableCard>
-        </>
-      ) : (
-        <FinanceLockGate style={styles.lockedArea}>
-          {summary}
-          <CustomizableCard widgetId="stats-earnings" style={styles.card}>
-            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{tr.stats.earningsPerWeek}</Text>
-            <BarChart
-              data={earningsWeekly.map((w) => ({ label: w.label, value: w.amount }))}
-              color={theme.colors.success}
-              formatValue={(n) => n.toFixed(0)}
-            />
-          </CustomizableCard>
-          <CustomizableCard widgetId="stats-categories" style={styles.card}>
-            <View style={styles.rowBetween}>
-              <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{tr.stats.expensesByCategory}</Text>
-              {top ? (
-                <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>{tr.stats.topCategory} {categoryLabel({ id: top.categoryId, name: top.categoryName }, tr)}</Text>
-              ) : null}
-            </View>
-            <CategoryBreakdownBars entries={breakdown} currency={settings.currency} />
-          </CustomizableCard>
-        </FinanceLockGate>
-      )}
+        {tab === 'tasks' ? (
+          <>
+            {summary}
+            <ModuleBoard boardId="stats-tasks" modules={taskModules} editing={editingLayout} />
+          </>
+        ) : (
+          <FinanceLockGate style={styles.lockedArea}>
+            {summary}
+            <ModuleBoard boardId="stats-finance" modules={financeModules} editing={editingLayout} />
+          </FinanceLockGate>
+        )}
       </ScrollView>
     </LayoutScreen>
   );
@@ -135,5 +183,6 @@ const styles = StyleSheet.create({
   bigLabel: { fontSize: 14, fontWeight: '700', textAlign: 'center' },
   card: { gap: 12 },
   cardTitle: { fontSize: 15, fontWeight: '700' },
+  halfValue: { fontSize: 34, fontWeight: '800' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

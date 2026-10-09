@@ -16,20 +16,21 @@ import { useTranslation } from '@/i18n';
  * once on, it shows the balance and — in muted text — roughly what it grows to by the account's
  * next anniversary. Tapping it opens the editor.
  */
-export function SavingsCard() {
+export function SavingsCard({ compact = false }: { compact?: boolean }) {
   const mode = useSettingsStore((s) => s.settings.savingsCard);
   const [editing, setEditing] = useState(false);
 
   if (mode === 'off') return null;
   return (
     <>
-      {mode === 'ask' ? <AskCard /> : <ProjectionCard onPress={() => setEditing(true)} />}
+      {mode === 'ask' ? <AskCard /> : <ProjectionCard compact={compact} onPress={() => setEditing(true)} />}
       <SavingsEditor visible={editing} onClose={() => setEditing(false)} />
     </>
   );
 }
 
-function ProjectionCard({ onPress }: { onPress: () => void }) {
+/** `compact` is the half-width version: balance and the projected total only. */
+function ProjectionCard({ onPress, compact }: { onPress: () => void; compact: boolean }) {
   const theme = useTheme();
   const tr = useTranslation();
   const { savingsBalance, savingsRatePercent, savingsOpenedAt, currency } = useSettingsStore((s) => s.settings);
@@ -50,7 +51,13 @@ function ProjectionCard({ onPress }: { onPress: () => void }) {
         <Text style={[styles.balance, { color: theme.colors.success }]} numberOfLines={1} adjustsFontSizeToFit>
           {money(savingsBalance)}
         </Text>
-        {projection && month ? (
+        {compact ? (
+          projection ? (
+            <Text style={[styles.line, { color: theme.colors.textMuted }]} numberOfLines={2}>
+              ≈ {money(projection.projected)} · {projection.yearEnds.toLocaleDateString(tr.localeCode, { month: 'short' })}
+            </Text>
+          ) : null
+        ) : projection && month ? (
           <>
             <Text style={[styles.line, { color: theme.colors.text }]}>{tr.savings.yearEnds(month)}</Text>
             <Text style={[styles.line, { color: theme.colors.textMuted }]}>

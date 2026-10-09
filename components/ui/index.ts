@@ -20,3 +20,5 @@ export * from './SwipeableRow';
 export * from './Text';
 export * from './TextField';
 export * from './useKeyboardHeight';
+export * from './ModuleBoard';
+export * from './EditLayoutButton';

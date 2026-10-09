@@ -84,6 +84,32 @@ export interface AppSettings {
   /** Date the account (or the current deposit term) was opened, yyyy-MM-dd — the projection runs to
    * its next anniversary. */
   savingsOpenedAt: string | null;
+  /** The welcome cards were shown (first launch). */
+  onboardingDone: boolean;
+  /** Home screen streak widgets: widget id → habit series id it shows (picked by tapping it). */
+  streakWidgets: Record<string, string>;
+  /** Level-up sound when the task ring fills. */
+  soundEffects: boolean;
+  /** Tasks screen squares (level ring, habits): saved drag-and-drop order of their keys. */
+  tasksModuleOrder: string[];
+  /** Squares per row on Tasks: 2 (default) or 3. */
+  tasksModuleColumns: 2 | 3;
+  /** Editable boards where something was already dragged — their sway hint isn't needed any more. */
+  layoutHintsSeen: string[];
+  /** Per-card corner shape (card id → 'square' | 'rounded' | 'round' | 'leaf'); absent = theme. */
+  cardShapes: Record<string, 'square' | 'rounded' | 'round' | 'leaf'>;
+  /** Task card size per task series (series id, or task id): S square, M row (default), L big card. */
+  taskCardSizes: Record<string, 'S' | 'M' | 'L'>;
+  /** Task list order: by deadline (default) or the user's own, set by dragging in edit mode. */
+  taskOrderMode: 'deadline' | 'manual';
+  /** The user's own order, as task series keys. */
+  taskManualOrder: string[];
+  /** Editable card boards (Finance, Stats tabs): saved order and half/full sizes per board. */
+  moduleLayouts: Record<string, { order: string[]; sizes: Record<string, 'half' | 'full'> }>;
+  /** Calendar: the user's order of each day's expenses (date key → expense ids). */
+  expenseDayOrder: Record<string, string[]>;
+  /** App version whose "What's new" was already shown (null = never). */
+  lastSeenVersion: string | null;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -124,4 +150,17 @@ export const DEFAULT_SETTINGS: AppSettings = {
   savingsBalance: 0,
   savingsRatePercent: 0,
   savingsOpenedAt: null,
+  onboardingDone: false,
+  streakWidgets: {},
+  soundEffects: true,
+  tasksModuleOrder: [],
+  tasksModuleColumns: 2,
+  layoutHintsSeen: [],
+  cardShapes: {},
+  taskCardSizes: {},
+  taskOrderMode: 'deadline',
+  taskManualOrder: [],
+  moduleLayouts: {},
+  expenseDayOrder: {},
+  lastSeenVersion: null,
 };
