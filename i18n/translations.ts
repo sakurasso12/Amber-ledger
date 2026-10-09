@@ -15,7 +15,7 @@ export interface Translation {
     repeatPlaceholder: string;
     passwordAlreadySet: string;
   };
-  welcome: { slides: { title: string; text: string }[]; skip: string; next: string; start: string; again: string; againValue: string };
+  welcome: { slides: { title: string; text: string }[]; skip: string; next: string; start: string };
   tasksScreen: {
     header: string;
     emptyTitle: string;
@@ -366,8 +366,6 @@ const ru: Translation = {
     skip: 'Пропустить',
     next: 'Далее',
     start: 'Начать',
-    again: 'Первый запуск',
-    againValue: 'Язык, профиль и гайд заново',
   },
   tasksScreen: {
     header: 'Задачи',
@@ -755,8 +753,6 @@ const uk: Translation = {
     skip: 'Пропустити',
     next: 'Далі',
     start: 'Почати',
-    again: 'Перший запуск',
-    againValue: 'Мова, профіль і гайд знову',
   },
   tasksScreen: {
     header: 'Завдання',
@@ -1142,8 +1138,6 @@ const en: Translation = {
     skip: 'Skip',
     next: 'Next',
     start: 'Get started',
-    again: 'First launch',
-    againValue: 'Language, profile and tour again',
   },
   tasksScreen: {
     header: 'Tasks',

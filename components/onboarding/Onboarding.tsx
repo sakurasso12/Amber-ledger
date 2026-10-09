@@ -30,7 +30,7 @@ const AVATAR_SIZE = 104;
 /**
  * First launch: pick a language → create the profile → a short tour of the app.
  * The first two steps cover the app; the tour sits over it, dimmed. Ends by setting
- * settings.onboardingDone (Settings → Welcome tour brings it back).
+ * settings.onboardingDone — shown once, on the very first launch.
  */
 export function Onboarding() {
   const done = useSettingsStore((s) => s.settings.onboardingDone);
