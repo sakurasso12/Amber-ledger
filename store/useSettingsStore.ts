@@ -52,6 +52,9 @@ export const useSettingsStore = create<SettingsState>()(
         if (!DESIGNS[settings.designId]) settings.designId = DEFAULT_SETTINGS.designId;
         // 'fingerprint' was merged into 'device' (fingerprint or phone PIN).
         if (settings.financeLockMethod !== 'password') settings.financeLockMethod = 'device';
+        // Updating from a version before the first-launch setup existed: the app is already set up,
+        // so skip it — they get "What's new" instead.
+        if (persistedSettings && persistedSettings.onboardingDone === undefined) settings.onboardingDone = true;
         return { ...current, settings };
       },
       onRehydrateStorage: () => () => {

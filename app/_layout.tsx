@@ -19,6 +19,7 @@ import { useTranslation } from '@/i18n';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { useFinanceLockLifecycle } from '@/store/useFinanceLock';
 import { Onboarding } from '@/components/onboarding/Onboarding';
+import { WhatsNew } from '@/components/onboarding/WhatsNew';
 import { preloadSounds } from '@/lib/sounds';
 
 /**
@@ -58,6 +59,7 @@ function RootStack() {
         <Stack.Screen name="habit-widget" />
       </Stack>
       <Onboarding />
+      <WhatsNew />
     </>
   );
 }

@@ -108,6 +108,8 @@ export interface AppSettings {
   moduleLayouts: Record<string, { order: string[]; sizes: Record<string, 'half' | 'full'> }>;
   /** Calendar: the user's order of each day's expenses (date key → expense ids). */
   expenseDayOrder: Record<string, string[]>;
+  /** App version whose "What's new" was already shown (null = never). */
+  lastSeenVersion: string | null;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -160,4 +162,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   taskManualOrder: [],
   moduleLayouts: {},
   expenseDayOrder: {},
+  lastSeenVersion: null,
 };

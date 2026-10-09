@@ -15,6 +15,7 @@ export interface Translation {
     repeatPlaceholder: string;
     passwordAlreadySet: string;
   };
+  whatsNew: { done: string; releases: Record<string, { title: string; text: string }[]> };
   welcome: { slides: { title: string; text: string }[]; skip: string; next: string; start: string };
   tasksScreen: {
     header: string;
@@ -352,6 +353,18 @@ const ru: Translation = {
     passwordPlaceholder: 'Пароль',
     repeatPlaceholder: 'Повтори пароль',
     passwordAlreadySet: 'Пароль уже задан ✓',
+  },
+  whatsNew: {
+    done: 'Круто!',
+    releases: {
+      '1.2.0': [
+        { title: 'Что нового в 1.2.0', text: 'Небольшое большое обновление — пролистай, покажем главное.' },
+        { title: 'Привычки и серии 🔥', text: 'Включи «Считать серию» у повторяющейся задачи — она станет карточкой с огоньком наверху задач. Тап — сделано сегодня.' },
+        { title: 'Кольцо уровня', text: 'Каждая выполненная задача заполняет деление кольца — со звуком. Десять задач — новый круг.' },
+        { title: 'Расставь как нравится', text: 'Карандаш ✏️ на задачах, финансах, статистике и в календаре: перетаскивай карточки, меняй размер и форму углов.' },
+        { title: 'Виджет серии', text: 'Маленький квадрат 1×1 на рабочий стол — огонёк и число. Нажми на него, чтобы выбрать привычку.' },
+      ],
+    },
   },
   welcome: {
     slides: [
@@ -740,6 +753,18 @@ const uk: Translation = {
     repeatPlaceholder: 'Повтори пароль',
     passwordAlreadySet: 'Пароль уже задано ✓',
   },
+  whatsNew: {
+    done: 'Круто!',
+    releases: {
+      '1.2.0': [
+        { title: 'Що нового в 1.2.0', text: 'Невелике велике оновлення — погортай, покажемо головне.' },
+        { title: 'Звички й серії 🔥', text: 'Увімкни «Рахувати серію» у задачі, що повторюється, — вона стане карткою з вогником угорі задач. Тап — зроблено сьогодні.' },
+        { title: 'Кільце рівня', text: 'Кожна виконана задача заповнює поділку кільця — зі звуком. Десять задач — нове коло.' },
+        { title: 'Розстав як подобається', text: 'Олівець ✏️ на задачах, фінансах, статистиці та в календарі: перетягуй картки, змінюй розмір і форму кутів.' },
+        { title: 'Віджет серії', text: 'Маленький квадрат 1×1 на робочий стіл — вогник і число. Натисни, щоб вибрати звичку.' },
+      ],
+    },
+  },
   welcome: {
     slides: [
       { title: 'Ласкаво просимо до Amber Ledger', text: 'Задачі й гроші в одному місці. Погортай — покажемо, що тут є.' },
@@ -1124,6 +1149,18 @@ const en: Translation = {
     passwordPlaceholder: 'Password',
     repeatPlaceholder: 'Repeat password',
     passwordAlreadySet: 'Password already set ✓',
+  },
+  whatsNew: {
+    done: 'Nice!',
+    releases: {
+      '1.2.0': [
+        { title: "What's new in 1.2.0", text: 'A small big update — swipe through for the highlights.' },
+        { title: 'Habits & streaks 🔥', text: 'Turn on “Count streak” for a repeating task and it becomes a flame card at the top of Tasks. Tap it when it’s done today.' },
+        { title: 'Level ring', text: 'Every task you finish fills a segment of the ring — with a sound. Ten tasks and a new round starts.' },
+        { title: 'Arrange it your way', text: 'The ✏️ pencil on Tasks, Finance, Stats and Calendar: drag cards around, change their size and corners.' },
+        { title: 'Streak widget', text: 'A tiny 1×1 square for your home screen — the flame and the number. Tap it to choose the habit.' },
+      ],
+    },
   },
   welcome: {
     slides: [

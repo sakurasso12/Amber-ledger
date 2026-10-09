@@ -14,6 +14,7 @@ import { Button, PressableScale, Text, TextField, useKeyboardHeight } from '@/co
 import { useTranslation } from '@/i18n';
 import { AppLanguage } from '@/types';
 import { TourCards } from './TourCards';
+import { APP_VERSION } from './WhatsNew';
 
 type Step = 'language' | 'profile' | 'tour';
 const STEPS: Step[] = ['language', 'profile', 'tour'];
@@ -57,7 +58,8 @@ export function Onboarding() {
 
   // Whatever screen it was started from, you land on Tasks.
   function finish() {
-    updateSettings({ onboardingDone: true });
+    // A fresh install has nothing "new" to catch up on.
+    updateSettings({ onboardingDone: true, lastSeenVersion: APP_VERSION });
     router.navigate('/');
   }
 

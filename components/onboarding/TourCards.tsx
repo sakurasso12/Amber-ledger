@@ -7,7 +7,9 @@ import { haptics } from '@/lib/haptics';
 import { Button, Text } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 
-/** One icon per slide, in the same order as tr.welcome.slides. */
+export type TourSlide = { title: string; text: string; icon?: keyof typeof Ionicons.glyphMap };
+
+/** One icon per welcome slide, in the same order as tr.welcome.slides. */
 const ICONS: (keyof typeof Ionicons.glyphMap)[] = [
   'sparkles',
   'checkbox-outline',
@@ -20,19 +22,28 @@ const ICONS: (keyof typeof Ionicons.glyphMap)[] = [
 
 const CARD_MARGIN = 24;
 
+interface TourCardsProps {
+  onFinish: () => void;
+  backRef: React.MutableRefObject<(() => boolean) | null>;
+  /** Cards to show — the welcome tour by default; "What's new" passes its own. */
+  slides?: TourSlide[];
+  /** Label of the last card's button (default: Get started). */
+  finishLabel?: string;
+}
+
 /**
- * The last onboarding step: swipeable cards that walk through what each screen does, over the
- * dimmed app. Skip / Get started call onFinish.
+ * Swipeable cards over the dimmed app — the last onboarding step (what each screen does) and the
+ * "What's new" after an update. Skip / the last button call onFinish.
  */
-export function TourCards({ onFinish, backRef }: { onFinish: () => void; backRef: React.MutableRefObject<(() => boolean) | null> }) {
+export function TourCards({ onFinish, backRef, slides: customSlides, finishLabel }: TourCardsProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const { width } = useWindowDimensions();
   const scrollX = useRef(new Animated.Value(0)).current;
-  const list = useRef<Animated.FlatList<(typeof tr.welcome.slides)[number]>>(null);
+  const list = useRef<Animated.FlatList<TourSlide>>(null);
   const [index, setIndex] = useState(0);
 
-  const slides = tr.welcome.slides;
+  const slides: TourSlide[] = customSlides ?? tr.welcome.slides.map((slide, i) => ({ ...slide, icon: ICONS[i] }));
   const isLast = index === slides.length - 1;
 
   function finish() {
@@ -76,7 +87,7 @@ export function TourCards({ onFinish, backRef }: { onFinish: () => void; backRef
                 style={[styles.card, cardSurface(theme), { width: width - CARD_MARGIN * 2, opacity, transform: [{ scale }] }]}
               >
                 <View style={[styles.iconCircle, { backgroundColor: `${theme.colors.primary}22` }]}>
-                  <Ionicons name={ICONS[i] ?? 'sparkles'} size={40} color={theme.colors.primary} />
+                  <Ionicons name={item.icon ?? 'sparkles'} size={40} color={theme.colors.primary} />
                 </View>
                 <Text style={[styles.title, { color: theme.colors.text }]}>{item.title}</Text>
                 <Text style={[styles.text, { color: theme.colors.textMuted }]}>{item.text}</Text>
@@ -109,7 +120,7 @@ export function TourCards({ onFinish, backRef }: { onFinish: () => void; backRef
         <Pressable onPress={finish} hitSlop={10} style={[styles.skip, isLast && styles.hidden]} disabled={isLast}>
           <Text style={styles.skipText}>{tr.welcome.skip}</Text>
         </Pressable>
-        <Button title={isLast ? tr.welcome.start : tr.welcome.next} onPress={next} style={styles.nextButton} />
+        <Button title={isLast ? (finishLabel ?? tr.welcome.start) : tr.welcome.next} onPress={next} style={styles.nextButton} />
       </View>
     </View>
   );
