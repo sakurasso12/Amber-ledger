@@ -1,7 +1,7 @@
 # Amber Ledger
 
 Hi everyone! I made **Amber Ledger** — an offline **task manager + personal finance tracker for
-Android** (iOS may come later). No account, no cloud, no ads: everything stays on your phone.
+Android**. No account, no cloud, no ads: everything stays on your phone.
 
 It all started because I kept forgetting when my doctor appointments were. One reminder app turned
 into tasks, money, work shifts and widgets — and now my head is a lot lighter.
