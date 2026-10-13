@@ -26,7 +26,7 @@ const FILL = { duration: 900, easing: Easing.inOut(Easing.cubic) };
 
 /**
  * The filled part of the bar, its right edge a wave that keeps rolling. `fill` is 0–1 of the
- * width; `phase` shifts the wave so two layers can roll out of step for some depth.
+ * width; `phase` rolls the wave along.
  */
 function Wave({ width, fill, phase, offset, color, opacity }: {
   width: number;
@@ -109,8 +109,7 @@ export function PlanBar({ plan, disabled = false }: { plan: SpendPlan; disabled?
       >
         {width > 0 ? (
           <Svg width={width} height={BAR_HEIGHT} style={StyleSheet.absoluteFill}>
-            <Wave width={width} fill={fill} phase={phase} offset={Math.PI} color={fillColor} opacity={0.25} />
-            <Wave width={width} fill={fill} phase={phase} offset={0} color={fillColor} opacity={0.45} />
+            <Wave width={width} fill={fill} phase={phase} offset={0} color={fillColor} opacity={0.55} />
           </Svg>
         ) : null}
         <View style={styles.left}>
