@@ -104,6 +104,8 @@ export interface Translation {
     header: string;
     categoriesLink: string;
     recentExpenses: string;
+    listInfoTitle: string;
+    listInfo: (nextClear: string) => string;
     emptyTitle: string;
     emptySubtitle: string;
     thisMonth: string;
@@ -543,6 +545,9 @@ const ru: Translation = {
     header: 'Финансы',
     categoriesLink: 'Категории',
     recentExpenses: 'Последние траты',
+    listInfoTitle: 'Список трат за месяц',
+    listInfo: (nextClear) =>
+      `Здесь только траты этого месяца. 1-го числа каждого месяца список очищается — следующий раз ${nextClear}.\n\nТраты при этом не удаляются: они остаются в Календаре (выбери день) и в Статистике, а сумма в банке не меняется.`,
     emptyTitle: 'Пока нет трат',
     emptySubtitle: 'Добавь первую трату кнопкой «+»',
     thisMonth: 'Этот месяц',
@@ -1018,6 +1023,9 @@ const uk: Translation = {
     header: 'Фінанси',
     categoriesLink: 'Категорії',
     recentExpenses: 'Останні витрати',
+    listInfoTitle: 'Список витрат за місяць',
+    listInfo: (nextClear) =>
+      `Тут лише витрати цього місяця. 1-го числа кожного місяця список очищається — наступного разу ${nextClear}.\n\nВитрати при цьому не видаляються: вони лишаються в Календарі (обери день) і в Статистиці, а сума в банку не змінюється.`,
     emptyTitle: 'Поки що немає витрат',
     emptySubtitle: 'Додай першу витрату кнопкою «+»',
     thisMonth: 'Цей місяць',
@@ -1491,6 +1499,9 @@ const en: Translation = {
     header: 'Finance',
     categoriesLink: 'Categories',
     recentExpenses: 'Recent expenses',
+    listInfoTitle: 'This month’s expenses',
+    listInfo: (nextClear) =>
+      `Only this month’s expenses are listed here. The list clears on the 1st of every month — next on ${nextClear}.\n\nNothing is deleted: the expenses stay in Calendar (pick a day) and in Stats, and your bank balance doesn’t change.`,
     emptyTitle: 'No expenses yet',
     emptySubtitle: 'Add your first expense with the "+" button',
     thisMonth: 'This month',

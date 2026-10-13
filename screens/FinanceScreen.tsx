@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { addMonths, startOfMonth } from 'date-fns';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +15,7 @@ import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
 import { FinanceMenuBody, FinanceMenuHeader } from '@/components/finance/FinanceMenu';
 import { WorkCalendar } from '@/components/finance/WorkCalendar';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
-import { formatRangeLabel, monthRange, todayKey, weekRange } from '@/lib/dateRanges';
+import { formatRangeLabel, monthRange, toDateKey, todayKey, weekRange } from '@/lib/dateRanges';
 import { payrollState } from '@/lib/earnings';
 import { syncSalaryReminder } from '@/notifications';
 import { computeBankBalance, totalExpenses } from '@/lib/expenses';
@@ -205,20 +207,34 @@ export function FinanceScreen() {
       ? [...hiddenItems, { key: 'savings-off', title: tr.savings.title, restore: () => updateSettings({ savingsCard: 'on' }) }]
       : hiddenItems;
 
+  // The list shows this month only and starts empty on the 1st. Nothing is deleted — every
+  // expense stays in Calendar and Stats, and the bank figure doesn't move.
+  const monthStartKey = toDateKey(startOfMonth(now));
+  const monthExpenses = useMemo(() => expenses.filter((e) => e.date >= monthStartKey), [expenses, monthStartKey]);
+  function showListInfo() {
+    const nextClear = startOfMonth(addMonths(now, 1)).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'long' });
+    Alert.alert(tr.financeScreen.listInfoTitle, tr.financeScreen.listInfo(nextClear));
+  }
+
   const listHeader = (
           <View style={styles.topSection}>
             {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
             <FinanceMenuBody />
             <ModuleBoard boardId="finance" modules={modules} editing={editingLayout} />
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: theme.colors.text },
-                expenseMode === 'big' && styles.bigSectionTitle,
-              ]}
-            >
-              {expenseMode === 'big' ? tr.layoutText.expenses.toUpperCase() : tr.financeScreen.recentExpenses}
-            </Text>
+            <View style={styles.sectionRow}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: theme.colors.text },
+                  expenseMode === 'big' && styles.bigSectionTitle,
+                ]}
+              >
+                {expenseMode === 'big' ? tr.layoutText.expenses.toUpperCase() : tr.financeScreen.recentExpenses}
+              </Text>
+              <Pressable onPress={showListInfo} hitSlop={10} accessibilityLabel={tr.financeScreen.listInfoTitle}>
+                <Ionicons name="information-circle-outline" size={20} color={theme.colors.textMuted} />
+              </Pressable>
+            </View>
           </View>
   );
 
@@ -235,7 +251,7 @@ export function FinanceScreen() {
     >
       <FinanceLockGate clearRail>
       <FlatList
-        data={expenses}
+        data={monthExpenses}
         keyExtractor={(expense) => expense.id}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={listHeader}
@@ -271,6 +287,7 @@ const styles = StyleSheet.create({
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   topSection: { gap: 14, marginBottom: 14 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 4 },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   budgetTitle: { marginTop: 0, marginBottom: 2 },
   budgetRow: { gap: 6, marginTop: 8 },
   budgetLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },

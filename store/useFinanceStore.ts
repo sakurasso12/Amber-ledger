@@ -103,12 +103,17 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
   },
 
   editExpense: async (expense) => {
+    const before = get().expenses.find((e) => e.id === expense.id);
+    if (before) keepBankInStep([before], -1);
+    keepBankInStep([expense], +1);
     await financeRepo.updateExpense(expense);
     set((state) => ({ expenses: state.expenses.map((e) => (e.id === expense.id ? expense : e)) }));
     checkBudgetAlerts(get().expenses, useSettingsStore.getState().settings, get().categories);
   },
 
   removeExpense: async (id) => {
+    const expense = get().expenses.find((e) => e.id === id);
+    if (expense) keepBankInStep([expense], -1);
     await financeRepo.deleteExpense(id);
     set((state) => ({ expenses: state.expenses.filter((e) => e.id !== id) }));
   },
@@ -283,7 +288,9 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
   deleteSpendPlan: async (planId) => {
     const plan = get().spendPlans.find((p) => p.id === planId);
     if (!plan) return;
-    for (const expense of get().expenses.filter((e) => e.planId === planId)) {
+    const planExpenses = get().expenses.filter((e) => e.planId === planId);
+    keepBankInStep(planExpenses, -1);
+    for (const expense of planExpenses) {
       await financeRepo.deleteExpense(expense.id);
     }
     await financeRepo.deleteSpendPlan(planId);
@@ -333,4 +340,20 @@ async function syncOverspend(planId: string): Promise<void> {
     await financeRepo.saveSpendPlan(updated);
     useFinanceStore.setState((state) => ({ spendPlans: state.spendPlans.map((p) => (p.id === planId ? updated : p)) }));
   }
+}
+
+/**
+ * Bank = the amount set by hand − expenses logged after it was set. Expenses logged before that
+ * moment aren't part of the sum, so deleting or changing one of them wouldn't move the bank at all.
+ * Deleting an expense must always give its money back (and changing it, the difference) — so for
+ * those older expenses the change goes into the hand-set amount instead.
+ * `sign` −1: these expenses are going away; +1: they're coming in (the new version of an edited one).
+ */
+function keepBankInStep(expenses: Expense[], sign: 1 | -1): void {
+  const { bankBalanceBase, bankBalanceSetAt } = useSettingsStore.getState().settings;
+  if (!bankBalanceSetAt) return;
+  const before = expenses.filter((e) => e.createdAt <= bankBalanceSetAt).reduce((sum, e) => sum + e.amount, 0);
+  if (before === 0) return;
+  // Removing −X from the bank = +X; adding = −X.
+  useSettingsStore.getState().updateSettings({ bankBalanceBase: bankBalanceBase - sign * before });
 }
