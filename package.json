@@ -56,7 +56,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest"
+    "test": "jest",
+    "patch:camera": "node scripts/patch-expo-camera.js",
+    "eas-build-post-install": "node scripts/patch-expo-camera.js"
   },
   "private": true,
   "expo": {
