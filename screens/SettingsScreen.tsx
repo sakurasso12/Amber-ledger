@@ -42,6 +42,7 @@ export function SettingsScreen() {
       route: '/settings/profile',
     },
     {
+      // Security & storage: the finance lock plus clean-up and erasing data.
       icon: '🔒',
       title: tr.securitySettings.title,
       value: settings.financeLockEnabled

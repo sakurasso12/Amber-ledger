@@ -21,6 +21,7 @@ import { useFinanceLockLifecycle } from '@/store/useFinanceLock';
 import { Onboarding } from '@/components/onboarding/Onboarding';
 import { WhatsNew } from '@/components/onboarding/WhatsNew';
 import { preloadSounds } from '@/lib/sounds';
+import { runAutoCleanup } from '@/lib/dataWipe';
 
 /**
  * JS stack (not the native one) because Android's native stack has no swipe-back: here every
@@ -88,6 +89,8 @@ function AppGate({ children }: { children: React.ReactNode }) {
     Promise.all([loadTasks(), loadFinance()]).then(async () => {
       setDataLoaded(true);
       await syncRecurringExpenses();
+      // Security & storage → auto clean-up (off unless chosen; once a day).
+      await runAutoCleanup().catch((error) => console.warn('[cleanup] failed:', error));
 
       // The OS permission is the real source of truth — request it up front so scheduled
       // reminders actually fire, then re-schedule anything that was silently skipped before.

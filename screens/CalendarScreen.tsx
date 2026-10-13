@@ -8,15 +8,16 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { CustomizableCard, EditLayoutButton, EmptyState, LayoutScreen } from '@/components/ui';
+import { CustomizableCard, EditLayoutButton, EmptyState, LayoutScreen, useAuthPrompt } from '@/components/ui';
 import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
-import { useFinanceLocked } from '@/store/useFinanceLock';
+import { unlockFinances, useFinanceLocked } from '@/store/useFinanceLock';
 import { TaskListItem } from '@/components/task/TaskListItem';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
 import { MonthCalendar, DayMarker } from '@/components/calendar/MonthCalendar';
 import { toDateKey, todayKey } from '@/lib/dateRanges';
 import { priorityColor } from '@/theme/theme';
 import { useTranslation } from '@/i18n';
+import { Task } from '@/types';
 
 export function CalendarScreen() {
   const theme = useTheme();
@@ -46,9 +47,15 @@ export function CalendarScreen() {
     for (const expense of expenses) {
       ensure(expense.date).hasExpense = true;
     }
+    // The archive: days something was finished or added on.
+    for (const task of tasks) {
+      if (task.completedAt) ensure(toDateKey(new Date(task.completedAt))).hasArchive = true;
+      if (isAddedByHand(task)) ensure(toDateKey(new Date(task.createdAt))).hasArchive = true;
+    }
     return result;
   }, [tasks, expenses, theme]);
 
+  const locked = useFinanceLocked();
   const tasksForDay = useMemo(
     () =>
       tasks
@@ -56,6 +63,31 @@ export function CalendarScreen() {
         .sort((a, b) => (a.deadlineAt ?? '').localeCompare(b.deadlineAt ?? '')),
     [tasks, selectedDate]
   );
+  // Archive of the day: what was finished then, and what was added then (still open or not).
+  const doneOnDay = useMemo(
+    () =>
+      tasks
+        .filter((t) => t.status === 'done' && t.completedAt && toDateKey(new Date(t.completedAt)) === selectedDate)
+        .sort((a, b) => (a.completedAt ?? '').localeCompare(b.completedAt ?? '')),
+    [tasks, selectedDate]
+  );
+  const addedOnDay = useMemo(() => {
+    const shown = new Set([...tasksForDay, ...doneOnDay].map((t) => t.id));
+    return tasks
+      .filter((t) => isAddedByHand(t) && !shown.has(t.id) && toDateKey(new Date(t.createdAt)) === selectedDate)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }, [tasks, selectedDate, tasksForDay, doneOnDay]);
+
+  // Expenses open only after the Finance unlock (fingerprint/PIN or password, as set in Security).
+  const { ask, prompt } = useAuthPrompt();
+  async function openExpense(id: string) {
+    if (locked) {
+      if (!(await ask('finance'))) return;
+      unlockFinances();
+    }
+    router.push(`/expense/${id}`);
+  }
+
   // The day's expenses in the order the user dragged them into (new ones on top), per day.
   const dayOrders = useSettingsStore((s) => s.settings.expenseDayOrder);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
@@ -69,11 +101,10 @@ export function CalendarScreen() {
   const [editing, setEditing] = useState(false);
   const [jellies] = useState(createJellyRegistry);
   const { showHint, markSeen } = useLayoutHint('calendar-expenses');
-  const locked = useFinanceLocked();
   useEffect(() => {
     if (locked || expensesForDay.length < 2) setEditing(false);
   }, [locked, expensesForDay.length]);
-  const itemCount = tasksForDay.length + expensesForDay.length;
+  const itemCount = tasksForDay.length + expensesForDay.length + doneOnDay.length + addedOnDay.length;
 
   const monthLabel = month.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' });
   const selectedDateObj = new Date(`${selectedDate}T12:00:00`);
@@ -156,7 +187,7 @@ export function CalendarScreen() {
                       expense={expense}
                       category={categoryById.get(expense.categoryId)}
                       currency={currency}
-                      onPress={() => router.push(`/expense/${expense.id}`)}
+                      onPress={() => openExpense(expense.id)}
                       variant={dayMode === 'big' ? 'big' : 'row'}
                     />
                   </View>
@@ -188,4 +219,10 @@ const styles = StyleSheet.create({
   calendarWrapper: { paddingHorizontal: 12, marginBottom: 12 },
   listContent: { paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
   items: { gap: 8 },
+  sectionLabel: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 10 },
 });
+
+/** Added by you — not the next copy of a repeating task, which appears by itself on completion. */
+function isAddedByHand(task: Task): boolean {
+  return !task.seriesId || task.seriesId === task.id;
+}

@@ -14,6 +14,7 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { completedCount, levelLabel, levelOf, segmentsFilled, TASKS_PER_LEVEL } from '@/lib/level';
 import { haptics } from '@/lib/haptics';
 import { CustomizableCard, Text } from '@/components/ui';
@@ -62,7 +63,9 @@ export function LevelCard({ size }: { size: number }) {
   const theme = useTheme();
   const tr = useTranslation();
   const tasks = useTaskStore((s) => s.tasks);
-  const total = useMemo(() => completedCount(tasks), [tasks]);
+  // Done tasks the auto clean-up removed still count.
+  const purged = useSettingsStore((s) => s.settings.purgedDoneCount);
+  const total = useMemo(() => completedCount(tasks) + purged, [tasks, purged]);
   const progress = useSharedValue(segmentsFilled(lastShownTotal ?? total));
   const pulse = useSharedValue(1);
 

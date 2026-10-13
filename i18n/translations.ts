@@ -74,7 +74,32 @@ export interface Translation {
     streakHint: string;
   };
   habits: { doneToday: string; markDone: string; next: (day: string) => string };
-  calendarScreen: { header: string; emptyDay: string };
+  calendarScreen: { header: string; emptyDay: string; doneSection: string; addedSection: string };
+  auth: { title: string; passwordLabel: string; wrong: string; confirm: string; cancel: string; devicePrompt: string };
+  storage: {
+    title: string;
+    hint: string;
+    counts: (tasks: number, expenses: number) => string;
+    autoTitle: string;
+    autoHint: string;
+    off: string;
+    months: (n: number) => string;
+    eraseTitle: string;
+    eraseTasks: string;
+    eraseFinance: string;
+    eraseProfile: string;
+    eraseAll: string;
+    confirmTitle: string;
+    confirmTasks: string;
+    confirmFinance: string;
+    confirmProfile: string;
+    confirmAll: string;
+    erase: string;
+    cancel: string;
+    countdown: string;
+    countdownHint: string;
+    done: string;
+  };
   financeScreen: {
     header: string;
     categoriesLink: string;
@@ -481,7 +506,39 @@ const ru: Translation = {
     streakHint: 'Задача станет привычкой с огоньком 🔥 наверху экрана задач',
   },
   habits: { doneToday: 'Сделано', markDone: 'Отметить', next: (day) => `Далее: ${day}` },
-  calendarScreen: { header: 'Календарь', emptyDay: 'На этот день ничего не запланировано' },
+  calendarScreen: { header: 'Календарь', emptyDay: 'В этот день ничего нет', doneSection: 'Выполнено', addedSection: 'Добавлено' },
+  auth: {
+    title: 'Подтверди, что это ты',
+    passwordLabel: 'Пароль профиля',
+    wrong: 'Неверный пароль',
+    confirm: 'Подтвердить',
+    cancel: 'Отмена',
+    devicePrompt: 'Подтверди действие',
+  },
+  storage: {
+    title: 'Память',
+    hint: 'Все данные хранятся только на этом телефоне и сами по себе не удаляются.',
+    counts: (tasks, expenses) => `Задач: ${tasks} · Трат: ${expenses}`,
+    autoTitle: 'Автоочистка',
+    autoHint: 'Удалять выполненные задачи и траты старше выбранного срока. Привычки, текущие планы и сумма в банке не меняются.',
+    off: 'Выкл',
+    months: (n) => `${n} мес`,
+    eraseTitle: 'Стереть данные',
+    eraseTasks: 'Стереть задачи',
+    eraseFinance: 'Стереть финансы',
+    eraseProfile: 'Стереть профиль',
+    eraseAll: 'Стереть всё',
+    confirmTitle: 'Точно стереть?',
+    confirmTasks: 'Все задачи, привычки и их история удалятся навсегда.',
+    confirmFinance: 'Все траты, планы, повторы, рабочие дни и баланс удалятся навсегда.',
+    confirmProfile: 'Имя, фото и пароль профиля удалятся. Замок финансов выключится.',
+    confirmAll: 'Удалится всё: задачи, финансы, профиль и настройки. Приложение начнётся с первого запуска.',
+    erase: 'Стереть',
+    cancel: 'Отмена',
+    countdown: 'Стирание всех данных',
+    countdownHint: 'Ещё можно передумать',
+    done: 'Готово, данные стёрты',
+  },
   financeScreen: {
     header: 'Финансы',
     categoriesLink: 'Категории',
@@ -778,7 +835,7 @@ const ru: Translation = {
     saved: 'Сохранено',
   },
   securitySettings: {
-    title: 'Безопасность',
+    title: 'Безопасность и память',
     lockFinances: 'Защитить финансы',
     lockFinancesHint: 'Суммы в финансах, статистике, календаре и виджетах скрыты, пока вы не разблокируете.',
     needPassword: 'Сначала задайте пароль профиля — он нужен на случай, если отпечаток не сработает.',
@@ -924,7 +981,39 @@ const uk: Translation = {
     streakHint: 'Задача стане звичкою з вогником 🔥 угорі екрана задач',
   },
   habits: { doneToday: 'Зроблено', markDone: 'Позначити', next: (day) => `Далі: ${day}` },
-  calendarScreen: { header: 'Календар', emptyDay: 'На цей день нічого не заплановано' },
+  calendarScreen: { header: 'Календар', emptyDay: 'Цього дня нічого немає', doneSection: 'Виконано', addedSection: 'Додано' },
+  auth: {
+    title: 'Підтверди, що це ти',
+    passwordLabel: 'Пароль профілю',
+    wrong: 'Невірний пароль',
+    confirm: 'Підтвердити',
+    cancel: 'Скасувати',
+    devicePrompt: 'Підтверди дію',
+  },
+  storage: {
+    title: "Пам'ять",
+    hint: 'Усі дані зберігаються лише на цьому телефоні й самі не видаляються.',
+    counts: (tasks, expenses) => `Задач: ${tasks} · Витрат: ${expenses}`,
+    autoTitle: 'Автоочищення',
+    autoHint: 'Видаляти виконані задачі й витрати, старші за обраний строк. Звички, поточні плани й сума в банку не змінюються.',
+    off: 'Вимк',
+    months: (n) => `${n} міс`,
+    eraseTitle: 'Стерти дані',
+    eraseTasks: 'Стерти задачі',
+    eraseFinance: 'Стерти фінанси',
+    eraseProfile: 'Стерти профіль',
+    eraseAll: 'Стерти все',
+    confirmTitle: 'Точно стерти?',
+    confirmTasks: 'Усі задачі, звички та їхня історія видаляться назавжди.',
+    confirmFinance: 'Усі витрати, плани, повтори, робочі дні й баланс видаляться назавжди.',
+    confirmProfile: "Ім'я, фото й пароль профілю видаляться. Замок фінансів вимкнеться.",
+    confirmAll: 'Видалиться все: задачі, фінанси, профіль і налаштування. Застосунок почнеться з першого запуску.',
+    erase: 'Стерти',
+    cancel: 'Скасувати',
+    countdown: 'Стирання всіх даних',
+    countdownHint: 'Ще можна передумати',
+    done: 'Готово, дані стерто',
+  },
   financeScreen: {
     header: 'Фінанси',
     categoriesLink: 'Категорії',
@@ -1219,7 +1308,7 @@ const uk: Translation = {
     saved: 'Збережено',
   },
   securitySettings: {
-    title: 'Безпека',
+    title: "Безпека й пам'ять",
     lockFinances: 'Захистити фінанси',
     lockFinancesHint: 'Суми у фінансах, статистиці, календарі та віджетах приховані, доки ви не розблокуєте.',
     needPassword: 'Спершу задайте пароль профілю — він потрібен на випадок, якщо відбиток не спрацює.',
@@ -1365,7 +1454,39 @@ const en: Translation = {
     streakHint: 'The task becomes a habit with a 🔥 at the top of Tasks',
   },
   habits: { doneToday: 'Done', markDone: 'Mark done', next: (day) => `Next: ${day}` },
-  calendarScreen: { header: 'Calendar', emptyDay: 'Nothing planned for this day' },
+  calendarScreen: { header: 'Calendar', emptyDay: 'Nothing on this day', doneSection: 'Done', addedSection: 'Added' },
+  auth: {
+    title: 'Confirm it’s you',
+    passwordLabel: 'Profile password',
+    wrong: 'Wrong password',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    devicePrompt: 'Confirm this action',
+  },
+  storage: {
+    title: 'Storage',
+    hint: 'Everything is stored only on this phone and is never deleted on its own.',
+    counts: (tasks, expenses) => `Tasks: ${tasks} · Expenses: ${expenses}`,
+    autoTitle: 'Auto clean-up',
+    autoHint: 'Delete done tasks and expenses older than the chosen time. Habits, current plans and your bank balance stay as they are.',
+    off: 'Off',
+    months: (n) => `${n} mo`,
+    eraseTitle: 'Erase data',
+    eraseTasks: 'Erase tasks',
+    eraseFinance: 'Erase finances',
+    eraseProfile: 'Erase profile',
+    eraseAll: 'Erase everything',
+    confirmTitle: 'Erase for sure?',
+    confirmTasks: 'All tasks, habits and their history will be deleted for good.',
+    confirmFinance: 'All expenses, plans, recurring expenses, work days and the balance will be deleted for good.',
+    confirmProfile: 'Your name, photo and profile password will be deleted. The finance lock turns off.',
+    confirmAll: 'Everything goes: tasks, finances, profile and settings. The app starts over from the first launch.',
+    erase: 'Erase',
+    cancel: 'Cancel',
+    countdown: 'Erasing all data',
+    countdownHint: 'You can still change your mind',
+    done: 'Done, the data is erased',
+  },
   financeScreen: {
     header: 'Finance',
     categoriesLink: 'Categories',
@@ -1660,7 +1781,7 @@ const en: Translation = {
     saved: 'Saved',
   },
   securitySettings: {
-    title: 'Security',
+    title: 'Security & storage',
     lockFinances: 'Lock finances',
     lockFinancesHint: 'Amounts in Finance, Stats, Calendar and widgets stay hidden until you unlock.',
     needPassword: 'Set a profile password first — it\'s the way in if the fingerprint fails.',

@@ -44,3 +44,8 @@ export async function checkProfilePassword(password: string): Promise<boolean> {
   for (let i = 0; i < expected.length; i++) difference |= expected[i] ^ (actual[i] ?? 0);
   return difference === 0;
 }
+
+/** Erasing the profile: the password is gone, nothing can be checked against it any more. */
+export async function clearProfilePassword(): Promise<void> {
+  await SecureStore.deleteItemAsync(STORE_KEY);
+}

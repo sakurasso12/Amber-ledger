@@ -112,6 +112,13 @@ export interface AppSettings {
   expenseDayOrder: Record<string, string[]>;
   /** App version whose "What's new" was already shown (null = never). */
   lastSeenVersion: string | null;
+  /** Security & storage → auto clean-up: delete done tasks and expenses older than this many
+   * months (0 = never). */
+  autoCleanupMonths: number;
+  /** yyyy-MM-dd the auto clean-up last ran — it runs at most once a day. */
+  lastAutoCleanup: string | null;
+  /** Done tasks removed by the clean-up — still counted by the level ring. */
+  purgedDoneCount: number;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -166,4 +173,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   hiddenModules: {},
   expenseDayOrder: {},
   lastSeenVersion: null,
+  autoCleanupMonths: 0,
+  lastAutoCleanup: null,
+  purgedDoneCount: 0,
 };
