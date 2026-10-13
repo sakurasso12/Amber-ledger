@@ -501,7 +501,7 @@ const ru: Translation = {
     plannedIncluded: 'уже минус плановые',
     plannedLink: 'Планы',
     recurringLink: 'Повторы',
-    rateLink: 'Ставка',
+    rateLink: 'Заработок',
     budgetTitle: 'Бюджет',
   },
   plannedExpenses: {
@@ -944,7 +944,7 @@ const uk: Translation = {
     plannedIncluded: 'вже мінус планові',
     plannedLink: 'Плани',
     recurringLink: 'Повтори',
-    rateLink: 'Ставка',
+    rateLink: 'Заробіток',
     budgetTitle: 'Бюджет',
   },
   plannedExpenses: {
@@ -1385,7 +1385,7 @@ const en: Translation = {
     plannedIncluded: 'already minus planned',
     plannedLink: 'Planned',
     recurringLink: 'Recurring',
-    rateLink: 'Rate',
+    rateLink: 'Earnings',
     budgetTitle: 'Budget',
   },
   plannedExpenses: {

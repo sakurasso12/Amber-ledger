@@ -39,7 +39,7 @@ function useMenuItems(): MenuItem[] {
       route: '/category/manage',
     },
     {
-      // Hourly rate, hours per shift and payday — moved here from Settings.
+      // The whole Earnings screen (rate, hours per shift, currency, pay period, payday) — moved here from Settings.
       key: 'rate',
       icon: 'cash-outline',
       title: tr.financeScreen.rateLink,
