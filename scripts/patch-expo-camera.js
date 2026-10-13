@@ -5,6 +5,8 @@
 // is drawn like any other view, so it shows up regardless of backgrounds, rounded corners or
 // screen transitions. Runs on EAS after `npm install` (the `eas-build-post-install` script) — the
 // project's .npmrc turns install scripts off, so a plain `postinstall` wouldn't run there.
+// expo-camera also ships a precompiled .aar that would ignore this edit, so package.json lists it
+// under expo.autolinking.android.buildFromSource to compile it from the patched source.
 const fs = require('fs');
 const path = require('path');
 

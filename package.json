@@ -68,6 +68,13 @@
           "local-transfer"
         ]
       }
+    },
+    "autolinking": {
+      "android": {
+        "buildFromSource": [
+          "expo-camera"
+        ]
+      }
     }
   },
   "jest": {

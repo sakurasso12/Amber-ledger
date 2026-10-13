@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, scanFromURLAsync, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import QRCode from 'react-native-qrcode-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -192,6 +193,23 @@ export function ReceivePanel({ onDone }: { onDone?: () => void } = {}) {
     ]);
   }
 
+  /** A screenshot of the QR sent over (e.g. by messenger) works too — while the code is still live. */
+  async function pickFromGallery() {
+    if (busy.current) return;
+    // The system photo picker: no storage permission needed, and the photo isn't kept.
+    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
+    if (picked.canceled || !picked.assets[0]) return;
+    const found = await scanFromURLAsync(picked.assets[0].uri, ['qr']).catch(() => []);
+    if (!found[0]) {
+      haptics.warning();
+      Alert.alert(tr.transfer.noQrInPhoto);
+      return;
+    }
+    scanned(found[0].data);
+  }
+
+  const galleryButton = <Button title={tr.transfer.fromGallery} variant="secondary" onPress={pickFromGallery} />;
+
   if (state === 'receiving') return <Status spinner text={tr.transfer.receiving} />;
   if (state === 'done') {
     return (
@@ -209,20 +227,25 @@ export function ReceivePanel({ onDone }: { onDone?: () => void } = {}) {
         <Text style={[styles.choiceTitle, { color: theme.colors.text }]}>{tr.transfer.cameraTitle}</Text>
         <Text style={[styles.note, styles.centerText, { color: theme.colors.textMuted }]}>{tr.transfer.cameraText}</Text>
         <Button title={tr.transfer.cameraGrant} onPress={requestPermission} />
+        {galleryButton}
+        {prompt}
       </View>
     );
   }
 
   return (
-    <View style={styles.cameraWrap}>
-      <CameraView
-        style={StyleSheet.absoluteFill}
-        facing="back"
-        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        onBarcodeScanned={({ data }) => scanned(data)}
-      />
-      <View pointerEvents="none" style={[styles.frame, { borderColor: theme.colors.primary }]} />
-      <Text style={styles.cameraHint}>{tr.transfer.pointCamera}</Text>
+    <View style={styles.scanner}>
+      <View style={styles.cameraWrap}>
+        <CameraView
+          style={StyleSheet.absoluteFill}
+          facing="back"
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={({ data }) => scanned(data)}
+        />
+        <View pointerEvents="none" style={[styles.frame, { borderColor: theme.colors.primary }]} />
+        <Text style={styles.cameraHint}>{tr.transfer.pointCamera}</Text>
+      </View>
+      {galleryButton}
       {prompt}
     </View>
   );
@@ -240,6 +263,7 @@ function Status({ text, spinner, icon, color }: { text: string; spinner?: boolea
 
 const styles = StyleSheet.create({
   flex: { flex: 1, gap: 2 },
+  scanner: { flex: 1, gap: 12 },
   content: { flex: 1, paddingHorizontal: 16, gap: 16 },
   choices: { gap: 12 },
   choice: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },

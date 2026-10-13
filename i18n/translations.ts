@@ -120,6 +120,8 @@ export interface Translation {
     cameraText: string;
     cameraGrant: string;
     pointCamera: string;
+    fromGallery: string;
+    noQrInPhoto: string;
     notOurCode: string;
     codeExpired: string;
     confirmTitle: string;
@@ -610,6 +612,8 @@ const ru: Translation = {
     cameraText: 'Камера нужна только чтобы прочитать QR-код с другого телефона. Ничего не снимается и не сохраняется.',
     cameraGrant: 'Разрешить камеру',
     pointCamera: 'Наведи камеру на QR-код на другом телефоне',
+    fromGallery: 'Выбрать фото с QR',
+    noQrInPhoto: 'На этом фото не нашлось QR-кода',
     notOurCode: 'Это не QR-код переноса Amber Ledger',
     codeExpired: 'Этот код уже не действует — покажи новый на другом телефоне',
     confirmTitle: 'Перенести данные сюда?',
@@ -1137,6 +1141,8 @@ const uk: Translation = {
     cameraText: 'Камера потрібна лише щоб прочитати QR-код з іншого телефона. Нічого не знімається й не зберігається.',
     cameraGrant: 'Дозволити камеру',
     pointCamera: 'Наведи камеру на QR-код на іншому телефоні',
+    fromGallery: 'Вибрати фото з QR',
+    noQrInPhoto: 'На цьому фото не знайшлося QR-коду',
     notOurCode: 'Це не QR-код перенесення Amber Ledger',
     codeExpired: 'Цей код уже не діє — покажи новий на іншому телефоні',
     confirmTitle: 'Перенести дані сюди?',
@@ -1662,6 +1668,8 @@ const en: Translation = {
     cameraText: 'The camera is only used to read the QR code from the other phone. Nothing is recorded or saved.',
     cameraGrant: 'Allow camera',
     pointCamera: 'Point the camera at the QR code on the other phone',
+    fromGallery: 'Pick a photo with the QR',
+    noQrInPhoto: 'No QR code found in this photo',
     notOurCode: 'This isn’t an Amber Ledger transfer code',
     codeExpired: 'This code no longer works — show a new one on the other phone',
     confirmTitle: 'Move the data here?',
