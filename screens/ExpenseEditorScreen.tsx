@@ -23,6 +23,8 @@ export function ExpenseEditorScreen() {
   const editExpense = useFinanceStore((s) => s.editExpense);
   const removeExpense = useFinanceStore((s) => s.removeExpense);
   const createSpendPlan = useFinanceStore((s) => s.createSpendPlan);
+  const deleteSpendPlan = useFinanceStore((s) => s.deleteSpendPlan);
+  const planExists = useFinanceStore((s) => !!existing?.planId && s.spendPlans.some((p) => p.id === existing.planId));
 
   const existing = useMemo(() => expenses.find((e) => e.id === params.id), [expenses, params.id]);
   const isEditing = !!existing;
@@ -68,6 +70,22 @@ export function ExpenseEditorScreen() {
 
   function handleDelete() {
     if (!existing) return;
+    // A plan's record: deleting it undoes the whole plan, so all its money comes back.
+    if (planExists && existing.planId) {
+      const planId = existing.planId;
+      Alert.alert(tr.plans.removeTitle, tr.plans.removeText, [
+        { text: tr.plans.cancel, style: 'cancel' },
+        {
+          text: tr.plans.remove,
+          style: 'destructive',
+          onPress: async () => {
+            await deleteSpendPlan(planId);
+            close();
+          },
+        },
+      ]);
+      return;
+    }
     Alert.alert(tr.expenseEditor.deleteConfirmTitle, undefined, [
       { text: tr.expenseEditor.deleteConfirmCancel, style: 'cancel' },
       {
@@ -97,6 +115,7 @@ export function ExpenseEditorScreen() {
             {tr.plans.editorNote}
           </Text>
           <Button title={tr.expenseEditor.cancel} variant="secondary" onPress={close} />
+          <Button title={planExists ? tr.plans.remove : tr.expenseEditor.delete} variant="danger" onPress={handleDelete} style={styles.saveButton} />
         </>
       ) : (
         <>

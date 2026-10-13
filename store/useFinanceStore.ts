@@ -65,10 +65,11 @@ interface FinanceState {
   removePlanSpend: (spendId: string) => Promise<void>;
   /** Rename and/or change the limit of the current period (the reserve follows the limit). */
   updateSpendPlan: (planId: string, patch: { name?: string; limit?: number }) => Promise<void>;
-  /** New period: whatever of the old limit wasn't spent goes back to the bank, the (new) limit
-   * comes off again and the bar starts from 0 %. */
+  /** New period: the (new) limit comes off the bank again and the bar starts from 0 %. The old
+   * period's limit stays spent in full. */
   resetSpendPlan: (planId: string, newLimit?: number) => Promise<void>;
-  /** Ends the plan: the unspent part goes back to the bank, what was spent stays in the history. */
+  /** Undoes the plan completely: its expenses (every period's limit and overspend) are deleted, so
+   * all of that money goes back to the bank. Purchases logged inside it go with it. */
   deleteSpendPlan: (planId: string) => Promise<void>;
 }
 
@@ -255,7 +256,6 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
   resetSpendPlan: async (planId, newLimit) => {
     const plan = get().spendPlans.find((p) => p.id === planId);
     if (!plan) return;
-    await settleReserve(plan);
     const limit = newLimit ?? plan.limit;
     const reserve = await financeRepo.createExpense({
       amount: limit,
@@ -283,9 +283,12 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
   deleteSpendPlan: async (planId) => {
     const plan = get().spendPlans.find((p) => p.id === planId);
     if (!plan) return;
-    await settleReserve(plan);
+    for (const expense of get().expenses.filter((e) => e.planId === planId)) {
+      await financeRepo.deleteExpense(expense.id);
+    }
     await financeRepo.deleteSpendPlan(planId);
     set((state) => ({
+      expenses: state.expenses.filter((e) => e.planId !== planId),
       spendPlans: state.spendPlans.filter((p) => p.id !== planId),
       planSpends: state.planSpends.filter((s) => s.planId !== planId),
     }));
@@ -330,17 +333,4 @@ async function syncOverspend(planId: string): Promise<void> {
     await financeRepo.saveSpendPlan(updated);
     useFinanceStore.setState((state) => ({ spendPlans: state.spendPlans.map((p) => (p.id === planId ? updated : p)) }));
   }
-}
-
-/**
- * Closes the current period's reserve at what was actually spent (up to the limit), so the
- * unspent part of the limit goes back to the bank. Nothing spent → the reserve goes away.
- */
-async function settleReserve(plan: SpendPlan): Promise<void> {
-  const store = useFinanceStore.getState();
-  const reserve = store.expenses.find((e) => e.id === plan.reserveExpenseId);
-  if (!reserve) return;
-  const used = Math.min(plan.limit, spentInPeriod(plan, store.planSpends));
-  if (used <= 0) await store.removeExpense(reserve.id);
-  else if (used !== reserve.amount) await store.editExpense({ ...reserve, amount: used });
 }
