@@ -49,18 +49,15 @@ export function SettingsScreen() {
         : tr.settingsScreen.notSet,
       route: '/settings/security',
     },
-    {
-      icon: '💵',
-      title: tr.settingsScreen.earnings,
-      value: `${settings.hourlyRate} / ${tr.settingsScreen.perHourShort} · ${settings.hoursPerShift}`,
-      route: '/settings/earnings',
-    },
-    {
-      icon: '📉',
-      title: tr.settingsScreen.budget,
-      value: settings.budgetLimitWeek || settings.budgetLimitMonth ? tr.settingsScreen.limitsSet : tr.settingsScreen.notSet,
-      route: '/settings/budget',
-    },
+    // Earnings (hourly rate) moved to the Finance screen as the "Rate" chip.
+    // Budget limits are switched off for now — unused; the screen (/settings/budget) still exists,
+    // put this row back to bring them back:
+    // {
+    //   icon: '📉',
+    //   title: tr.settingsScreen.budget,
+    //   value: settings.budgetLimitWeek || settings.budgetLimitMonth ? tr.settingsScreen.limitsSet : tr.settingsScreen.notSet,
+    //   route: '/settings/budget',
+    // },
     { icon: '🎨', title: tr.settingsScreen.theme, value: `${tr.designs[settings.designId]} · ${themeLabels[settings.themeMode]}`, route: '/settings/theme' },
     { icon: '🌐', title: tr.settingsScreen.language, value: languageLabels[settings.language], route: '/settings/language' },
     {

@@ -38,17 +38,29 @@ function useMenuItems(): MenuItem[] {
       title: tr.financeScreen.categoriesLink,
       route: '/category/manage',
     },
+    {
+      // Hourly rate, hours per shift and payday — moved here from Settings.
+      key: 'rate',
+      icon: 'cash-outline',
+      title: tr.financeScreen.rateLink,
+      route: '/settings/earnings',
+    },
   ];
 }
 
-/** Links in the Finance header row ("classic" style). */
+/**
+ * Links in the Finance header row ("classic" style). Off for now: with the rate added and the
+ * edit-mode buttons next to it the header ran out of room, so every layout uses the chips.
+ */
+const HEADER_LINKS = false;
+
 export function FinanceMenuHeader() {
   const theme = useTheme();
   const menuStyle = theme.layout.financeMenu;
   const router = useRouter();
   const items = useMenuItems();
 
-  if (menuStyle === 'classic') {
+  if (HEADER_LINKS && menuStyle === 'classic') {
     return (
       <View style={styles.classicLinks}>
         {items.map((item) => (
@@ -63,14 +75,14 @@ export function FinanceMenuHeader() {
   return null;
 }
 
-/** Menu shown under the header as a row of chips ("chips" style). */
+/** Menu shown under the header as a row of chips — icon over the label, so four fit in a row. */
 export function FinanceMenuBody() {
   const theme = useTheme();
   const menuStyle = theme.layout.financeMenu;
   const router = useRouter();
   const items = useMenuItems();
 
-  if (menuStyle === 'chips') {
+  if (!HEADER_LINKS || menuStyle === 'chips') {
     return (
       <View style={styles.chipsRow}>
         {items.map((item) => (
@@ -103,11 +115,11 @@ const styles = StyleSheet.create({
   chipsRow: { flexDirection: 'row', gap: 8 },
   chip: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
+    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
   },
-  chipText: { fontSize: 14, fontWeight: '600' },
+  chipText: { fontSize: 12, fontWeight: '600' },
 });

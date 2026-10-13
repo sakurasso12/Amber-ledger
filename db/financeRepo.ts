@@ -6,6 +6,9 @@ import {
   ExpenseDraft,
   PlannedExpense,
   PlannedExpenseDraft,
+  PlanRole,
+  PlanSpend,
+  SpendPlan,
   RecurrenceFreq,
   RecurringExpense,
   RecurringExpenseDraft,
@@ -28,6 +31,8 @@ interface ExpenseRow {
   date: string;
   comment: string | null;
   created_at: string;
+  plan_id: string | null;
+  plan_role: string | null;
 }
 
 interface WorkDayRow {
@@ -57,6 +62,8 @@ function rowToExpense(row: ExpenseRow): Expense {
     date: row.date,
     comment: row.comment,
     createdAt: row.created_at,
+    planId: row.plan_id ?? null,
+    planRole: (row.plan_role as PlanRole | null) ?? null,
   };
 }
 
@@ -139,21 +146,25 @@ export async function createExpense(draft: ExpenseDraft): Promise<Expense> {
     date: draft.date,
     comment: draft.comment,
     createdAt: new Date().toISOString(),
+    planId: draft.planId ?? null,
+    planRole: draft.planRole ?? null,
   };
   await db.runAsync(
-    'INSERT INTO expenses (id, amount, category_id, date, comment, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-    [expense.id, expense.amount, expense.categoryId, expense.date, expense.comment, expense.createdAt]
+    'INSERT INTO expenses (id, amount, category_id, date, comment, created_at, plan_id, plan_role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [expense.id, expense.amount, expense.categoryId, expense.date, expense.comment, expense.createdAt, expense.planId, expense.planRole]
   );
   return expense;
 }
 
 export async function updateExpense(expense: Expense): Promise<void> {
   const db = await getDb();
-  await db.runAsync('UPDATE expenses SET amount = ?, category_id = ?, date = ?, comment = ? WHERE id = ?', [
+  await db.runAsync('UPDATE expenses SET amount = ?, category_id = ?, date = ?, comment = ?, plan_id = ?, plan_role = ? WHERE id = ?', [
     expense.amount,
     expense.categoryId,
     expense.date,
     expense.comment,
+    expense.planId,
+    expense.planRole,
     expense.id,
   ]);
 }
@@ -316,4 +327,104 @@ export async function updateRecurringExpenseNextDue(id: string, nextDueDate: str
 export async function deleteRecurringExpense(id: string): Promise<void> {
   const db = await getDb();
   await db.runAsync('DELETE FROM recurring_expenses WHERE id = ?', [id]);
+}
+
+// ---- Spending plans ----
+
+interface SpendPlanRow {
+  id: string;
+  name: string;
+  category_id: string;
+  limit_amount: number;
+  period: number;
+  period_start: string;
+  reserve_expense_id: string | null;
+  overspend_expense_id: string | null;
+  created_at: string;
+}
+
+interface PlanSpendRow {
+  id: string;
+  plan_id: string;
+  period: number;
+  amount: number;
+  date: string;
+  created_at: string;
+}
+
+function rowToSpendPlan(row: SpendPlanRow): SpendPlan {
+  return {
+    id: row.id,
+    name: row.name,
+    categoryId: row.category_id,
+    limit: row.limit_amount,
+    period: row.period,
+    periodStart: row.period_start,
+    reserveExpenseId: row.reserve_expense_id,
+    overspendExpenseId: row.overspend_expense_id,
+    createdAt: row.created_at,
+  };
+}
+
+function rowToPlanSpend(row: PlanSpendRow): PlanSpend {
+  return { id: row.id, planId: row.plan_id, period: row.period, amount: row.amount, date: row.date, createdAt: row.created_at };
+}
+
+export async function listSpendPlans(): Promise<SpendPlan[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<SpendPlanRow>('SELECT * FROM spend_plans ORDER BY created_at ASC');
+  return rows.map(rowToSpendPlan);
+}
+
+export async function listPlanSpends(): Promise<PlanSpend[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<PlanSpendRow>('SELECT * FROM plan_spends ORDER BY date DESC, created_at DESC');
+  return rows.map(rowToPlanSpend);
+}
+
+/** Inserts the plan, or rewrites every field of an existing one. */
+export async function saveSpendPlan(plan: SpendPlan): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT OR REPLACE INTO spend_plans
+      (id, name, category_id, limit_amount, period, period_start, reserve_expense_id, overspend_expense_id, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      plan.id,
+      plan.name,
+      plan.categoryId,
+      plan.limit,
+      plan.period,
+      plan.periodStart,
+      plan.reserveExpenseId,
+      plan.overspendExpenseId,
+      plan.createdAt,
+    ]
+  );
+}
+
+/** Removes the plan and its purchases. Its expenses stay in the history as they are. */
+export async function deleteSpendPlan(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM plan_spends WHERE plan_id = ?', [id]);
+  await db.runAsync('DELETE FROM spend_plans WHERE id = ?', [id]);
+}
+
+export async function createPlanSpend(planId: string, period: number, amount: number, date: string): Promise<PlanSpend> {
+  const db = await getDb();
+  const spend: PlanSpend = { id: generateId(), planId, period, amount, date, createdAt: new Date().toISOString() };
+  await db.runAsync('INSERT INTO plan_spends (id, plan_id, period, amount, date, created_at) VALUES (?, ?, ?, ?, ?, ?)', [
+    spend.id,
+    spend.planId,
+    spend.period,
+    spend.amount,
+    spend.date,
+    spend.createdAt,
+  ]);
+  return spend;
+}
+
+export async function deletePlanSpend(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM plan_spends WHERE id = ?', [id]);
 }

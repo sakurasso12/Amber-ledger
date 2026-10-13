@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar } from '@/components/ui';
+import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar, useHiddenBoardItems } from '@/components/ui';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { BalanceCard } from '@/components/finance/BalanceCard';
 import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
@@ -20,6 +20,7 @@ import { computeBankBalance, totalExpenses } from '@/lib/expenses';
 import { useTranslation } from '@/i18n';
 import { FinanceLockGate } from '@/components/finance/FinanceLockGate';
 import { SavingsCard } from '@/components/finance/SavingsCard';
+import { PlanBar } from '@/components/finance/PlanBar';
 
 export function FinanceScreen() {
   const theme = useTheme();
@@ -32,6 +33,7 @@ export function FinanceScreen() {
   const categories = useFinanceStore((s) => s.categories);
   const workDays = useFinanceStore((s) => s.workDays);
   const plannedExpenses = useFinanceStore((s) => s.plannedExpenses);
+  const spendPlans = useFinanceStore((s) => s.spendPlans);
   const addExpense = useFinanceStore((s) => s.addExpense);
   const plannedTotal = useMemo(() => plannedExpenses.reduce((sum, p) => sum + p.amount, 0), [plannedExpenses]);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -145,6 +147,7 @@ export function FinanceScreen() {
   const modules: BoardModule[] = [
     {
       key: 'balance',
+      title: tr.layoutEdit.modules.balance,
       sizes: ['full'],
       render: () => (
         <BalanceCard
@@ -161,11 +164,19 @@ export function FinanceScreen() {
         />
       ),
     },
-    { key: 'spend-week', sizes: ['half'], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
-    { key: 'spend-month', sizes: ['half'], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
-    ...(hasBudgetLimits ? [{ key: 'budget', sizes: ['full', 'half'] as ModuleSize[], render: budgetCard }] : []),
+    { key: 'spend-week', title: tr.layoutEdit.modules.spendWeek, sizes: ['half'], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
+    { key: 'spend-month', title: tr.layoutEdit.modules.spendMonth, sizes: ['half'], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
+    // Planned spending: one bar per plan, full width.
+    ...spendPlans.map((plan) => ({
+      key: `plan-${plan.id}`,
+      title: plan.name,
+      sizes: ['full'] as ModuleSize[],
+      render: () => <PlanBar plan={plan} disabled={editingLayout} />,
+    })),
+    ...(hasBudgetLimits ? [{ key: 'budget', title: tr.layoutEdit.modules.budget, sizes: ['full', 'half'] as ModuleSize[], render: budgetCard }] : []),
     {
       key: 'work-calendar',
+      title: tr.layoutEdit.modules.workCalendar,
       sizes: ['full'],
       render: () => (
         <CustomizableCard widgetId="finance-work-calendar">
@@ -178,12 +189,21 @@ export function FinanceScreen() {
       : [
           {
             key: 'savings',
+            title: tr.savings.title,
             // The opt-in question needs the full width; the card itself also fits in half.
             sizes: (settings.savingsCard === 'ask' ? ['full'] : ['full', 'half']) as ModuleSize[],
             render: (size: ModuleSize) => <SavingsCard compact={size === 'half'} />,
           },
         ]),
   ];
+
+  // ⋮ while editing: widgets removed from this screen. The savings card switched off from its own
+  // menu counts as removed too, and coming back turns it on.
+  const hiddenItems = useHiddenBoardItems('finance', modules);
+  const removedItems =
+    settings.savingsCard === 'off'
+      ? [...hiddenItems, { key: 'savings-off', title: tr.savings.title, restore: () => updateSettings({ savingsCard: 'on' }) }]
+      : hiddenItems;
 
   const listHeader = (
           <View style={styles.topSection}>
@@ -208,6 +228,7 @@ export function FinanceScreen() {
       right={
         <View style={styles.headerRight}>
           <FinanceMenuHeader />
+          {editingLayout ? <HiddenModulesButton items={removedItems} /> : null}
           <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={locked} />
         </View>
       }

@@ -106,6 +106,8 @@ export interface AppSettings {
   taskManualOrder: string[];
   /** Editable card boards (Finance, Stats tabs): saved order and half/full sizes per board. */
   moduleLayouts: Record<string, { order: string[]; sizes: Record<string, 'half' | 'full'> }>;
+  /** Widgets removed from a screen with the "−" in edit mode, per board; ⋮ brings them back. */
+  hiddenModules: Record<string, string[]>;
   /** Calendar: the user's order of each day's expenses (date key → expense ids). */
   expenseDayOrder: Record<string, string[]>;
   /** App version whose "What's new" was already shown (null = never). */
@@ -161,6 +163,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   taskOrderMode: 'deadline',
   taskManualOrder: [],
   moduleLayouts: {},
+  hiddenModules: {},
   expenseDayOrder: {},
   lastSeenVersion: null,
 };

@@ -6,11 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
-import { EditLayoutButton, EmptyState, Fab, LayoutScreen, QuickAddBar } from '@/components/ui';
+import { EditLayoutButton, EmptyState, Fab, HiddenModulesButton, LayoutScreen, QuickAddBar } from '@/components/ui';
 import { TaskBoard } from '@/components/task/TaskBoard';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
-import { TaskModules } from '@/components/task/TaskModules';
+import { TaskModules, useHiddenTaskModules } from '@/components/task/TaskModules';
 import { activeTasks, manualOrder } from '@/lib/taskFilters';
 import { buildHabits } from '@/lib/streaks';
 import { haptics } from '@/lib/haptics';
@@ -89,6 +89,7 @@ export function TasksScreen() {
     [visibleTasks]
   );
   const showFocus = layout.tasks === 'focus' && !!focusTask && !selectionMode;
+  const hiddenModules = useHiddenTaskModules(habitList, showFocus);
 
   const board = (boardTasks: typeof visibleTasks) => (
     <TaskBoard
@@ -153,8 +154,11 @@ export function TasksScreen() {
       count={visibleTasks.length + habitList.length}
       headerOverride={selectionBar}
       right={
-        // Pencil: rearrange and resize the cards; the check mark ends editing.
-        <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} />
+        // Pencil: rearrange and resize the cards; the check mark ends editing. ⋮ brings back removed ones.
+        <View style={styles.headerRight}>
+          {editingLayout ? <HiddenModulesButton items={hiddenModules} /> : null}
+          <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} />
+        </View>
       }
     >
       {list}
@@ -195,4 +199,5 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '800' },
   focusHeader: { gap: 14, marginBottom: 10 },
   habitsHeader: { marginBottom: 14 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

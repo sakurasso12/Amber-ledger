@@ -94,6 +94,7 @@ export interface Translation {
     plannedIncluded: string;
     plannedLink: string;
     recurringLink: string;
+    rateLink: string;
     budgetTitle: string;
   };
   plannedExpenses: {
@@ -213,7 +214,50 @@ export interface Translation {
     minutes: string;
     streakChoose: string;
   };
-  layoutEdit: { edit: string; done: string; perRow: string; order: string; byDeadline: string; ownOrder: string; resize: string };
+  layoutEdit: {
+    edit: string;
+    done: string;
+    perRow: string;
+    order: string;
+    byDeadline: string;
+    ownOrder: string;
+    resize: string;
+    remove: string;
+    hiddenTitle: string;
+    hiddenEmpty: string;
+    modules: { balance: string; spendWeek: string; spendMonth: string; budget: string; workCalendar: string };
+  };
+  plans: {
+    toggle: string;
+    toggleHint: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    limitLabel: string;
+    spentLabel: string;
+    add: string;
+    history: string;
+    noSpends: string;
+    changeLimit: string;
+    confirmChangeTitle: string;
+    confirmChangeText: string;
+    confirmYes: string;
+    cancel: string;
+    passwordLabel: string;
+    passwordWrong: string;
+    confirm: string;
+    devicePrompt: string;
+    monthEnd: string;
+    reset: string;
+    changeBudget: string;
+    newLimit: string;
+    save: string;
+    remove: string;
+    removeTitle: string;
+    removeText: string;
+    overspend: string;
+    planTag: string;
+    editorNote: string;
+  };
   level: { tasksDone: string; sound: string; soundHint: string };
   habitWidget: { title: string; subtitle: string; empty: string; done: string };
   defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
@@ -457,6 +501,7 @@ const ru: Translation = {
     plannedIncluded: 'уже минус плановые',
     plannedLink: 'Планы',
     recurringLink: 'Повторы',
+    rateLink: 'Ставка',
     budgetTitle: 'Бюджет',
   },
   plannedExpenses: {
@@ -606,7 +651,50 @@ const ru: Translation = {
     minutes: 'мин',
     streakChoose: 'Нажми, чтобы выбрать',
   },
-  layoutEdit: { edit: 'Изменить расположение', done: 'Готово', perRow: 'В ряд', order: 'Порядок', byDeadline: 'По дедлайну', ownOrder: 'Свой', resize: 'Размер' },
+  layoutEdit: {
+    edit: 'Изменить расположение',
+    done: 'Готово',
+    perRow: 'В ряд',
+    order: 'Порядок',
+    byDeadline: 'По дедлайну',
+    ownOrder: 'Свой',
+    resize: 'Размер',
+    remove: 'Убрать виджет',
+    hiddenTitle: 'Убранные виджеты',
+    hiddenEmpty: 'Здесь пусто. Убери виджет кнопкой «−», и его можно будет вернуть отсюда.',
+    modules: { balance: 'Баланс', spendWeek: 'Траты за неделю', spendMonth: 'Траты за месяц', budget: 'Бюджет', workCalendar: 'Рабочий календарь' },
+  },
+  plans: {
+    toggle: 'Плановая трата',
+    toggleHint: 'Лимит сразу спишется со счёта. Покупки отмечай на плашке в Финансах — она заполнится, а в конце месяца предложит начать заново.',
+    nameLabel: 'Название',
+    namePlaceholder: 'Еда',
+    limitLabel: 'Лимит',
+    spentLabel: 'Сколько потратил',
+    add: 'Добавить',
+    history: 'Покупки за этот период',
+    noSpends: 'Пока ничего',
+    changeLimit: 'Изменить лимит',
+    confirmChangeTitle: 'Точно изменить лимит?',
+    confirmChangeText: 'Со счёта спишется новый лимит вместо старого, проценты пересчитаются.',
+    confirmYes: 'Изменить',
+    cancel: 'Отмена',
+    passwordLabel: 'Пароль профиля',
+    passwordWrong: 'Неверный пароль',
+    confirm: 'Подтвердить',
+    devicePrompt: 'Подтверди изменение лимита',
+    monthEnd: 'Месяц подходит к концу',
+    reset: 'Обнулить',
+    changeBudget: 'Изменить бюджет',
+    newLimit: 'Новый лимит',
+    save: 'Сохранить',
+    remove: 'Удалить план',
+    removeTitle: 'Удалить план?',
+    removeText: 'Потраченное останется в тратах, непотраченный остаток вернётся на счёт.',
+    overspend: 'Превышение лимита',
+    planTag: 'План',
+    editorNote: 'Это плановая трата. Покупки, лимит и удаление — на её плашке в Финансах.',
+  },
   level: { tasksDone: 'Выполнено задач', sound: 'Звук выполнения', soundHint: 'Играет, когда задача выполнена' },
   habitWidget: {
     title: 'Виджет серии',
@@ -856,6 +944,7 @@ const uk: Translation = {
     plannedIncluded: 'вже мінус планові',
     plannedLink: 'Плани',
     recurringLink: 'Повтори',
+    rateLink: 'Ставка',
     budgetTitle: 'Бюджет',
   },
   plannedExpenses: {
@@ -1003,7 +1092,50 @@ const uk: Translation = {
     minutes: 'хв',
     streakChoose: 'Натисни, щоб вибрати',
   },
-  layoutEdit: { edit: 'Змінити розташування', done: 'Готово', perRow: 'У ряд', order: 'Порядок', byDeadline: 'За дедлайном', ownOrder: 'Свій', resize: 'Розмір' },
+  layoutEdit: {
+    edit: 'Змінити розташування',
+    done: 'Готово',
+    perRow: 'У ряд',
+    order: 'Порядок',
+    byDeadline: 'За дедлайном',
+    ownOrder: 'Свій',
+    resize: 'Розмір',
+    remove: 'Прибрати віджет',
+    hiddenTitle: 'Прибрані віджети',
+    hiddenEmpty: 'Тут порожньо. Прибери віджет кнопкою «−», і його можна буде повернути звідси.',
+    modules: { balance: 'Баланс', spendWeek: 'Витрати за тиждень', spendMonth: 'Витрати за місяць', budget: 'Бюджет', workCalendar: 'Робочий календар' },
+  },
+  plans: {
+    toggle: 'Планова витрата',
+    toggleHint: 'Ліміт одразу спишеться з рахунку. Покупки відмічай на плашці у Фінансах — вона заповниться, а наприкінці місяця запропонує почати знову.',
+    nameLabel: 'Назва',
+    namePlaceholder: 'Їжа',
+    limitLabel: 'Ліміт',
+    spentLabel: 'Скільки витратив',
+    add: 'Додати',
+    history: 'Покупки за цей період',
+    noSpends: 'Поки нічого',
+    changeLimit: 'Змінити ліміт',
+    confirmChangeTitle: 'Точно змінити ліміт?',
+    confirmChangeText: 'З рахунку спишеться новий ліміт замість старого, відсотки перерахуються.',
+    confirmYes: 'Змінити',
+    cancel: 'Скасувати',
+    passwordLabel: 'Пароль профілю',
+    passwordWrong: 'Невірний пароль',
+    confirm: 'Підтвердити',
+    devicePrompt: 'Підтверди зміну ліміту',
+    monthEnd: 'Місяць добігає кінця',
+    reset: 'Обнулити',
+    changeBudget: 'Змінити бюджет',
+    newLimit: 'Новий ліміт',
+    save: 'Зберегти',
+    remove: 'Видалити план',
+    removeTitle: 'Видалити план?',
+    removeText: 'Витрачене залишиться у витратах, невитрачений залишок повернеться на рахунок.',
+    overspend: 'Перевищення ліміту',
+    planTag: 'План',
+    editorNote: 'Це планова витрата. Покупки, ліміт і видалення — на її плашці у Фінансах.',
+  },
   level: { tasksDone: 'Виконано задач', sound: 'Звук виконання', soundHint: 'Грає, коли задачу виконано' },
   habitWidget: {
     title: 'Віджет серії',
@@ -1253,6 +1385,7 @@ const en: Translation = {
     plannedIncluded: 'already minus planned',
     plannedLink: 'Planned',
     recurringLink: 'Recurring',
+    rateLink: 'Rate',
     budgetTitle: 'Budget',
   },
   plannedExpenses: {
@@ -1400,7 +1533,50 @@ const en: Translation = {
     minutes: 'min',
     streakChoose: 'Tap to choose',
   },
-  layoutEdit: { edit: 'Edit layout', done: 'Done', perRow: 'Per row', order: 'Order', byDeadline: 'By deadline', ownOrder: 'My own', resize: 'Size' },
+  layoutEdit: {
+    edit: 'Edit layout',
+    done: 'Done',
+    perRow: 'Per row',
+    order: 'Order',
+    byDeadline: 'By deadline',
+    ownOrder: 'My own',
+    resize: 'Size',
+    remove: 'Remove widget',
+    hiddenTitle: 'Removed widgets',
+    hiddenEmpty: 'Nothing here. Remove a widget with its “−” button and you can bring it back from here.',
+    modules: { balance: 'Balance', spendWeek: 'Spent this week', spendMonth: 'Spent this month', budget: 'Budget', workCalendar: 'Work calendar' },
+  },
+  plans: {
+    toggle: 'Planned spending',
+    toggleHint: 'The limit comes off your balance right away. Tick off purchases on its bar in Finance — it fills up, and at the end of the month offers to start over.',
+    nameLabel: 'Name',
+    namePlaceholder: 'Food',
+    limitLabel: 'Limit',
+    spentLabel: 'How much you spent',
+    add: 'Add',
+    history: 'Purchases this period',
+    noSpends: 'Nothing yet',
+    changeLimit: 'Change limit',
+    confirmChangeTitle: 'Change the limit?',
+    confirmChangeText: 'The new limit comes off your balance instead of the old one, and the percentage is recalculated.',
+    confirmYes: 'Change',
+    cancel: 'Cancel',
+    passwordLabel: 'Profile password',
+    passwordWrong: 'Wrong password',
+    confirm: 'Confirm',
+    devicePrompt: 'Confirm the new limit',
+    monthEnd: 'The month is almost over',
+    reset: 'Start over',
+    changeBudget: 'Change budget',
+    newLimit: 'New limit',
+    save: 'Save',
+    remove: 'Delete plan',
+    removeTitle: 'Delete the plan?',
+    removeText: 'What you spent stays in your expenses; the unspent rest goes back to your balance.',
+    overspend: 'Over the limit',
+    planTag: 'Plan',
+    editorNote: 'This is planned spending. Purchases, the limit and deleting it are on its bar in Finance.',
+  },
   level: { tasksDone: 'Tasks done', sound: 'Task done sound', soundHint: 'Plays when a task is done' },
   habitWidget: {
     title: 'Streak widget',

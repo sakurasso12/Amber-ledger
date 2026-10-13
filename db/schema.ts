@@ -1,7 +1,7 @@
 export const DB_NAME = 'amber-ledger.db';
 
 /** Current schema version. Bump this and append a migration when the schema changes. */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export const CREATE_TABLES_SQL = `
 PRAGMA journal_mode = WAL;
@@ -59,6 +59,29 @@ CREATE TABLE IF NOT EXISTS expenses (
   category_id TEXT NOT NULL REFERENCES categories(id),
   date TEXT NOT NULL,
   comment TEXT,
+  created_at TEXT NOT NULL,
+  plan_id TEXT,
+  plan_role TEXT
+);
+
+CREATE TABLE IF NOT EXISTS spend_plans (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  category_id TEXT NOT NULL REFERENCES categories(id),
+  limit_amount REAL NOT NULL,
+  period INTEGER NOT NULL DEFAULT 0,
+  period_start TEXT NOT NULL,
+  reserve_expense_id TEXT,
+  overspend_expense_id TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS plan_spends (
+  id TEXT PRIMARY KEY NOT NULL,
+  plan_id TEXT NOT NULL REFERENCES spend_plans(id) ON DELETE CASCADE,
+  period INTEGER NOT NULL,
+  amount REAL NOT NULL,
+  date TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
 
@@ -102,6 +125,7 @@ CREATE INDEX IF NOT EXISTS idx_task_tags_task ON task_tags(task_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
 CREATE INDEX IF NOT EXISTS idx_work_days_date ON work_days(date);
 CREATE INDEX IF NOT EXISTS idx_recurring_expenses_due ON recurring_expenses(next_due_date);
+CREATE INDEX IF NOT EXISTS idx_plan_spends_plan ON plan_spends(plan_id);
 `;
 
 export const DEFAULT_CATEGORIES: { id: string; name: string; color: string; sortOrder: number }[] = [
