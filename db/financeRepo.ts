@@ -33,6 +33,7 @@ interface ExpenseRow {
   created_at: string;
   plan_id: string | null;
   plan_role: string | null;
+  task_id: string | null;
 }
 
 interface WorkDayRow {
@@ -64,6 +65,7 @@ function rowToExpense(row: ExpenseRow): Expense {
     createdAt: row.created_at,
     planId: row.plan_id ?? null,
     planRole: (row.plan_role as PlanRole | null) ?? null,
+    taskId: row.task_id ?? null,
   };
 }
 
@@ -148,10 +150,11 @@ export async function createExpense(draft: ExpenseDraft): Promise<Expense> {
     createdAt: new Date().toISOString(),
     planId: draft.planId ?? null,
     planRole: draft.planRole ?? null,
+    taskId: draft.taskId ?? null,
   };
   await db.runAsync(
-    'INSERT INTO expenses (id, amount, category_id, date, comment, created_at, plan_id, plan_role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [expense.id, expense.amount, expense.categoryId, expense.date, expense.comment, expense.createdAt, expense.planId, expense.planRole]
+    'INSERT INTO expenses (id, amount, category_id, date, comment, created_at, plan_id, plan_role, task_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [expense.id, expense.amount, expense.categoryId, expense.date, expense.comment, expense.createdAt, expense.planId, expense.planRole, expense.taskId]
   );
   return expense;
 }

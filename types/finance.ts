@@ -24,6 +24,9 @@ export interface Expense {
   /** Set when this expense belongs to a spending plan (see SpendPlan). */
   planId: string | null;
   planRole: PlanRole | null;
+  /** Logged by completing this task ("log an expense when done") — un-doing or deleting the task
+   * takes the expense back. */
+  taskId: string | null;
 }
 
 export interface ExpenseDraft {
@@ -33,6 +36,7 @@ export interface ExpenseDraft {
   comment: string | null;
   planId?: string | null;
   planRole?: PlanRole | null;
+  taskId?: string | null;
 }
 
 /**

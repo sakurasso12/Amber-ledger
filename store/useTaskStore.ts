@@ -43,14 +43,20 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
   },
 
   editTask: async (task) => {
-    // Marked done from the editor's status switch counts as completing it too.
-    if (task.status === 'done' && get().tasks.find((t) => t.id === task.id)?.status !== 'done') playDoneSound();
-    await tasksRepo.updateTask(task);
-    set((state) => ({ tasks: state.tasks.map((t) => (t.id === task.id ? task : t)) }));
-    syncNotificationsFor(task);
+    const before = get().tasks.find((t) => t.id === task.id);
+    // A status change from the editor goes through setStatus like a tap on the circle does: sound,
+    // the logged expense (or taking it back), the next time of a repeating task, widgets.
+    const statusChanged = !!before && before.status !== task.status;
+    const saved = statusChanged ? { ...task, status: before!.status, completedAt: before!.completedAt } : task;
+    await tasksRepo.updateTask(saved);
+    set((state) => ({ tasks: state.tasks.map((t) => (t.id === task.id ? saved : t)) }));
+    syncNotificationsFor(saved);
+    if (statusChanged) await get().setStatus(task.id, task.status);
   },
 
   removeTask: async (id) => {
+    // A done task that logged an expense takes it back with it — the money returns to the bank.
+    await removeTaskExpenses(id);
     await tasksRepo.deleteTask(id);
     set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }));
     cancelTaskReminder(id);
@@ -76,7 +82,9 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
 
   setStatus: async (taskId, status) => {
     const task = get().tasks.find((t) => t.id === taskId);
-    if (!task) return;
+    // Same status again (e.g. swiping an already done task in the Calendar archive): nothing to do —
+    // otherwise a repeating task would get a second "next time".
+    if (!task || task.status === status) return;
 
     const now = new Date().toISOString();
     const updated: Task = {
@@ -89,7 +97,15 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
     set((state) => ({ tasks: state.tasks.map((t) => (t.id === taskId ? updated : t)) }));
     syncNotificationsFor(updated);
 
-    if (status === 'done' && task.recurrenceRule) {
+    // Un-done: the expense its completion logged is taken back.
+    if (task.status === 'done' && status !== 'done') await removeTaskExpenses(taskId);
+
+    // The next time of a repeating task — unless it already exists (done, re-opened, done again).
+    const seriesKey = task.seriesId ?? task.id;
+    const hasNext = get().tasks.some(
+      (t) => t.id !== task.id && (t.seriesId ?? t.id) === seriesKey && t.status !== 'done' && (t.deadlineAt ?? '') > (task.deadlineAt ?? '')
+    );
+    if (status === 'done' && task.recurrenceRule && !hasNext) {
       let deadlineAt = nextOccurrence(task.recurrenceRule, task.deadlineAt);
       // A habit done late covers today too, so its next time is the first one after today.
       while (deadlineAt && isHabit(task) && isOnOrBeforeToday(deadlineAt)) {
@@ -111,6 +127,7 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
         categoryId: task.expenseOnComplete.categoryId,
         date: now.slice(0, 10),
         comment: task.title,
+        taskId: task.id,
       });
     }
   },
@@ -121,3 +138,11 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
     for (const task of get().tasks) syncNotificationsFor(task);
   },
 }));
+
+/** Deletes the expenses a task's completion logged (through the finance store, so the bank follows). */
+async function removeTaskExpenses(taskId: string): Promise<void> {
+  const finance = useFinanceStore.getState();
+  for (const expense of finance.expenses.filter((e) => e.taskId === taskId)) {
+    await finance.removeExpense(expense.id);
+  }
+}

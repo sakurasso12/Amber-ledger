@@ -26,5 +26,6 @@ export function overspendOf(plan: SpendPlan, spent: number): number {
  * started in — and keeps asking after that until one of the two is picked.
  */
 export function needsMonthEndChoice(plan: SpendPlan, today: string = todayKey()): boolean {
-  return today >= toDateKey(endOfMonth(parseISO(plan.periodStart)));
+  // A plan started on the last day itself isn't asked that same day.
+  return today > plan.periodStart && today >= toDateKey(endOfMonth(parseISO(plan.periodStart)));
 }
