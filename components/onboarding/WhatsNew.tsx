@@ -13,6 +13,7 @@ export const APP_VERSION = Constants.expoConfig?.version ?? '0';
 /** Icons for each version's cards, in the order of tr.whatsNew.releases[version]. */
 const ICONS: Record<string, (keyof typeof Ionicons.glyphMap)[]> = {
   '1.2.0': ['gift-outline', 'flame', 'ellipse-outline', 'move-outline', 'apps-outline'],
+  '1.3.0': ['gift-outline', 'water-outline', 'wallet-outline', 'calendar-outline', 'shield-checkmark-outline', 'qr-code-outline', 'remove-circle-outline'],
 };
 
 /**

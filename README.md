@@ -25,13 +25,16 @@ photo. Swipe a task to complete or delete it, hold to select several at once.
 
 ### Calendar
 Your month at a glance — days with tasks and expenses are marked; tap a day to see everything on it.
+It's also your history: every day keeps what you finished, what you added and what you spent.
 
 <img src="docs/screenshots/standard-calendar.jpg" width="220">
 
 ### Finance
-Bank balance, salary that's still on its way, a calendar of your work shifts with earnings,
-planned and recurring expenses, categories and budgets. The app asks on payday whether your
-salary has actually arrived before it counts it.
+What's in your account and what's actually free after your plans, salary that's still on its way,
+a calendar of your work shifts with earnings, planned spending, recurring expenses and categories.
+The app asks on payday whether your salary has actually arrived before it counts it. The expense
+list shows the current month and starts fresh on the 1st — nothing is deleted, the history stays
+in Calendar.
 
 | Finance | New expense |
 |:---:|:---:|
@@ -51,6 +54,13 @@ tap to mark today done. Only the scheduled days count, so a Mon/Thu habit isn't 
 Each habit can have its own photo — and a small **1×1 streak widget** for the home screen shows
 it too (tap the widget to choose which habit it follows).
 
+### 🌊 Planned spending
+Set a limit for something you buy all month — say, food for 800 zł. The whole limit comes off your
+balance at once, then you tick off each purchase and a bar fills up with a wave in your theme
+colour. Go over the limit and it turns red (110 %, 120 %…), with the extra logged as its own red
+expense. On the 1st it starts over by itself; at the end of the month you can set next month's
+limit. Changing a limit asks for your password.
+
 ### 🎯 Level ring
 Every task you finish fills one segment of a ring of 10, with a little sound. Ten tasks — the ring
 fills up and starts again: 7/10, then 10/20, 20/30…
@@ -59,11 +69,23 @@ fills up and starts again: 7/10, then 10/20, 20/30…
 Tap the ✏️ pencil on Tasks, Finance, Stats or Calendar and the cards become movable: hold one,
 drag it where you like, and it lands with a jelly wobble. Task cards come in three sizes
 (half-width square, row, big card), most Finance and Stats cards can be full or half width, and
-every card can have its own corners — square, rounded, round or leaf-shaped.
+every card can have its own corners — square, rounded, round or leaf-shaped. Don't need a card?
+Remove it with **−**; the **⋮** next to the pencil brings it back.
 
 ### 👋 First launch
-A short setup the first time you open the app: pick your language, create your profile, and get a
-quick tour of what each screen does.
+A short setup the first time you open the app. First it asks whether you're moving from another
+phone — if so, scan its QR and you're done. Otherwise: pick your language, create your profile, and
+get a quick tour of what each screen does. After every update a few cards show what's new.
+
+### 📦 Your data
+Everything lives only on your phone — no accounts, no servers. In *Settings → Security & storage*:
+
+- **Move to another phone by QR:** the old phone shows a code, the new one scans it and pulls your
+  tasks, finances and profile straight over Wi-Fi, encrypted with a one-time key that exists only
+  in that QR. Photos stay behind.
+- **Auto clean-up** of done tasks and expenses older than 1–12 months, if you want it.
+- **Erase** tasks, finances, your profile or everything — erasing everything asks twice, counts
+  down from 10 and wants your password.
 
 ### 🔔 Notifications
 Reminders before deadlines, a pinned notification for important tasks, budget alerts and a
@@ -97,7 +119,7 @@ Everything about the look can be changed — except the font (coming soon):
 | <img src="docs/screenshots/standard-finance.jpg" width="180"> | <img src="docs/screenshots/vertical-tasks.jpg" width="180"> | <img src="docs/screenshots/theme-neon.jpg" width="180"> | <img src="docs/screenshots/home-widgets.jpg" width="180"> |
 
 ### 🔒 Security
-Your money is nobody else's business. Turn on **Finance lock** in *Settings → Security* and every
+Your money is nobody else's business. Turn on **Finance lock** in *Settings → Security & storage* and every
 amount — Finance, Stats, Calendar and the widget — stays blurred until you unlock it with:
 
 - your **fingerprint or phone PIN / pattern** (face unlock works too on phones that support it, e.g. Samsung),
@@ -117,6 +139,9 @@ Keystore.
 - **SQLite** (expo-sqlite) for storage, **zustand** for state
 - Own UI kit, charts and calendar (react-native-svg) — no UI or chart libraries
 - Animations with **Reanimated**, drag & drop with **react-native-sortables**, sounds with **expo-audio**
+- Phone-to-phone transfer: a small native module of its own in Kotlin (Expo Modules API) with
+  AES-256-GCM, QR codes with **expo-camera** and **react-native-qrcode-svg**
+- Tests for the money rules, streaks and the transfer with **jest-expo** (`npm test`)
 - APKs are built with **EAS Build**
 
 The idea, the design, every feature and every change to the interface are my own initiative —
@@ -141,8 +166,12 @@ explained what I didn't know and helped me keep the project moving while I was a
    ```sh
    npx expo start
    ```
-   Expo Go can't run home screen widgets, notifications or the pinned notification — everything
-   else works. For those, make your own build (below).
+   Expo Go can't run home screen widgets, notifications, the pinned notification or moving data
+   between phones — everything else works. For those, make your own build (below).
+4. Run the tests:
+   ```sh
+   npm test
+   ```
 
 **Want to build your own APK?**
 
