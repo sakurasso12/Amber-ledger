@@ -1,18 +1,16 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
 import { getDb } from '@/db/client';
 import { SCHEMA_VERSION } from '@/db/schema';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { AppSettings } from '@/types';
-import { todayKey } from './dateRanges';
 import { refreshHomeWidget } from './widgetRefresh';
 
 /**
- * Backup file: every table as raw rows plus the settings, as JSON. The same payload will travel
- * phone-to-phone over the QR transfer later. Not in it: photos (files on this phone) and the
- * profile password (lives in secure storage, never leaves the phone).
+ * The data that moves to another phone (QR transfer, see lib/transfer.ts): every table as raw rows
+ * plus the settings, as JSON. Not in it: photos (files on this phone) and the profile password
+ * (lives in secure storage, never leaves the phone).
  */
 
 const APP_ID = 'amber-ledger';
@@ -67,16 +65,9 @@ export async function buildBackup(): Promise<BackupPayload> {
   return { app: APP_ID, schema: SCHEMA_VERSION, exportedAt: new Date().toISOString(), tables, settings };
 }
 
-/** Writes the backup to a file and opens Android's share sheet (save to Files, Drive, Telegram…). */
-export async function exportBackup(dialogTitle: string): Promise<void> {
-  const uri = `${FileSystem.cacheDirectory}amber-ledger-${todayKey()}.json`;
-  await FileSystem.writeAsStringAsync(uri, JSON.stringify(await buildBackup()));
-  await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle, UTI: 'public.json' });
-}
-
 export type BackupProblem = 'notBackup' | 'newer';
 
-/** Parses and checks a backup file's text; returns the payload or what's wrong with it. */
+/** Parses and checks received data; returns the payload or what's wrong with it. */
 export function parseBackup(text: string): BackupPayload | BackupProblem {
   let data: unknown;
   try {
@@ -91,8 +82,8 @@ export function parseBackup(text: string): BackupPayload | BackupProblem {
 }
 
 /**
- * Replaces everything on this phone with the backup. Only columns this version knows are written
- * (a backup from an older version simply leaves new columns at their defaults). Photos from
+ * Replaces everything on this phone with the received data. Only columns this version knows are written
+ * (data from an older version simply leaves new columns at their defaults). Photos from
  * another phone don't exist here, so their links are dropped.
  */
 export async function restoreBackup(payload: BackupPayload): Promise<void> {

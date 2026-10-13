@@ -99,15 +99,38 @@ export interface Translation {
     countdown: string;
     countdownHint: string;
     done: string;
-    backupTitle: string;
-    backupHint: string;
-    exportButton: string;
-    importButton: string;
-    importTitle: string;
-    importConfirm: string;
-    importBad: string;
-    importNewer: string;
-    importDone: string;
+    transferTitle: string;
+    transferHint: string;
+    transferButton: string;
+  };
+  transfer: {
+    title: string;
+    sendTitle: string;
+    sendHint: string;
+    receiveTitle: string;
+    receiveHint: string;
+    preparing: string;
+    scanHint: (where: string) => string;
+    where: string;
+    expiresIn: (time: string) => string;
+    expired: string;
+    sent: string;
+    again: string;
+    cameraTitle: string;
+    cameraText: string;
+    cameraGrant: string;
+    pointCamera: string;
+    notOurCode: string;
+    codeExpired: string;
+    confirmTitle: string;
+    confirmText: string;
+    replace: string;
+    cancel: string;
+    receiving: string;
+    received: string;
+    failed: string;
+    noNetwork: string;
+    needsApp: string;
   };
   financeScreen: {
     header: string;
@@ -553,15 +576,38 @@ const ru: Translation = {
     countdown: 'Стирание всех данных',
     countdownHint: 'Ещё можно передумать',
     done: 'Готово, данные стёрты',
-    backupTitle: 'Резервная копия',
-    backupHint: 'Файл со всеми задачами, тратами и настройками — сохрани его себе или перекинь на другой телефон. Фото и пароль в файл не попадают.',
-    exportButton: 'Сохранить в файл',
-    importButton: 'Восстановить из файла',
-    importTitle: 'Восстановить из файла?',
-    importConfirm: 'Все задачи и финансы на этом телефоне заменятся данными из файла.',
-    importBad: 'Это не файл резервной копии Amber Ledger',
-    importNewer: 'Файл из более новой версии приложения — сначала обнови приложение',
-    importDone: 'Готово, данные восстановлены',
+    transferTitle: 'Перенос на другой телефон',
+    transferHint: 'Все задачи, траты и настройки переедут по QR-коду через Wi-Fi — без интернета и без файлов. Фото и пароль остаются на этом телефоне.',
+    transferButton: 'Перенести данные',
+  },
+  transfer: {
+    title: 'Перенос данных',
+    sendTitle: 'Отправить с этого телефона',
+    sendHint: 'Покажет QR-код для другого телефона',
+    receiveTitle: 'Получить на этот телефон',
+    receiveHint: 'Отсканируй QR-код со старого телефона',
+    preparing: 'Готовлю данные…',
+    scanHint: (where) => `На другом телефоне открой ${where} → «Получить на этот телефон» и наведи камеру на код.`,
+    where: 'Настройки → Безопасность и память → Перенести данные',
+    expiresIn: (time) => `Код действует ещё ${time}`,
+    expired: 'Время вышло — код больше не действует',
+    sent: 'Данные отправлены ✓',
+    again: 'Показать новый код',
+    cameraTitle: 'Нужна камера',
+    cameraText: 'Камера нужна только чтобы прочитать QR-код с другого телефона. Ничего не снимается и не сохраняется.',
+    cameraGrant: 'Разрешить камеру',
+    pointCamera: 'Наведи камеру на QR-код на другом телефоне',
+    notOurCode: 'Это не QR-код переноса Amber Ledger',
+    codeExpired: 'Этот код уже не действует — покажи новый на другом телефоне',
+    confirmTitle: 'Перенести данные сюда?',
+    confirmText: 'Все задачи и финансы на этом телефоне заменятся данными с другого телефона.',
+    replace: 'Перенести',
+    cancel: 'Отмена',
+    receiving: 'Получаю данные…',
+    received: 'Готово, данные перенесены ✓',
+    failed: 'Не получилось связаться с другим телефоном. Оба должны быть в одной Wi-Fi сети (или один раздаёт точку доступа другому), а код — ещё открыт.',
+    noNetwork: 'Этот телефон не в Wi-Fi сети. Подключись к Wi-Fi или включи точку доступа.',
+    needsApp: 'Перенос работает только в установленном приложении (APK), не в Expo Go.',
   },
   financeScreen: {
     header: 'Финансы',
@@ -1044,15 +1090,38 @@ const uk: Translation = {
     countdown: 'Стирання всіх даних',
     countdownHint: 'Ще можна передумати',
     done: 'Готово, дані стерто',
-    backupTitle: 'Резервна копія',
-    backupHint: 'Файл з усіма задачами, витратами й налаштуваннями — збережи його собі або перекинь на інший телефон. Фото й пароль у файл не потрапляють.',
-    exportButton: 'Зберегти у файл',
-    importButton: 'Відновити з файлу',
-    importTitle: 'Відновити з файлу?',
-    importConfirm: 'Усі задачі й фінанси на цьому телефоні заміняться даними з файлу.',
-    importBad: 'Це не файл резервної копії Amber Ledger',
-    importNewer: 'Файл з новішої версії застосунку — спершу онови застосунок',
-    importDone: 'Готово, дані відновлено',
+    transferTitle: 'Перенесення на інший телефон',
+    transferHint: 'Усі задачі, витрати й налаштування переїдуть за QR-кодом через Wi-Fi — без інтернету й без файлів. Фото й пароль лишаються на цьому телефоні.',
+    transferButton: 'Перенести дані',
+  },
+  transfer: {
+    title: 'Перенесення даних',
+    sendTitle: 'Надіслати з цього телефона',
+    sendHint: 'Покаже QR-код для іншого телефона',
+    receiveTitle: 'Отримати на цей телефон',
+    receiveHint: 'Відскануй QR-код зі старого телефона',
+    preparing: 'Готую дані…',
+    scanHint: (where) => `На іншому телефоні відкрий ${where} → «Отримати на цей телефон» і наведи камеру на код.`,
+    where: "Налаштування → Безпека й пам'ять → Перенести дані",
+    expiresIn: (time) => `Код діє ще ${time}`,
+    expired: 'Час вийшов — код більше не діє',
+    sent: 'Дані надіслано ✓',
+    again: 'Показати новий код',
+    cameraTitle: 'Потрібна камера',
+    cameraText: 'Камера потрібна лише щоб прочитати QR-код з іншого телефона. Нічого не знімається й не зберігається.',
+    cameraGrant: 'Дозволити камеру',
+    pointCamera: 'Наведи камеру на QR-код на іншому телефоні',
+    notOurCode: 'Це не QR-код перенесення Amber Ledger',
+    codeExpired: 'Цей код уже не діє — покажи новий на іншому телефоні',
+    confirmTitle: 'Перенести дані сюди?',
+    confirmText: 'Усі задачі й фінанси на цьому телефоні заміняться даними з іншого телефона.',
+    replace: 'Перенести',
+    cancel: 'Скасувати',
+    receiving: 'Отримую дані…',
+    received: 'Готово, дані перенесено ✓',
+    failed: "Не вдалося зв'язатися з іншим телефоном. Обидва мають бути в одній Wi-Fi мережі (або один роздає точку доступу іншому), а код — ще відкритий.",
+    noNetwork: 'Цей телефон не в Wi-Fi мережі. Підключись до Wi-Fi або увімкни точку доступу.',
+    needsApp: 'Перенесення працює лише у встановленому застосунку (APK), не в Expo Go.',
   },
   financeScreen: {
     header: 'Фінанси',
@@ -1533,15 +1602,38 @@ const en: Translation = {
     countdown: 'Erasing all data',
     countdownHint: 'You can still change your mind',
     done: 'Done, the data is erased',
-    backupTitle: 'Backup',
-    backupHint: 'A file with all your tasks, expenses and settings — keep it somewhere safe or move it to another phone. Photos and the password aren’t in it.',
-    exportButton: 'Save to a file',
-    importButton: 'Restore from a file',
-    importTitle: 'Restore from the file?',
-    importConfirm: 'All tasks and finances on this phone will be replaced with the ones in the file.',
-    importBad: 'This isn’t an Amber Ledger backup file',
-    importNewer: 'This file is from a newer version of the app — update the app first',
-    importDone: 'Done, the data is restored',
+    transferTitle: 'Move to another phone',
+    transferHint: 'All tasks, expenses and settings move over by QR code through Wi-Fi — no internet, no files. Photos and the password stay on this phone.',
+    transferButton: 'Move data',
+  },
+  transfer: {
+    title: 'Move data',
+    sendTitle: 'Send from this phone',
+    sendHint: 'Shows a QR code for the other phone',
+    receiveTitle: 'Receive on this phone',
+    receiveHint: 'Scan the QR code from the old phone',
+    preparing: 'Getting the data ready…',
+    scanHint: (where) => `On the other phone open ${where} → “Receive on this phone” and point the camera at the code.`,
+    where: 'Settings → Security & storage → Move data',
+    expiresIn: (time) => `The code works for ${time} more`,
+    expired: 'Time’s up — this code no longer works',
+    sent: 'Data sent ✓',
+    again: 'Show a new code',
+    cameraTitle: 'Camera needed',
+    cameraText: 'The camera is only used to read the QR code from the other phone. Nothing is recorded or saved.',
+    cameraGrant: 'Allow camera',
+    pointCamera: 'Point the camera at the QR code on the other phone',
+    notOurCode: 'This isn’t an Amber Ledger transfer code',
+    codeExpired: 'This code no longer works — show a new one on the other phone',
+    confirmTitle: 'Move the data here?',
+    confirmText: 'All tasks and finances on this phone will be replaced with the ones from the other phone.',
+    replace: 'Move',
+    cancel: 'Cancel',
+    receiving: 'Receiving…',
+    received: 'Done, the data is here ✓',
+    failed: 'Couldn’t reach the other phone. Both must be on the same Wi-Fi (or one sharing a hotspot with the other), and the code still open.',
+    noNetwork: 'This phone isn’t on a Wi-Fi network. Connect to Wi-Fi or turn on the hotspot.',
+    needsApp: 'Moving data works only in the installed app (APK), not in Expo Go.',
   },
   financeScreen: {
     header: 'Finance',

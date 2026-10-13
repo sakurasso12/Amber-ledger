@@ -45,8 +45,16 @@
         "expo-image-picker",
         {
           "photosPermission": "Amber Ledger использует фото для картинок задач, фона приложения и виджетов.",
-          "cameraPermission": false,
+          "cameraPermission": "Amber Ledger использует камеру, чтобы сканировать QR-код при переносе данных с другого телефона.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Amber Ledger использует камеру, чтобы сканировать QR-код при переносе данных с другого телефона.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [
