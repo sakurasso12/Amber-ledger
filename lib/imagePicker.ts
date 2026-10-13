@@ -45,3 +45,8 @@ export async function deletePersistedImage(uri: string): Promise<void> {
   if (!uri.startsWith(IMAGES_DIR)) return;
   await FileSystem.deleteAsync(uri, { idempotent: true }).catch(() => {});
 }
+
+/** Erasing everything: every photo the app copied in (tasks, avatar, backgrounds). */
+export async function deleteAllPersistedImages(): Promise<void> {
+  await FileSystem.deleteAsync(IMAGES_DIR, { idempotent: true }).catch(() => {});
+}

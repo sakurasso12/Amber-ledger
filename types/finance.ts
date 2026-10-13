@@ -10,6 +10,10 @@ export interface Category {
   limitMonth: number | null;
 }
 
+/** What an expense means for a spending plan: the limit taken off the bank when the plan starts
+ * (or a new month begins), or the money spent past that limit. */
+export type PlanRole = 'reserve' | 'overspend';
+
 export interface Expense {
   id: string;
   amount: number;
@@ -17,6 +21,12 @@ export interface Expense {
   date: string;
   comment: string | null;
   createdAt: string;
+  /** Set when this expense belongs to a spending plan (see SpendPlan). */
+  planId: string | null;
+  planRole: PlanRole | null;
+  /** Logged by completing this task ("log an expense when done") — un-doing or deleting the task
+   * takes the expense back. */
+  taskId: string | null;
 }
 
 export interface ExpenseDraft {
@@ -24,6 +34,38 @@ export interface ExpenseDraft {
   categoryId: string;
   date: string;
   comment: string | null;
+  planId?: string | null;
+  planRole?: PlanRole | null;
+  taskId?: string | null;
+}
+
+/**
+ * A planned expense with a limit ("Food, 800 zł"): the whole limit comes off the bank at once as
+ * a 'reserve' expense, then purchases are ticked off against it and fill the bar. Spending past the
+ * limit logs an 'overspend' expense. Each month (period) starts over.
+ */
+export interface SpendPlan {
+  id: string;
+  name: string;
+  categoryId: string;
+  limit: number;
+  /** Counts up on every reset — purchases belong to one period. */
+  period: number;
+  /** yyyy-MM-dd the current period started. */
+  periodStart: string;
+  reserveExpenseId: string | null;
+  overspendExpenseId: string | null;
+  createdAt: string;
+}
+
+/** One purchase ticked off against a plan. */
+export interface PlanSpend {
+  id: string;
+  planId: string;
+  period: number;
+  amount: number;
+  date: string;
+  createdAt: string;
 }
 
 export interface WorkDay {

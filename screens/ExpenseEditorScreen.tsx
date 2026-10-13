@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +22,9 @@ export function ExpenseEditorScreen() {
   const addExpense = useFinanceStore((s) => s.addExpense);
   const editExpense = useFinanceStore((s) => s.editExpense);
   const removeExpense = useFinanceStore((s) => s.removeExpense);
+  const createSpendPlan = useFinanceStore((s) => s.createSpendPlan);
+  const deleteSpendPlan = useFinanceStore((s) => s.deleteSpendPlan);
+  const planExists = useFinanceStore((s) => !!existing?.planId && s.spendPlans.some((p) => p.id === existing.planId));
 
   const existing = useMemo(() => expenses.find((e) => e.id === params.id), [expenses, params.id]);
   const isEditing = !!existing;
@@ -30,6 +33,10 @@ export function ExpenseEditorScreen() {
   const [categoryId, setCategoryId] = useState(existing?.categoryId ?? categories[0]?.id ?? '');
   const [date, setDate] = useState(existing?.date ?? todayKey());
   const [comment, setComment] = useState(existing?.comment ?? '');
+  // New planned spending: the amount becomes the plan's limit and the comment its name.
+  const [planned, setPlanned] = useState(false);
+  // A plan's own records (its limit, its overspend) are managed from its bar, not edited here.
+  const planLinked = !!existing?.planRole;
 
   function close() {
     if (router.canGoBack()) router.back();
@@ -47,7 +54,13 @@ export function ExpenseEditorScreen() {
       return;
     }
 
-    if (isEditing && existing) {
+    if (planned && !isEditing) {
+      if (!comment.trim()) {
+        Alert.alert(tr.plans.nameLabel);
+        return;
+      }
+      await createSpendPlan({ name: comment.trim(), categoryId, limit: parsedAmount, date });
+    } else if (isEditing && existing) {
       await editExpense({ ...existing, amount: parsedAmount, categoryId, date, comment: comment || null });
     } else {
       await addExpense({ amount: parsedAmount, categoryId, date, comment: comment || null });
@@ -57,6 +70,22 @@ export function ExpenseEditorScreen() {
 
   function handleDelete() {
     if (!existing) return;
+    // A plan's record: deleting it undoes the whole plan, so all its money comes back.
+    if (planExists && existing.planId) {
+      const planId = existing.planId;
+      Alert.alert(tr.plans.removeTitle, tr.plans.removeText, [
+        { text: tr.plans.cancel, style: 'cancel' },
+        {
+          text: tr.plans.remove,
+          style: 'destructive',
+          onPress: async () => {
+            await deleteSpendPlan(planId);
+            close();
+          },
+        },
+      ]);
+      return;
+    }
     Alert.alert(tr.expenseEditor.deleteConfirmTitle, undefined, [
       { text: tr.expenseEditor.deleteConfirmCancel, style: 'cancel' },
       {
@@ -79,14 +108,52 @@ export function ExpenseEditorScreen() {
         {isEditing ? tr.expenseEditor.headerEdit : tr.expenseEditor.headerNew}
       </Text>
 
-      <TextField label={tr.expenseEditor.amountLabel} value={amount} onChangeText={setAmount} placeholder="0" keyboardType="decimal-pad" />
-      <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
-      <DateField label={tr.expenseEditor.dateLabel} value={date} onChange={setDate} />
-      <TextField label={tr.expenseEditor.commentLabel} value={comment} onChangeText={setComment} placeholder={tr.expenseEditor.commentPlaceholder} />
+      {planLinked ? (
+        <>
+          <Text style={[styles.planNote, { color: existing?.planRole === 'overspend' ? theme.colors.danger : theme.colors.textMuted }]}>
+            {existing?.planRole === 'overspend' ? `${tr.plans.overspend} · ` : ''}
+            {tr.plans.editorNote}
+          </Text>
+          <Button title={tr.expenseEditor.cancel} variant="secondary" onPress={close} />
+          <Button title={planExists ? tr.plans.remove : tr.expenseEditor.delete} variant="danger" onPress={handleDelete} style={styles.saveButton} />
+        </>
+      ) : (
+        <>
+          {isEditing ? null : (
+            <View style={[styles.planRow, { borderColor: theme.colors.border }]}>
+              <View style={styles.planText}>
+                <Text style={{ color: theme.colors.text, fontSize: 15, fontWeight: '600' }}>{tr.plans.toggle}</Text>
+                <Text style={{ color: theme.colors.textMuted, fontSize: 12, lineHeight: 17 }}>{tr.plans.toggleHint}</Text>
+              </View>
+              <Switch
+                value={planned}
+                onValueChange={setPlanned}
+                trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
+                thumbColor={theme.colors.surface}
+              />
+            </View>
+          )}
+          <TextField
+            label={planned ? tr.plans.limitLabel : tr.expenseEditor.amountLabel}
+            value={amount}
+            onChangeText={setAmount}
+            placeholder="0"
+            keyboardType="decimal-pad"
+          />
+          <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
+          {planned ? null : <DateField label={tr.expenseEditor.dateLabel} value={date} onChange={setDate} />}
+          <TextField
+            label={planned ? tr.plans.nameLabel : tr.expenseEditor.commentLabel}
+            value={comment}
+            onChangeText={setComment}
+            placeholder={planned ? tr.plans.namePlaceholder : tr.expenseEditor.commentPlaceholder}
+          />
 
-      <Button title={tr.expenseEditor.save} onPress={handleSave} style={styles.saveButton} />
-      <Button title={tr.expenseEditor.cancel} variant="secondary" onPress={close} />
-      {isEditing ? <Button title={tr.expenseEditor.delete} variant="danger" onPress={handleDelete} style={styles.saveButton} /> : null}
+          <Button title={tr.expenseEditor.save} onPress={handleSave} style={styles.saveButton} />
+          <Button title={tr.expenseEditor.cancel} variant="secondary" onPress={close} />
+          {isEditing ? <Button title={tr.expenseEditor.delete} variant="danger" onPress={handleDelete} style={styles.saveButton} /> : null}
+        </>
+      )}
     </ScrollView>
     </Screen>
   );
@@ -96,4 +163,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, gap: 16 },
   header: { fontSize: 20, fontWeight: '700' },
   saveButton: { marginTop: 4 },
+  planRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth },
+  planText: { flex: 1, gap: 3 },
+  planNote: { fontSize: 14, lineHeight: 20 },
 });

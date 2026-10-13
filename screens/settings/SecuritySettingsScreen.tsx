@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -7,7 +7,11 @@ import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { deviceAuthAvailable, lockFinances } from '@/store/useFinanceLock';
 import { Ionicons } from '@expo/vector-icons';
-import { Button, PressableScale, Screen, SubScreenHeader, Text, TextField } from '@/components/ui';
+import { Button, PressableScale, Screen, SegmentedControl, SubScreenHeader, Text, TextField, useAuthPrompt, useEraseCountdown } from '@/components/ui';
+import { useTaskStore } from '@/store/useTaskStore';
+import { useFinanceStore } from '@/store/useFinanceStore';
+import { eraseEverything, eraseFinance, eraseProfile, eraseTasks } from '@/lib/dataWipe';
+import { haptics } from '@/lib/haptics';
 import { FINANCE_LOCK_MAX_MINUTES, FinanceLockMethod } from '@/types';
 import { useTranslation } from '@/i18n';
 
@@ -16,7 +20,13 @@ const METHODS: { value: FinanceLockMethod; icon: keyof typeof Ionicons.glyphMap 
   { value: 'password', icon: 'key-outline' },
 ];
 
-/** Settings → Security: whether Finance is locked, how to unlock it, and how soon it re-locks. */
+type EraseKind = 'tasks' | 'finance' | 'profile' | 'all';
+const CLEANUP_MONTHS = [0, 1, 2, 3, 6, 12];
+
+/**
+ * Settings → Security & storage: whether Finance is locked, how to unlock it and how soon it
+ * re-locks; then storage — auto clean-up of old records and erasing data.
+ */
 export function SecuritySettingsScreen() {
   const theme = useTheme();
   const tr = useTranslation();
@@ -127,8 +137,104 @@ export function SecuritySettingsScreen() {
             </View>
           </>
         ) : null}
+
+        <StorageSection />
       </ScrollView>
     </Screen>
+  );
+}
+
+/**
+ * Storage: what's kept, the auto clean-up and the erase buttons. Every erase asks "for sure?",
+ * then the profile password (or the phone's lock); erasing everything also runs a 10-second
+ * countdown that can still be cancelled.
+ */
+function StorageSection() {
+  const theme = useTheme();
+  const tr = useTranslation();
+  const router = useRouter();
+  const taskCount = useTaskStore((s) => s.tasks.length);
+  const expenseCount = useFinanceStore((s) => s.expenses.length);
+  const cleanupMonths = useSettingsStore((s) => s.settings.autoCleanupMonths);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const { ask, prompt } = useAuthPrompt();
+  const { run, countdown } = useEraseCountdown();
+  const [busy, setBusy] = useState(false);
+
+  const confirmText: Record<EraseKind, string> = {
+    tasks: tr.storage.confirmTasks,
+    finance: tr.storage.confirmFinance,
+    profile: tr.storage.confirmProfile,
+    all: tr.storage.confirmAll,
+  };
+  const wipe: Record<EraseKind, () => Promise<void>> = {
+    tasks: eraseTasks,
+    finance: eraseFinance,
+    profile: eraseProfile,
+    all: eraseEverything,
+  };
+
+  async function erase(kind: EraseKind) {
+    if (kind === 'all' && !(await run())) return;
+    if (!(await ask('profile'))) return;
+    setBusy(true);
+    try {
+      await wipe[kind]();
+      haptics.success();
+    } finally {
+      setBusy(false);
+    }
+    if (kind === 'all') router.navigate('/');
+    else Alert.alert(tr.storage.done);
+  }
+
+  function confirm(kind: EraseKind) {
+    haptics.warning();
+    Alert.alert(tr.storage.confirmTitle, confirmText[kind], [
+      { text: tr.storage.cancel, style: 'cancel' },
+      { text: tr.storage.erase, style: 'destructive', onPress: () => erase(kind) },
+    ]);
+  }
+
+  return (
+    <>
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{tr.storage.title}</Text>
+      <View style={[styles.card, cardSurface(theme)]}>
+        <Text style={[styles.rowTitle, { color: theme.colors.text }]}>{tr.storage.counts(taskCount, expenseCount)}</Text>
+        <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.storage.hint}</Text>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.storage.autoTitle}</Text>
+        <SegmentedControl
+          value={String(cleanupMonths)}
+          onChange={(value) => updateSettings({ autoCleanupMonths: Number(value), lastAutoCleanup: null })}
+          segments={CLEANUP_MONTHS.map((n) => ({ value: String(n), label: n === 0 ? tr.storage.off : String(n) }))}
+        />
+        <Text style={[styles.hint, { color: theme.colors.textMuted }]}>
+          {cleanupMonths > 0 ? `${tr.storage.months(cleanupMonths)} · ` : ''}
+          {tr.storage.autoHint}
+        </Text>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.storage.transferTitle}</Text>
+        <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.storage.transferHint}</Text>
+        <Button title={tr.storage.transferButton} disabled={busy} onPress={() => router.push('/settings/transfer' as never)} />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.storage.eraseTitle}</Text>
+        <View style={styles.eraseGrid}>
+          <Button title={tr.storage.eraseTasks} variant="secondary" disabled={busy} onPress={() => confirm('tasks')} style={styles.eraseButton} />
+          <Button title={tr.storage.eraseFinance} variant="secondary" disabled={busy} onPress={() => confirm('finance')} style={styles.eraseButton} />
+          <Button title={tr.storage.eraseProfile} variant="secondary" disabled={busy} onPress={() => confirm('profile')} style={styles.eraseButton} />
+        </View>
+        <Button title={tr.storage.eraseAll} variant="danger" disabled={busy} onPress={() => confirm('all')} />
+      </View>
+      {prompt}
+      {countdown}
+    </>
   );
 }
 
@@ -145,4 +251,7 @@ const styles = StyleSheet.create({
   methodLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
   minutesRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   minutesInput: { width: 72 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', marginTop: 12 },
+  eraseGrid: { gap: 8 },
+  eraseButton: {},
 });

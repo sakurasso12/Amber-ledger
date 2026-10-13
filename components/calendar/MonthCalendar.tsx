@@ -11,6 +11,8 @@ export interface DayMarker {
   /** Priority-coded dot colors for tasks due this day, deduped, most urgent first. */
   taskColors: string[];
   hasExpense: boolean;
+  /** Something was done or added that day — a faint dot, so past days show their history. */
+  hasArchive?: boolean;
 }
 
 interface MonthCalendarProps {
@@ -87,7 +89,7 @@ export function MonthCalendar({ month, markers, selectedDate, onSelectDate }: Mo
                   >
                     {date.getDate()}
                   </Text>
-                  {marker && (marker.taskColors.length > 0 || marker.hasExpense) ? (
+                  {marker && (marker.taskColors.length > 0 || marker.hasExpense || marker.hasArchive) ? (
                     <View style={styles.markerRow}>
                       {marker.taskColors.slice(0, MAX_TASK_DOTS).map((color, i) => (
                         <View
@@ -95,6 +97,9 @@ export function MonthCalendar({ month, markers, selectedDate, onSelectDate }: Mo
                           style={[styles.marker, { backgroundColor: isSelected ? theme.colors.primaryText : color }]}
                         />
                       ))}
+                      {marker.hasArchive && marker.taskColors.length === 0 ? (
+                        <View style={[styles.marker, { backgroundColor: isSelected ? theme.colors.primaryText : theme.colors.textMuted, opacity: 0.6 }]} />
+                      ) : null}
                       {marker.hasExpense ? (
                         <Ionicons
                           name="cash-outline"

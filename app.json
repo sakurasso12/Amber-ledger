@@ -2,12 +2,11 @@
   "expo": {
     "name": "Amber Ledger",
     "slug": "amber-ledger",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "scheme": "amberledger",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.amberledger.app"
@@ -45,8 +44,16 @@
         "expo-image-picker",
         {
           "photosPermission": "Amber Ledger использует фото для картинок задач, фона приложения и виджетов.",
-          "cameraPermission": false,
+          "cameraPermission": "Amber Ledger использует камеру, чтобы сканировать QR-код при переносе данных с другого телефона.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Amber Ledger использует камеру, чтобы сканировать QR-код при переносе данных с другого телефона.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [

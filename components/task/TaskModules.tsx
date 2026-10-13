@@ -8,6 +8,7 @@ import { Habit } from '@/lib/streaks';
 import { SegmentedControl, Text } from '@/components/ui';
 import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
 import { LayoutEditingContext } from '@/components/ui/LayoutEditing';
+import { HiddenModuleItem, RemoveModuleButton, useHiddenModules } from '@/components/ui/HiddenModules';
 import { useTranslation } from '@/i18n';
 import { HabitCard } from './HabitCard';
 import { LevelCard } from './LevelCard';
@@ -16,6 +17,7 @@ const GAP = 10;
 const LEVEL_KEY = 'level';
 
 const FOCUS_KEY = 'focus';
+const BOARD_ID = 'tasks-modules';
 
 type Module = { key: string; habit: Habit | null };
 
@@ -42,10 +44,11 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
   const tr = useTranslation();
   const savedOrder = useSettingsStore((s) => s.settings.tasksModuleOrder);
   const columns = useSettingsStore((s) => s.settings.tasksModuleColumns);
-  const { showHint, markSeen } = useLayoutHint('tasks-modules');
+  const { showHint, markSeen } = useLayoutHint(BOARD_ID);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [width, setWidth] = useState(0);
   const [jellies] = useState(createJellyRegistry);
+  const { hidden, hide } = useHiddenModules(BOARD_ID);
 
   const hasFocus = !!focus;
   const modules = useMemo(
@@ -57,8 +60,8 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
           ...(hasFocus ? [{ key: FOCUS_KEY, habit: null }] : []),
         ],
         savedOrder
-      ),
-    [habits, savedOrder, hasFocus]
+      ).filter((m) => m.habit !== null || !hidden.includes(m.key)),
+    [habits, savedOrder, hasFocus, hidden]
   );
   const size = Math.floor((width - GAP * (columns - 1)) / columns);
 
@@ -96,7 +99,9 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
               activeItemShadowOpacity={0.25}
               hapticsEnabled
               onDragEnd={({ order }) => {
-                updateSettings({ tasksModuleOrder: order(modules).map((m) => m.key) });
+                // Removed modules keep their old spot at the end, ready to come back.
+                const visible = order(modules).map((m) => m.key);
+                updateSettings({ tasksModuleOrder: [...visible, ...savedOrder.filter((key) => !visible.includes(key))] });
                 markSeen();
               }}
               onActiveItemDropped={({ key }) => jellies.get(droppedKey(key))?.()}
@@ -109,6 +114,8 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
                     {item.key === FOCUS_KEY ? focus : item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
                     {/* The faint outline that marks each module's place while editing. */}
                     {editing ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.outline, { borderColor: theme.colors.primary }]} /> : null}
+                    {/* Habits can't be removed: if one isn't needed, it's simply not made a habit. */}
+                    {editing && !item.habit ? <RemoveModuleButton onPress={() => hide(item.key)} /> : null}
                   </LayoutEditItem>
                 </View>
               ))}
@@ -127,3 +134,12 @@ const styles = StyleSheet.create({
   columnsControl: { width: 120 },
   outline: { borderWidth: 1, borderStyle: 'dashed', borderRadius: 20, opacity: 0.35, margin: -4 },
 });
+
+/** The modules removed from the top of Tasks, for the ⋮ list: the level ring and the focus card. */
+export function useHiddenTaskModules(hasFocus: boolean): HiddenModuleItem[] {
+  const tr = useTranslation();
+  const { hidden, show } = useHiddenModules(BOARD_ID);
+  const titles = new Map<string, string>([[LEVEL_KEY, tr.level.tasksDone]]);
+  if (hasFocus) titles.set(FOCUS_KEY, tr.layoutText.focus);
+  return hidden.filter((key) => titles.has(key)).map((key) => ({ key, title: titles.get(key)!, restore: () => show(key) }));
+}

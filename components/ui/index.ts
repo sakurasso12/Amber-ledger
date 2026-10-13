@@ -22,3 +22,6 @@ export * from './TextField';
 export * from './useKeyboardHeight';
 export * from './ModuleBoard';
 export * from './EditLayoutButton';
+export * from './HiddenModules';
+export * from './AuthPrompt';
+export * from './EraseCountdown';

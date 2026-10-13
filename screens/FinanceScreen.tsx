@@ -1,25 +1,29 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { addMonths, startOfMonth } from 'date-fns';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
-import { useFinanceStore } from '@/store/useFinanceStore';
+import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
+import { unspentInPlans } from '@/lib/plans';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar } from '@/components/ui';
+import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar, useHiddenBoardItems } from '@/components/ui';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { BalanceCard } from '@/components/finance/BalanceCard';
 import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
 import { FinanceMenuBody, FinanceMenuHeader } from '@/components/finance/FinanceMenu';
 import { WorkCalendar } from '@/components/finance/WorkCalendar';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
-import { formatRangeLabel, monthRange, todayKey, weekRange } from '@/lib/dateRanges';
+import { formatRangeLabel, monthRange, toDateKey, todayKey, weekRange } from '@/lib/dateRanges';
 import { payrollState } from '@/lib/earnings';
 import { syncSalaryReminder } from '@/notifications';
 import { computeBankBalance, totalExpenses } from '@/lib/expenses';
 import { useTranslation } from '@/i18n';
 import { FinanceLockGate } from '@/components/finance/FinanceLockGate';
 import { SavingsCard } from '@/components/finance/SavingsCard';
+import { PlanBar } from '@/components/finance/PlanBar';
 
 export function FinanceScreen() {
   const theme = useTheme();
@@ -32,6 +36,11 @@ export function FinanceScreen() {
   const categories = useFinanceStore((s) => s.categories);
   const workDays = useFinanceStore((s) => s.workDays);
   const plannedExpenses = useFinanceStore((s) => s.plannedExpenses);
+  const spendPlans = useFinanceStore((s) => s.spendPlans);
+  const planSpends = useFinanceStore((s) => s.planSpends);
+  const rollOverSpendPlans = useFinanceStore((s) => s.rollOverSpendPlans);
+  const spending = useSpendingExpenses();
+  const inPlans = useMemo(() => unspentInPlans(spendPlans, planSpends), [spendPlans, planSpends]);
   const addExpense = useFinanceStore((s) => s.addExpense);
   const plannedTotal = useMemo(() => plannedExpenses.reduce((sum, p) => sum + p.amount, 0), [plannedExpenses]);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -81,13 +90,15 @@ export function FinanceScreen() {
   );
   const bank = bankBeforeSalary + payroll.creditedSinceSet;
 
-  function handleEditBank(newBase: number) {
+  // What's typed is what's in the account; the plans' unspent part comes off to keep "free" right.
+  function handleEditBank(inAccount: number) {
     const setAt = new Date().toISOString();
-    updateSettings({ bankBalanceBase: newBase, bankBalanceSetAt: setAt, lastSettledAt: todayKey() });
+    updateSettings({ bankBalanceBase: inAccount - inPlans, bankBalanceSetAt: setAt, lastSettledAt: todayKey() });
   }
 
-  const spentThisWeek = useMemo(() => totalExpenses(expenses, weekRange(new Date())), [expenses]);
-  const spentThisMonth = useMemo(() => totalExpenses(expenses, monthRange(new Date())), [expenses]);
+  // Spent = what was bought: plan purchases count, not a plan's whole limit.
+  const spentThisWeek = useMemo(() => totalExpenses(spending, weekRange(new Date())), [spending]);
+  const spentThisMonth = useMemo(() => totalExpenses(spending, monthRange(new Date())), [spending]);
   const hasBudgetLimits = !!settings.budgetLimitWeek || !!settings.budgetLimitMonth;
 
   const expenseMode = theme.layout.expenses;
@@ -145,10 +156,12 @@ export function FinanceScreen() {
   const modules: BoardModule[] = [
     {
       key: 'balance',
+      title: tr.layoutEdit.modules.balance,
       sizes: ['full'],
       render: () => (
         <BalanceCard
           bank={bank}
+          inPlans={inPlans}
           spentSinceSet={spentSinceSet}
           creditedSinceSet={payroll.creditedSinceSet}
           onEditBank={handleEditBank}
@@ -161,11 +174,19 @@ export function FinanceScreen() {
         />
       ),
     },
-    { key: 'spend-week', sizes: ['half'], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
-    { key: 'spend-month', sizes: ['half'], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
-    ...(hasBudgetLimits ? [{ key: 'budget', sizes: ['full', 'half'] as ModuleSize[], render: budgetCard }] : []),
+    { key: 'spend-week', title: tr.layoutEdit.modules.spendWeek, sizes: ['half'], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
+    { key: 'spend-month', title: tr.layoutEdit.modules.spendMonth, sizes: ['half'], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
+    // Planned spending: one bar per plan, full width.
+    ...spendPlans.map((plan) => ({
+      key: `plan-${plan.id}`,
+      title: plan.name,
+      sizes: ['full'] as ModuleSize[],
+      render: () => <PlanBar plan={plan} disabled={editingLayout} />,
+    })),
+    ...(hasBudgetLimits ? [{ key: 'budget', title: tr.layoutEdit.modules.budget, sizes: ['full', 'half'] as ModuleSize[], render: budgetCard }] : []),
     {
       key: 'work-calendar',
+      title: tr.layoutEdit.modules.workCalendar,
       sizes: ['full'],
       render: () => (
         <CustomizableCard widgetId="finance-work-calendar">
@@ -178,6 +199,7 @@ export function FinanceScreen() {
       : [
           {
             key: 'savings',
+            title: tr.savings.title,
             // The opt-in question needs the full width; the card itself also fits in half.
             sizes: (settings.savingsCard === 'ask' ? ['full'] : ['full', 'half']) as ModuleSize[],
             render: (size: ModuleSize) => <SavingsCard compact={size === 'half'} />,
@@ -185,20 +207,46 @@ export function FinanceScreen() {
         ]),
   ];
 
+  // ⋮ while editing: widgets removed from this screen. The savings card switched off from its own
+  // menu counts as removed too, and coming back turns it on.
+  const hiddenItems = useHiddenBoardItems('finance', modules);
+  const removedItems =
+    settings.savingsCard === 'off'
+      ? [...hiddenItems, { key: 'savings-off', title: tr.savings.title, restore: () => updateSettings({ savingsCard: 'on' }) }]
+      : hiddenItems;
+
+  // The list shows this month only and starts empty on the 1st. Nothing is deleted — every
+  // expense stays in Calendar and Stats, and the bank figure doesn't move.
+  const monthStartKey = toDateKey(startOfMonth(now));
+  // A new month: every spending plan starts over (also checked at app start).
+  useEffect(() => {
+    rollOverSpendPlans();
+  }, [monthStartKey, rollOverSpendPlans]);
+  const monthExpenses = useMemo(() => expenses.filter((e) => e.date >= monthStartKey), [expenses, monthStartKey]);
+  function showListInfo() {
+    const nextClear = startOfMonth(addMonths(now, 1)).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'long' });
+    Alert.alert(tr.financeScreen.listInfoTitle, tr.financeScreen.listInfo(nextClear));
+  }
+
   const listHeader = (
           <View style={styles.topSection}>
             {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
             <FinanceMenuBody />
             <ModuleBoard boardId="finance" modules={modules} editing={editingLayout} />
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: theme.colors.text },
-                expenseMode === 'big' && styles.bigSectionTitle,
-              ]}
-            >
-              {expenseMode === 'big' ? tr.layoutText.expenses.toUpperCase() : tr.financeScreen.recentExpenses}
-            </Text>
+            <View style={styles.sectionRow}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: theme.colors.text },
+                  expenseMode === 'big' && styles.bigSectionTitle,
+                ]}
+              >
+                {expenseMode === 'big' ? tr.layoutText.expenses.toUpperCase() : tr.financeScreen.recentExpenses}
+              </Text>
+              <Pressable onPress={showListInfo} hitSlop={10} accessibilityLabel={tr.financeScreen.listInfoTitle}>
+                <Ionicons name="information-circle-outline" size={20} color={theme.colors.textMuted} />
+              </Pressable>
+            </View>
           </View>
   );
 
@@ -208,13 +256,14 @@ export function FinanceScreen() {
       right={
         <View style={styles.headerRight}>
           <FinanceMenuHeader />
+          {editingLayout ? <HiddenModulesButton items={removedItems} /> : null}
           <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={locked} />
         </View>
       }
     >
       <FinanceLockGate clearRail>
       <FlatList
-        data={expenses}
+        data={monthExpenses}
         keyExtractor={(expense) => expense.id}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={listHeader}
@@ -250,6 +299,7 @@ const styles = StyleSheet.create({
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   topSection: { gap: 14, marginBottom: 14 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 4 },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   budgetTitle: { marginTop: 0, marginBottom: 2 },
   budgetRow: { gap: 6, marginTop: 8 },
   budgetLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },

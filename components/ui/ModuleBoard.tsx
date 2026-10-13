@@ -8,12 +8,15 @@ import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from './LayoutEditItem';
 import { LayoutEditingContext } from './LayoutEditing';
+import { HiddenModuleItem, RemoveModuleButton, useHiddenModules } from './HiddenModules';
 import { Text } from './Text';
 
 export type ModuleSize = 'half' | 'full';
 
 export interface BoardModule {
   key: string;
+  /** Name in the ⋮ list of removed widgets. */
+  title: string;
   /** Sizes this module looks right in; the first is its default. One size = can't be resized. */
   sizes: ModuleSize[];
   render: (size: ModuleSize) => React.ReactNode;
@@ -42,8 +45,12 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const [width, setWidth] = useState(0);
   const [jellies] = useState(createJellyRegistry);
+  const { hidden, hide } = useHiddenModules(boardId);
 
-  const list = useMemo(() => ordered(modules, saved?.order ?? []), [modules, saved?.order]);
+  const list = useMemo(
+    () => ordered(modules.filter((m) => !hidden.includes(m.key)), saved?.order ?? []),
+    [modules, saved?.order, hidden]
+  );
   const sizeOf = (m: BoardModule): ModuleSize => {
     const chosen = saved?.sizes?.[m.key];
     return chosen && m.sizes.includes(chosen) ? chosen : m.sizes[0];
@@ -80,7 +87,9 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
             inactiveItemOpacity={1}
             hapticsEnabled
             onDragEnd={({ order }) => {
-              save({ order: order(list).map((m) => m.key) });
+              // Removed widgets keep their old spot at the end of the saved order, ready to come back.
+              const visible = order(list).map((m) => m.key);
+              save({ order: [...visible, ...(saved?.order ?? []).filter((key) => !visible.includes(key))] });
               markSeen();
             }}
             onActiveItemDropped={({ key }) => jellies.get(droppedKey(key))?.()}
@@ -97,6 +106,7 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
                       <>
                         {/* The faint outline that marks each card's place while editing. */}
                         <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.outline, { borderColor: theme.colors.primary }]} />
+                        <RemoveModuleButton onPress={() => hide(m.key)} />
                         {m.sizes.length > 1 ? (
                           <Pressable
                             onPress={() => toggleSize(m)}
@@ -136,3 +146,9 @@ const styles = StyleSheet.create({
   },
   resizeText: { fontSize: 12, fontWeight: '800' },
 });
+
+/** The removed widgets of a board, ready for the ⋮ list. */
+export function useHiddenBoardItems(boardId: string, modules: BoardModule[]): HiddenModuleItem[] {
+  const { hidden, show } = useHiddenModules(boardId);
+  return modules.filter((m) => hidden.includes(m.key)).map((m) => ({ key: m.key, title: m.title, restore: () => show(m.key) }));
+}

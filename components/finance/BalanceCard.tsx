@@ -6,8 +6,11 @@ import { CustomizableCard, Button, TextField, useKeyboardHeight } from '@/compon
 import { useTranslation } from '@/i18n';
 
 interface BalanceCardProps {
-  /** Cash on hand: manual base − expenses + salaries credited since (see FinanceScreen). */
+  /** Cash on hand: manual base − expenses + salaries credited since (see FinanceScreen). Spending
+   * plans' limits are already taken off this — it's what's free to spend. */
   bank: number;
+  /** The part of plan limits not spent yet: still in the account, but promised to the plans. */
+  inPlans: number;
   spentSinceSet: number;
   /** Salary added to Bank automatically on paydays since it was last set by hand. */
   creditedSinceSet: number;
@@ -25,7 +28,8 @@ interface BalanceCardProps {
 }
 
 export function BalanceCard({
-  bank,
+  bank: free,
+  inPlans,
   spentSinceSet,
   creditedSinceSet,
   onEditBank,
@@ -39,10 +43,12 @@ export function BalanceCard({
   const theme = useTheme();
   const keyboardHeight = useKeyboardHeight();
   const tr = useTranslation();
+  // The big figure is what's in the account (matches your bank app); "free" leaves the plans out.
+  const bank = free + inPlans;
   const bankColor = bank >= 0 ? theme.colors.success : theme.colors.danger;
   // What will be on the card once the salary for the closed period arrives. The still-accruing
   // current period is left out — that money isn't earned yet.
-  const total = bank + awaiting - plannedTotal;
+  const total = free + awaiting - plannedTotal;
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -68,6 +74,11 @@ export function BalanceCard({
       <Text style={[styles.subline, { color: muted }]}>
         {tr.financeScreen.spent.toLowerCase()}: {spentSinceSet.toFixed(0)}
       </Text>
+      {inPlans > 0 ? (
+        <Text style={[styles.subline, { color: muted }]}>
+          {tr.financeScreen.inPlans}: {inPlans.toFixed(0)} · {tr.financeScreen.free}: {free.toFixed(0)}
+        </Text>
+      ) : null}
       {creditedSinceSet > 0 ? (
         <Text style={[styles.subline, { color: muted }]}>
           {tr.financeScreen.salaryCredited}: +{creditedSinceSet.toFixed(0)}

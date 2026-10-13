@@ -69,6 +69,20 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     }
   }
 
+  if (currentVersion < 6) {
+    // spend_plans / plan_spends are new tables (created above); expenses learn which plan they belong to.
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(expenses)');
+    const names = new Set(columns.map((c) => c.name));
+    if (!names.has('plan_id')) await db.execAsync('ALTER TABLE expenses ADD COLUMN plan_id TEXT');
+    if (!names.has('plan_role')) await db.execAsync('ALTER TABLE expenses ADD COLUMN plan_role TEXT');
+  }
+
+  if (currentVersion < 7) {
+    // Expenses logged by completing a task remember the task, so un-doing it takes them back.
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(expenses)');
+    if (!columns.some((c) => c.name === 'task_id')) await db.execAsync('ALTER TABLE expenses ADD COLUMN task_id TEXT');
+  }
+
   if (currentVersion < SCHEMA_VERSION) {
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }

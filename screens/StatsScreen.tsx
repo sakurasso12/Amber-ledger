@@ -4,9 +4,9 @@ import { Text } from '@/components/ui/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
-import { useFinanceStore } from '@/store/useFinanceStore';
+import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { BoardModule, CustomizableCard, EditLayoutButton, LayoutScreen, ModuleBoard, ModuleSize, SegmentedControl } from '@/components/ui';
+import { BoardModule, CustomizableCard, EditLayoutButton, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, SegmentedControl, useHiddenBoardItems } from '@/components/ui';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { BarChart } from '@/components/charts/BarChart';
 import { CategoryBreakdownBars } from '@/components/charts/CategoryBreakdownBars';
@@ -27,7 +27,8 @@ export function StatsScreen() {
   const [tab, setTab] = useState<Tab>('tasks');
 
   const tasks = useTaskStore((s) => s.tasks);
-  const expenses = useFinanceStore((s) => s.expenses);
+  // What was bought: plan purchases instead of a plan's whole limit.
+  const expenses = useSpendingExpenses();
   const categories = useFinanceStore((s) => s.categories);
   const workDays = useFinanceStore((s) => s.workDays);
   const settings = useSettingsStore((s) => s.settings);
@@ -106,7 +107,7 @@ export function StatsScreen() {
         )}
       </CustomizableCard>
     );
-    return { key: id, sizes: ['full', 'half'] as ModuleSize[], render: card };
+    return { key: id, title, sizes: ['full', 'half'] as ModuleSize[], render: card };
   };
 
   const taskModules: BoardModule[] = [
@@ -125,6 +126,7 @@ export function StatsScreen() {
     ),
     {
       key: 'stats-categories',
+      title: tr.stats.expensesByCategory,
       // A list of categories with bars — needs the full width.
       sizes: ['full'],
       render: () => (
@@ -143,10 +145,19 @@ export function StatsScreen() {
     },
   ];
 
+  const hiddenTaskItems = useHiddenBoardItems('stats-tasks', taskModules);
+  const hiddenFinanceItems = useHiddenBoardItems('stats-finance', financeModules);
+
   return (
     <LayoutScreen
       title={tr.stats.header}
-      right={<EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={financeLocked} />}
+      right={
+        <View style={styles.headerRight}>
+          {/* ⋮ lists what was removed from the tab that's open. */}
+          {editingLayout ? <HiddenModulesButton items={tab === 'tasks' ? hiddenTaskItems : hiddenFinanceItems} /> : null}
+          <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={financeLocked} />
+        </View>
+      }
     >
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
         <SegmentedControl<Tab>
@@ -184,5 +195,6 @@ const styles = StyleSheet.create({
   card: { gap: 12 },
   cardTitle: { fontSize: 15, fontWeight: '700' },
   halfValue: { fontSize: 34, fontWeight: '800' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

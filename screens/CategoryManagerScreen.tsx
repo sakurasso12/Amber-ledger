@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
-import { useFinanceStore } from '@/store/useFinanceStore';
+import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { Button, ProgressBar, Screen, TextField, useKeyboardHeight } from '@/components/ui';
 import { useTranslation } from '@/i18n';
@@ -24,7 +24,8 @@ export function CategoryManagerScreen() {
   const insets = useSafeAreaInsets();
   const currency = useSettingsStore((s) => s.settings.currency);
   const categories = useFinanceStore((s) => s.categories);
-  const expenses = useFinanceStore((s) => s.expenses);
+  // Category limits compare what was bought (plan purchases, not whole plan limits).
+  const expenses = useSpendingExpenses();
   const addCategory = useFinanceStore((s) => s.addCategory);
   const editCategory = useFinanceStore((s) => s.editCategory);
   const removeCategory = useFinanceStore((s) => s.removeCategory);

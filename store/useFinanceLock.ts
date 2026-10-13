@@ -60,6 +60,12 @@ export async function unlockWithDevice(prompt: string, cancelLabel: string): Pro
   return result.success;
 }
 
+/** Fingerprint / phone PIN to confirm one sensitive action — doesn't unlock Finance. */
+export async function confirmWithDevice(prompt: string, cancelLabel: string): Promise<boolean> {
+  const result = await LocalAuthentication.authenticateAsync({ promptMessage: prompt, cancelLabel, disableDeviceFallback: false, requireConfirmation: false });
+  return result.success;
+}
+
 /** Profile password — the fallback when the fingerprint isn't available or was forgotten. */
 export async function unlockWithPassword(password: string): Promise<boolean> {
   if (!(await checkProfilePassword(password))) return false;

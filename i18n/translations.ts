@@ -74,17 +74,82 @@ export interface Translation {
     streakHint: string;
   };
   habits: { doneToday: string; markDone: string; next: (day: string) => string };
-  calendarScreen: { header: string; emptyDay: string };
+  calendarScreen: { header: string; emptyDay: string; doneSection: string; addedSection: string };
+  auth: { title: string; passwordLabel: string; wrong: string; confirm: string; cancel: string; devicePrompt: string };
+  storage: {
+    title: string;
+    hint: string;
+    counts: (tasks: number, expenses: number) => string;
+    autoTitle: string;
+    autoHint: string;
+    off: string;
+    months: (n: number) => string;
+    eraseTitle: string;
+    eraseTasks: string;
+    eraseFinance: string;
+    eraseProfile: string;
+    eraseAll: string;
+    confirmTitle: string;
+    confirmTasks: string;
+    confirmFinance: string;
+    confirmProfile: string;
+    confirmAll: string;
+    erase: string;
+    cancel: string;
+    countdown: string;
+    countdownHint: string;
+    done: string;
+    transferTitle: string;
+    transferHint: string;
+    transferButton: string;
+  };
+  transfer: {
+    title: string;
+    sendTitle: string;
+    sendHint: string;
+    receiveTitle: string;
+    receiveHint: string;
+    preparing: string;
+    scanHint: (where: string) => string;
+    where: string;
+    expiresIn: (time: string) => string;
+    expired: string;
+    sent: string;
+    again: string;
+    cameraTitle: string;
+    cameraText: string;
+    cameraGrant: string;
+    pointCamera: string;
+    notOurCode: string;
+    codeExpired: string;
+    confirmTitle: string;
+    confirmText: string;
+    replace: string;
+    cancel: string;
+    receiving: string;
+    received: string;
+    failed: string;
+    noNetwork: string;
+    needsApp: string;
+    welcomeTitle: string;
+    welcomeText: string;
+    welcomeYes: string;
+    welcomeNo: string;
+  };
   financeScreen: {
     header: string;
     categoriesLink: string;
     recentExpenses: string;
+    listInfoTitle: string;
+    listInfo: (nextClear: string) => string;
     emptyTitle: string;
     emptySubtitle: string;
     thisMonth: string;
     earned: string;
     spent: string;
     bank: string;
+    inPlans: string;
+    free: string;
     incoming: string;
     total: string;
     editBankTitle: string;
@@ -94,6 +159,7 @@ export interface Translation {
     plannedIncluded: string;
     plannedLink: string;
     recurringLink: string;
+    rateLink: string;
     budgetTitle: string;
   };
   plannedExpenses: {
@@ -213,7 +279,52 @@ export interface Translation {
     minutes: string;
     streakChoose: string;
   };
-  layoutEdit: { edit: string; done: string; perRow: string; order: string; byDeadline: string; ownOrder: string; resize: string };
+  layoutEdit: {
+    edit: string;
+    done: string;
+    perRow: string;
+    order: string;
+    byDeadline: string;
+    ownOrder: string;
+    resize: string;
+    remove: string;
+    hiddenTitle: string;
+    hiddenEmpty: string;
+    modules: { balance: string; spendWeek: string; spendMonth: string; budget: string; workCalendar: string };
+  };
+  plans: {
+    toggle: string;
+    toggleHint: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    limitLabel: string;
+    spentLabel: string;
+    add: string;
+    history: string;
+    noSpends: string;
+    changeLimit: string;
+    confirmChangeTitle: string;
+    confirmChangeText: string;
+    confirmYes: string;
+    cancel: string;
+    passwordLabel: string;
+    passwordWrong: string;
+    confirm: string;
+    devicePrompt: string;
+    monthEnd: string;
+    nextLimit: (amount: string) => string;
+    newPeriod: string;
+    reset: string;
+    changeBudget: string;
+    newLimit: string;
+    save: string;
+    remove: string;
+    removeTitle: string;
+    removeText: string;
+    overspend: string;
+    planTag: string;
+    editorNote: string;
+  };
   level: { tasksDone: string; sound: string; soundHint: string };
   habitWidget: { title: string; subtitle: string; empty: string; done: string };
   defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
@@ -364,6 +475,15 @@ const ru: Translation = {
         { title: 'Расставь как нравится', text: 'Карандаш ✏️ на задачах, финансах, статистике и в календаре: перетаскивай карточки, меняй размер и форму углов.' },
         { title: 'Виджет серии', text: 'Маленький квадрат 1×1 на рабочий стол — огонёк и число. Нажми на него, чтобы выбрать привычку.' },
       ],
+      '1.3.0': [
+        { title: 'Что нового в 1.3.0', text: 'Большое обновление финансов и данных — пролистай, покажем главное.' },
+        { title: 'Плановые траты 🌊', text: 'Включи «Плановая трата» при добавлении траты: лимит сразу спишется, а покупки заполнят шкалу волной. Перебор — красным, 1-го числа план начнётся заново.' },
+        { title: 'Банк честнее', text: 'Наверху — сколько на счету, под ним — сколько свободно с учётом планов. Удалил трату или задачу с тратой — деньги вернутся.' },
+        { title: 'Календарь — архив', text: 'В любом дне видно, что сделано и добавлено. Список трат в Финансах — только за месяц, вся история остаётся в календаре.' },
+        { title: 'Безопасность и память', text: 'Автоочистка старого, стирание данных с отсчётом и паролем — в настройках.' },
+        { title: 'Перенос по QR', text: 'Новый телефон? Перенеси задачи, финансы и профиль по QR-коду через Wi-Fi, без интернета.' },
+        { title: 'Свой набор виджетов', text: 'В режиме карандаша ✏️ убирай ненужные карточки кнопкой «−», вернуть — через «⋮».' },
+      ],
     },
   },
   welcome: {
@@ -371,10 +491,10 @@ const ru: Translation = {
       { title: 'Добро пожаловать в Amber Ledger', text: 'Задачи и деньги в одном месте. Пролистай — покажем, что тут есть.' },
       { title: 'Задачи', text: 'Сроки, приоритеты, подзадачи и повторы. Долгое нажатие на «+» — быстрое добавление.' },
       { title: 'Привычки 🔥', text: 'Включи «Считать серию» у повторяющейся задачи — она станет карточкой со стриком наверху.' },
-      { title: 'Календарь', text: 'Задачи и рабочие смены по дням — весь месяц перед глазами.' },
-      { title: 'Финансы', text: 'Баланс, зарплата за период, траты, бюджеты и подушка накоплений.' },
+      { title: 'Календарь', text: 'Задачи и рабочие смены по дням — и вся история: что сделал и сколько потратил в любой день.' },
+      { title: 'Финансы', text: 'Баланс, зарплата за период и траты. Плановая трата с лимитом заполняет шкалу и покажет, сколько осталось.' },
       { title: 'Статистика', text: 'Неделя в графиках: сделанные задачи и траты по категориям.' },
-      { title: 'Под себя', text: 'Темы, вертикальный макет, виджеты и блокировка финансов — всё в настройках.' },
+      { title: 'Под себя', text: 'Темы, макеты, виджеты — лишние убирай карандашом ✏️. Замок финансов, память и перенос на другой телефон — в настройках.' },
     ],
     skip: 'Пропустить',
     next: 'Далее',
@@ -437,33 +557,107 @@ const ru: Translation = {
     streakHint: 'Задача станет привычкой с огоньком 🔥 наверху экрана задач',
   },
   habits: { doneToday: 'Сделано', markDone: 'Отметить', next: (day) => `Далее: ${day}` },
-  calendarScreen: { header: 'Календарь', emptyDay: 'На этот день ничего не запланировано' },
+  calendarScreen: { header: 'Календарь', emptyDay: 'В этот день ничего нет', doneSection: 'Выполнено', addedSection: 'Добавлено' },
+  auth: {
+    title: 'Подтверди, что это ты',
+    passwordLabel: 'Пароль профиля',
+    wrong: 'Неверный пароль',
+    confirm: 'Подтвердить',
+    cancel: 'Отмена',
+    devicePrompt: 'Подтверди действие',
+  },
+  storage: {
+    title: 'Память',
+    hint: 'Все данные хранятся только на этом телефоне и сами по себе не удаляются.',
+    counts: (tasks, expenses) => `Задач: ${tasks} · Трат: ${expenses}`,
+    autoTitle: 'Автоочистка',
+    autoHint: 'Удалять выполненные задачи и траты старше выбранного срока — и из Календаря тоже. Привычки, текущие планы и сумма в банке не меняются.',
+    off: 'Выкл',
+    months: (n) => `${n} мес`,
+    eraseTitle: 'Стереть данные',
+    eraseTasks: 'Стереть задачи',
+    eraseFinance: 'Стереть финансы',
+    eraseProfile: 'Стереть профиль',
+    eraseAll: 'Стереть всё',
+    confirmTitle: 'Точно стереть?',
+    confirmTasks: 'Все задачи, привычки и их история удалятся навсегда.',
+    confirmFinance: 'Все траты, планы, повторы, рабочие дни и баланс удалятся навсегда.',
+    confirmProfile: 'Имя, фото и пароль профиля удалятся. Замок финансов выключится.',
+    confirmAll: 'Удалится всё: задачи, финансы, профиль и настройки. Приложение начнётся с первого запуска.',
+    erase: 'Стереть',
+    cancel: 'Отмена',
+    countdown: 'Стирание всех данных',
+    countdownHint: 'Ещё можно передумать',
+    done: 'Готово, данные стёрты',
+    transferTitle: 'Перенос на другой телефон',
+    transferHint: 'Все задачи, траты и настройки переедут по QR-коду через Wi-Fi — без интернета и без файлов. Фото и пароль остаются на этом телефоне.',
+    transferButton: 'Перенести данные',
+  },
+  transfer: {
+    title: 'Перенос данных',
+    sendTitle: 'Отправить с этого телефона',
+    sendHint: 'Покажет QR-код для другого телефона',
+    receiveTitle: 'Получить на этот телефон',
+    receiveHint: 'Отсканируй QR-код со старого телефона',
+    preparing: 'Готовлю данные…',
+    scanHint: (where) => `На другом телефоне открой ${where} → «Получить на этот телефон» и наведи камеру на код.`,
+    where: 'Настройки → Безопасность и память → Перенести данные',
+    expiresIn: (time) => `Код действует ещё ${time}`,
+    expired: 'Время вышло — код больше не действует',
+    sent: 'Данные отправлены ✓',
+    again: 'Показать новый код',
+    cameraTitle: 'Нужна камера',
+    cameraText: 'Камера нужна только чтобы прочитать QR-код с другого телефона. Ничего не снимается и не сохраняется.',
+    cameraGrant: 'Разрешить камеру',
+    pointCamera: 'Наведи камеру на QR-код на другом телефоне',
+    notOurCode: 'Это не QR-код переноса Amber Ledger',
+    codeExpired: 'Этот код уже не действует — покажи новый на другом телефоне',
+    confirmTitle: 'Перенести данные сюда?',
+    confirmText: 'Все задачи и финансы на этом телефоне заменятся данными с другого телефона.',
+    replace: 'Перенести',
+    cancel: 'Отмена',
+    receiving: 'Получаю данные…',
+    received: 'Готово, данные перенесены ✓',
+    failed: 'Не получилось связаться с другим телефоном. Оба должны быть в одной Wi-Fi сети (или один раздаёт точку доступа другому), а код — ещё открыт.',
+    noNetwork: 'Этот телефон не в Wi-Fi сети. Подключись к Wi-Fi или включи точку доступа.',
+    needsApp: 'Перенос работает только в установленном приложении (APK), не в Expo Go.',
+    welcomeTitle: 'Переносишь данные со старого телефона?',
+    welcomeText: 'Если Amber Ledger уже стоит на другом телефоне — перенеси задачи, финансы и профиль по QR-коду. Оба телефона должны быть в одной Wi-Fi сети.',
+    welcomeYes: 'Да, перенести',
+    welcomeNo: 'Нет, начать с нуля',
+  },
   financeScreen: {
     header: 'Финансы',
     categoriesLink: 'Категории',
     recentExpenses: 'Последние траты',
+    listInfoTitle: 'Список трат за месяц',
+    listInfo: (nextClear) =>
+      `Здесь только траты этого месяца. 1-го числа каждого месяца список очищается — следующий раз ${nextClear}.\n\nТраты при этом не удаляются: они остаются в Календаре (выбери день) и в Статистике, а сумма в банке не меняется.`,
     emptyTitle: 'Пока нет трат',
     emptySubtitle: 'Добавь первую трату кнопкой «+»',
     thisMonth: 'Этот месяц',
     earned: 'Заработано',
     spent: 'Потрачено',
     bank: 'Банк',
+    inPlans: 'в планах',
+    free: 'свободно',
     incoming: 'Должно прийти',
     total: 'После зарплаты',
     editBankTitle: 'Сколько у тебя на руках?',
     editBankHint: 'Задай текущую сумму — дальше траты будут вычитаться из неё, а подтверждённая зарплата добавляться.',
     salaryCredited: 'зарплата',
     accruing: 'набирается',
-    plannedIncluded: 'уже минус плановые',
-    plannedLink: 'Планы',
+    plannedIncluded: 'уже минус ожидаемые траты',
+    plannedLink: 'Ожидаемые',
     recurringLink: 'Повторы',
+    rateLink: 'Заработок',
     budgetTitle: 'Бюджет',
   },
   plannedExpenses: {
-    title: 'Плановые траты',
-    hint: 'Известные будущие траты, которые ещё не потрачены, но точно будут — вычитаются из прогноза в разделе "Финансы".',
+    title: 'Ожидаемые траты',
+    hint: 'Будущие траты, которых ещё не было, но они точно будут. Вычитаются только из «Итого» в Финансах, сумму в банке не меняют. Для лимита на месяц (еда, транспорт) используй «Плановую трату» при добавлении траты.',
     totalLabel: 'Итого',
-    addButton: 'Добавить плановую трату',
+    addButton: 'Добавить ожидаемую трату',
   },
   recurringExpenses: {
     title: 'Повторяющиеся траты',
@@ -606,7 +800,52 @@ const ru: Translation = {
     minutes: 'мин',
     streakChoose: 'Нажми, чтобы выбрать',
   },
-  layoutEdit: { edit: 'Изменить расположение', done: 'Готово', perRow: 'В ряд', order: 'Порядок', byDeadline: 'По дедлайну', ownOrder: 'Свой', resize: 'Размер' },
+  layoutEdit: {
+    edit: 'Изменить расположение',
+    done: 'Готово',
+    perRow: 'В ряд',
+    order: 'Порядок',
+    byDeadline: 'По дедлайну',
+    ownOrder: 'Свой',
+    resize: 'Размер',
+    remove: 'Убрать виджет',
+    hiddenTitle: 'Убранные виджеты',
+    hiddenEmpty: 'Здесь пусто. Убери виджет кнопкой «−», и его можно будет вернуть отсюда.',
+    modules: { balance: 'Баланс', spendWeek: 'Траты за неделю', spendMonth: 'Траты за месяц', budget: 'Бюджет', workCalendar: 'Рабочий календарь' },
+  },
+  plans: {
+    toggle: 'Плановая трата',
+    toggleHint: 'Лимит сразу спишется со счёта. Покупки отмечай на плашке в Финансах — она заполнится, а в конце месяца предложит начать заново.',
+    nameLabel: 'Название',
+    namePlaceholder: 'Еда',
+    limitLabel: 'Лимит',
+    spentLabel: 'Сколько потратил',
+    add: 'Добавить',
+    history: 'Покупки за этот период',
+    noSpends: 'Пока ничего',
+    changeLimit: 'Изменить лимит',
+    confirmChangeTitle: 'Точно изменить лимит?',
+    confirmChangeText: 'Со счёта спишется новый лимит вместо старого, проценты пересчитаются.',
+    confirmYes: 'Изменить',
+    cancel: 'Отмена',
+    passwordLabel: 'Пароль профиля',
+    passwordWrong: 'Неверный пароль',
+    confirm: 'Подтвердить',
+    devicePrompt: 'Подтверди изменение лимита',
+    monthEnd: '1-го числа план начнётся заново',
+    nextLimit: (amount) => `со следующего месяца: ${amount}`,
+    newPeriod: 'Новый месяц — план начат заново',
+    reset: 'Обнулить',
+    changeBudget: 'Изменить бюджет',
+    newLimit: 'Новый лимит',
+    save: 'Сохранить',
+    remove: 'Удалить план',
+    removeTitle: 'Удалить план?',
+    removeText: 'Все деньги этого плана вернутся на счёт, а записанные в нём покупки удалятся.',
+    overspend: 'Превышение лимита',
+    planTag: 'План',
+    editorNote: 'Это плановая трата. Покупки и лимит — на её плашке в Финансах.',
+  },
   level: { tasksDone: 'Выполнено задач', sound: 'Звук выполнения', soundHint: 'Играет, когда задача выполнена' },
   habitWidget: {
     title: 'Виджет серии',
@@ -690,7 +929,7 @@ const ru: Translation = {
     saved: 'Сохранено',
   },
   securitySettings: {
-    title: 'Безопасность',
+    title: 'Безопасность и память',
     lockFinances: 'Защитить финансы',
     lockFinancesHint: 'Суммы в финансах, статистике, календаре и виджетах скрыты, пока вы не разблокируете.',
     needPassword: 'Сначала задайте пароль профиля — он нужен на случай, если отпечаток не сработает.',
@@ -763,6 +1002,15 @@ const uk: Translation = {
         { title: 'Розстав як подобається', text: 'Олівець ✏️ на задачах, фінансах, статистиці та в календарі: перетягуй картки, змінюй розмір і форму кутів.' },
         { title: 'Віджет серії', text: 'Маленький квадрат 1×1 на робочий стіл — вогник і число. Натисни, щоб вибрати звичку.' },
       ],
+      '1.3.0': [
+        { title: 'Що нового в 1.3.0', text: 'Велике оновлення фінансів і даних — погортай, покажемо головне.' },
+        { title: 'Планові витрати 🌊', text: 'Увімкни «Планова витрата» під час додавання витрати: ліміт одразу спишеться, а покупки заповнять шкалу хвилею. Перевитрата — червоним, 1-го числа план почнеться знову.' },
+        { title: 'Чесніший банк', text: 'Угорі — скільки на рахунку, під ним — скільки вільно з урахуванням планів. Видалив витрату чи задачу з витратою — гроші повернуться.' },
+        { title: 'Календар — архів', text: 'Будь-якого дня видно, що зроблено й додано. Список витрат у Фінансах — лише за місяць, уся історія лишається в календарі.' },
+        { title: "Безпека й пам'ять", text: 'Автоочищення старого, стирання даних з відліком і паролем — у налаштуваннях.' },
+        { title: 'Перенесення за QR', text: 'Новий телефон? Перенеси задачі, фінанси й профіль за QR-кодом через Wi-Fi, без інтернету.' },
+        { title: 'Свій набір віджетів', text: 'У режимі олівця ✏️ прибирай непотрібні картки кнопкою «−», повернути — через «⋮».' },
+      ],
     },
   },
   welcome: {
@@ -770,10 +1018,10 @@ const uk: Translation = {
       { title: 'Ласкаво просимо до Amber Ledger', text: 'Задачі й гроші в одному місці. Погортай — покажемо, що тут є.' },
       { title: 'Задачі', text: 'Терміни, пріоритети, підзадачі та повтори. Довге натискання на «+» — швидке додавання.' },
       { title: 'Звички 🔥', text: 'Увімкни «Рахувати серію» у задачі, що повторюється, — вона стане карткою зі стріком угорі.' },
-      { title: 'Календар', text: 'Задачі та робочі зміни по днях — увесь місяць перед очима.' },
-      { title: 'Фінанси', text: 'Баланс, зарплата за період, витрати, бюджети та подушка заощаджень.' },
+      { title: 'Календар', text: 'Задачі та робочі зміни по днях — і вся історія: що зробив і скільки витратив будь-якого дня.' },
+      { title: 'Фінанси', text: 'Баланс, зарплата за період і витрати. Планова витрата з лімітом заповнює шкалу й покаже, скільки лишилося.' },
       { title: 'Статистика', text: 'Тиждень у графіках: виконані задачі та витрати за категоріями.' },
-      { title: 'Під себе', text: 'Теми, вертикальний макет, віджети та блокування фінансів — усе в налаштуваннях.' },
+      { title: 'Під себе', text: 'Теми, макети, віджети — зайві прибирай олівцем ✏️. Замок фінансів, пам\'ять і перенесення на інший телефон — у налаштуваннях.' },
     ],
     skip: 'Пропустити',
     next: 'Далі',
@@ -836,33 +1084,107 @@ const uk: Translation = {
     streakHint: 'Задача стане звичкою з вогником 🔥 угорі екрана задач',
   },
   habits: { doneToday: 'Зроблено', markDone: 'Позначити', next: (day) => `Далі: ${day}` },
-  calendarScreen: { header: 'Календар', emptyDay: 'На цей день нічого не заплановано' },
+  calendarScreen: { header: 'Календар', emptyDay: 'Цього дня нічого немає', doneSection: 'Виконано', addedSection: 'Додано' },
+  auth: {
+    title: 'Підтверди, що це ти',
+    passwordLabel: 'Пароль профілю',
+    wrong: 'Невірний пароль',
+    confirm: 'Підтвердити',
+    cancel: 'Скасувати',
+    devicePrompt: 'Підтверди дію',
+  },
+  storage: {
+    title: "Пам'ять",
+    hint: 'Усі дані зберігаються лише на цьому телефоні й самі не видаляються.',
+    counts: (tasks, expenses) => `Задач: ${tasks} · Витрат: ${expenses}`,
+    autoTitle: 'Автоочищення',
+    autoHint: 'Видаляти виконані задачі й витрати, старші за обраний строк, — і з Календаря теж. Звички, поточні плани й сума в банку не змінюються.',
+    off: 'Вимк',
+    months: (n) => `${n} міс`,
+    eraseTitle: 'Стерти дані',
+    eraseTasks: 'Стерти задачі',
+    eraseFinance: 'Стерти фінанси',
+    eraseProfile: 'Стерти профіль',
+    eraseAll: 'Стерти все',
+    confirmTitle: 'Точно стерти?',
+    confirmTasks: 'Усі задачі, звички та їхня історія видаляться назавжди.',
+    confirmFinance: 'Усі витрати, плани, повтори, робочі дні й баланс видаляться назавжди.',
+    confirmProfile: "Ім'я, фото й пароль профілю видаляться. Замок фінансів вимкнеться.",
+    confirmAll: 'Видалиться все: задачі, фінанси, профіль і налаштування. Застосунок почнеться з першого запуску.',
+    erase: 'Стерти',
+    cancel: 'Скасувати',
+    countdown: 'Стирання всіх даних',
+    countdownHint: 'Ще можна передумати',
+    done: 'Готово, дані стерто',
+    transferTitle: 'Перенесення на інший телефон',
+    transferHint: 'Усі задачі, витрати й налаштування переїдуть за QR-кодом через Wi-Fi — без інтернету й без файлів. Фото й пароль лишаються на цьому телефоні.',
+    transferButton: 'Перенести дані',
+  },
+  transfer: {
+    title: 'Перенесення даних',
+    sendTitle: 'Надіслати з цього телефона',
+    sendHint: 'Покаже QR-код для іншого телефона',
+    receiveTitle: 'Отримати на цей телефон',
+    receiveHint: 'Відскануй QR-код зі старого телефона',
+    preparing: 'Готую дані…',
+    scanHint: (where) => `На іншому телефоні відкрий ${where} → «Отримати на цей телефон» і наведи камеру на код.`,
+    where: "Налаштування → Безпека й пам'ять → Перенести дані",
+    expiresIn: (time) => `Код діє ще ${time}`,
+    expired: 'Час вийшов — код більше не діє',
+    sent: 'Дані надіслано ✓',
+    again: 'Показати новий код',
+    cameraTitle: 'Потрібна камера',
+    cameraText: 'Камера потрібна лише щоб прочитати QR-код з іншого телефона. Нічого не знімається й не зберігається.',
+    cameraGrant: 'Дозволити камеру',
+    pointCamera: 'Наведи камеру на QR-код на іншому телефоні',
+    notOurCode: 'Це не QR-код перенесення Amber Ledger',
+    codeExpired: 'Цей код уже не діє — покажи новий на іншому телефоні',
+    confirmTitle: 'Перенести дані сюди?',
+    confirmText: 'Усі задачі й фінанси на цьому телефоні заміняться даними з іншого телефона.',
+    replace: 'Перенести',
+    cancel: 'Скасувати',
+    receiving: 'Отримую дані…',
+    received: 'Готово, дані перенесено ✓',
+    failed: "Не вдалося зв'язатися з іншим телефоном. Обидва мають бути в одній Wi-Fi мережі (або один роздає точку доступу іншому), а код — ще відкритий.",
+    noNetwork: 'Цей телефон не в Wi-Fi мережі. Підключись до Wi-Fi або увімкни точку доступу.',
+    needsApp: 'Перенесення працює лише у встановленому застосунку (APK), не в Expo Go.',
+    welcomeTitle: 'Переносиш дані зі старого телефона?',
+    welcomeText: 'Якщо Amber Ledger уже стоїть на іншому телефоні — перенеси задачі, фінанси й профіль за QR-кодом. Обидва телефони мають бути в одній Wi-Fi мережі.',
+    welcomeYes: 'Так, перенести',
+    welcomeNo: 'Ні, почати з нуля',
+  },
   financeScreen: {
     header: 'Фінанси',
     categoriesLink: 'Категорії',
     recentExpenses: 'Останні витрати',
+    listInfoTitle: 'Список витрат за місяць',
+    listInfo: (nextClear) =>
+      `Тут лише витрати цього місяця. 1-го числа кожного місяця список очищається — наступного разу ${nextClear}.\n\nВитрати при цьому не видаляються: вони лишаються в Календарі (обери день) і в Статистиці, а сума в банку не змінюється.`,
     emptyTitle: 'Поки що немає витрат',
     emptySubtitle: 'Додай першу витрату кнопкою «+»',
     thisMonth: 'Цей місяць',
     earned: 'Зароблено',
     spent: 'Витрачено',
     bank: 'Банк',
+    inPlans: 'у планах',
+    free: 'вільно',
     incoming: 'Має надійти',
     total: 'Після зарплати',
     editBankTitle: 'Скільки у тебе на руках?',
     editBankHint: 'Задай поточну суму — далі витрати відніматимуться з неї, а підтверджена зарплата додаватиметься.',
     salaryCredited: 'зарплата',
     accruing: 'набирається',
-    plannedIncluded: 'вже мінус планові',
-    plannedLink: 'Плани',
+    plannedIncluded: 'вже мінус очікувані витрати',
+    plannedLink: 'Очікувані',
     recurringLink: 'Повтори',
+    rateLink: 'Заробіток',
     budgetTitle: 'Бюджет',
   },
   plannedExpenses: {
-    title: 'Планові витрати',
-    hint: 'Відомі майбутні витрати, які ще не сплачені, але точно будуть — віднімаються з прогнозу в розділі "Фінанси".',
+    title: 'Очікувані витрати',
+    hint: 'Майбутні витрати, яких ще не було, але вони точно будуть. Віднімаються лише з «Разом» у Фінансах, суму в банку не змінюють. Для ліміту на місяць (їжа, транспорт) використовуй «Планову витрату» під час додавання витрати.',
     totalLabel: 'Разом',
-    addButton: 'Додати планову витрату',
+    addButton: 'Додати очікувану витрату',
   },
   recurringExpenses: {
     title: 'Повторювані витрати',
@@ -1003,7 +1325,52 @@ const uk: Translation = {
     minutes: 'хв',
     streakChoose: 'Натисни, щоб вибрати',
   },
-  layoutEdit: { edit: 'Змінити розташування', done: 'Готово', perRow: 'У ряд', order: 'Порядок', byDeadline: 'За дедлайном', ownOrder: 'Свій', resize: 'Розмір' },
+  layoutEdit: {
+    edit: 'Змінити розташування',
+    done: 'Готово',
+    perRow: 'У ряд',
+    order: 'Порядок',
+    byDeadline: 'За дедлайном',
+    ownOrder: 'Свій',
+    resize: 'Розмір',
+    remove: 'Прибрати віджет',
+    hiddenTitle: 'Прибрані віджети',
+    hiddenEmpty: 'Тут порожньо. Прибери віджет кнопкою «−», і його можна буде повернути звідси.',
+    modules: { balance: 'Баланс', spendWeek: 'Витрати за тиждень', spendMonth: 'Витрати за місяць', budget: 'Бюджет', workCalendar: 'Робочий календар' },
+  },
+  plans: {
+    toggle: 'Планова витрата',
+    toggleHint: 'Ліміт одразу спишеться з рахунку. Покупки відмічай на плашці у Фінансах — вона заповниться, а наприкінці місяця запропонує почати знову.',
+    nameLabel: 'Назва',
+    namePlaceholder: 'Їжа',
+    limitLabel: 'Ліміт',
+    spentLabel: 'Скільки витратив',
+    add: 'Додати',
+    history: 'Покупки за цей період',
+    noSpends: 'Поки нічого',
+    changeLimit: 'Змінити ліміт',
+    confirmChangeTitle: 'Точно змінити ліміт?',
+    confirmChangeText: 'З рахунку спишеться новий ліміт замість старого, відсотки перерахуються.',
+    confirmYes: 'Змінити',
+    cancel: 'Скасувати',
+    passwordLabel: 'Пароль профілю',
+    passwordWrong: 'Невірний пароль',
+    confirm: 'Підтвердити',
+    devicePrompt: 'Підтверди зміну ліміту',
+    monthEnd: '1-го числа план почнеться знову',
+    nextLimit: (amount) => `з наступного місяця: ${amount}`,
+    newPeriod: 'Новий місяць — план почато знову',
+    reset: 'Обнулити',
+    changeBudget: 'Змінити бюджет',
+    newLimit: 'Новий ліміт',
+    save: 'Зберегти',
+    remove: 'Видалити план',
+    removeTitle: 'Видалити план?',
+    removeText: 'Усі гроші цього плану повернуться на рахунок, а записані в ньому покупки видаляться.',
+    overspend: 'Перевищення ліміту',
+    planTag: 'План',
+    editorNote: 'Це планова витрата. Покупки й ліміт — на її плашці у Фінансах.',
+  },
   level: { tasksDone: 'Виконано задач', sound: 'Звук виконання', soundHint: 'Грає, коли задачу виконано' },
   habitWidget: {
     title: 'Віджет серії',
@@ -1087,7 +1454,7 @@ const uk: Translation = {
     saved: 'Збережено',
   },
   securitySettings: {
-    title: 'Безпека',
+    title: "Безпека й пам'ять",
     lockFinances: 'Захистити фінанси',
     lockFinancesHint: 'Суми у фінансах, статистиці, календарі та віджетах приховані, доки ви не розблокуєте.',
     needPassword: 'Спершу задайте пароль профілю — він потрібен на випадок, якщо відбиток не спрацює.',
@@ -1160,6 +1527,15 @@ const en: Translation = {
         { title: 'Arrange it your way', text: 'The ✏️ pencil on Tasks, Finance, Stats and Calendar: drag cards around, change their size and corners.' },
         { title: 'Streak widget', text: 'A tiny 1×1 square for your home screen — the flame and the number. Tap it to choose the habit.' },
       ],
+      '1.3.0': [
+        { title: 'What’s new in 1.3.0', text: 'A big update to money and data — swipe through the highlights.' },
+        { title: 'Planned spending 🌊', text: 'Turn on “Planned spending” when adding an expense: the limit comes off at once and purchases fill a wave bar. Over the limit turns red; on the 1st the plan starts over.' },
+        { title: 'An honest bank', text: 'On top: what’s in the account; below it: what’s free after your plans. Delete an expense — or a task that logged one — and the money comes back.' },
+        { title: 'Calendar remembers', text: 'Any day shows what you did and added. Finance lists this month’s expenses; the whole history stays in Calendar.' },
+        { title: 'Security & storage', text: 'Auto clean-up of old records and erasing data with a countdown and your password — in Settings.' },
+        { title: 'Move by QR', text: 'New phone? Bring tasks, finances and your profile over by QR code through Wi-Fi, no internet.' },
+        { title: 'Your own set of widgets', text: 'In pencil mode ✏️ remove the cards you don’t need with “−”; bring them back from “⋮”.' },
+      ],
     },
   },
   welcome: {
@@ -1167,10 +1543,10 @@ const en: Translation = {
       { title: 'Welcome to Amber Ledger', text: 'Your tasks and your money in one place. Swipe through for a quick tour.' },
       { title: 'Tasks', text: 'Deadlines, priorities, subtasks and repeats. Long-press + to add one in a second.' },
       { title: 'Habits 🔥', text: 'Turn on “Count streak” for a repeating task and it becomes a streak card at the top.' },
-      { title: 'Calendar', text: 'Tasks and work shifts day by day — the whole month at a glance.' },
-      { title: 'Finance', text: 'Bank balance, pay per period, expenses, budgets and a savings cushion.' },
+      { title: 'Calendar', text: 'Tasks and work shifts day by day — and your whole history: what you did and spent on any day.' },
+      { title: 'Finance', text: 'Bank balance, pay per period and expenses. Planned spending with a limit fills a bar and shows what’s left.' },
       { title: 'Stats', text: 'Your week in charts: tasks done and spending by category.' },
-      { title: 'Make it yours', text: 'Themes, the Vertical layout, home screen widgets and a finance lock — all in Settings.' },
+      { title: 'Make it yours', text: 'Themes, layouts, widgets — remove the ones you don’t need with the pencil ✏️. Finance lock, storage and moving to another phone are in Settings.' },
     ],
     skip: 'Skip',
     next: 'Next',
@@ -1233,33 +1609,107 @@ const en: Translation = {
     streakHint: 'The task becomes a habit with a 🔥 at the top of Tasks',
   },
   habits: { doneToday: 'Done', markDone: 'Mark done', next: (day) => `Next: ${day}` },
-  calendarScreen: { header: 'Calendar', emptyDay: 'Nothing planned for this day' },
+  calendarScreen: { header: 'Calendar', emptyDay: 'Nothing on this day', doneSection: 'Done', addedSection: 'Added' },
+  auth: {
+    title: 'Confirm it’s you',
+    passwordLabel: 'Profile password',
+    wrong: 'Wrong password',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    devicePrompt: 'Confirm this action',
+  },
+  storage: {
+    title: 'Storage',
+    hint: 'Everything is stored only on this phone and is never deleted on its own.',
+    counts: (tasks, expenses) => `Tasks: ${tasks} · Expenses: ${expenses}`,
+    autoTitle: 'Auto clean-up',
+    autoHint: 'Delete done tasks and expenses older than the chosen time — from Calendar too. Habits, current plans and your bank balance stay as they are.',
+    off: 'Off',
+    months: (n) => `${n} mo`,
+    eraseTitle: 'Erase data',
+    eraseTasks: 'Erase tasks',
+    eraseFinance: 'Erase finances',
+    eraseProfile: 'Erase profile',
+    eraseAll: 'Erase everything',
+    confirmTitle: 'Erase for sure?',
+    confirmTasks: 'All tasks, habits and their history will be deleted for good.',
+    confirmFinance: 'All expenses, plans, recurring expenses, work days and the balance will be deleted for good.',
+    confirmProfile: 'Your name, photo and profile password will be deleted. The finance lock turns off.',
+    confirmAll: 'Everything goes: tasks, finances, profile and settings. The app starts over from the first launch.',
+    erase: 'Erase',
+    cancel: 'Cancel',
+    countdown: 'Erasing all data',
+    countdownHint: 'You can still change your mind',
+    done: 'Done, the data is erased',
+    transferTitle: 'Move to another phone',
+    transferHint: 'All tasks, expenses and settings move over by QR code through Wi-Fi — no internet, no files. Photos and the password stay on this phone.',
+    transferButton: 'Move data',
+  },
+  transfer: {
+    title: 'Move data',
+    sendTitle: 'Send from this phone',
+    sendHint: 'Shows a QR code for the other phone',
+    receiveTitle: 'Receive on this phone',
+    receiveHint: 'Scan the QR code from the old phone',
+    preparing: 'Getting the data ready…',
+    scanHint: (where) => `On the other phone open ${where} → “Receive on this phone” and point the camera at the code.`,
+    where: 'Settings → Security & storage → Move data',
+    expiresIn: (time) => `The code works for ${time} more`,
+    expired: 'Time’s up — this code no longer works',
+    sent: 'Data sent ✓',
+    again: 'Show a new code',
+    cameraTitle: 'Camera needed',
+    cameraText: 'The camera is only used to read the QR code from the other phone. Nothing is recorded or saved.',
+    cameraGrant: 'Allow camera',
+    pointCamera: 'Point the camera at the QR code on the other phone',
+    notOurCode: 'This isn’t an Amber Ledger transfer code',
+    codeExpired: 'This code no longer works — show a new one on the other phone',
+    confirmTitle: 'Move the data here?',
+    confirmText: 'All tasks and finances on this phone will be replaced with the ones from the other phone.',
+    replace: 'Move',
+    cancel: 'Cancel',
+    receiving: 'Receiving…',
+    received: 'Done, the data is here ✓',
+    failed: 'Couldn’t reach the other phone. Both must be on the same Wi-Fi (or one sharing a hotspot with the other), and the code still open.',
+    noNetwork: 'This phone isn’t on a Wi-Fi network. Connect to Wi-Fi or turn on the hotspot.',
+    needsApp: 'Moving data works only in the installed app (APK), not in Expo Go.',
+    welcomeTitle: 'Moving from an old phone?',
+    welcomeText: 'If Amber Ledger is already on another phone, bring your tasks, finances and profile over by QR code. Both phones need to be on the same Wi-Fi.',
+    welcomeYes: 'Yes, move my data',
+    welcomeNo: 'No, start fresh',
+  },
   financeScreen: {
     header: 'Finance',
     categoriesLink: 'Categories',
     recentExpenses: 'Recent expenses',
+    listInfoTitle: 'This month’s expenses',
+    listInfo: (nextClear) =>
+      `Only this month’s expenses are listed here. The list clears on the 1st of every month — next on ${nextClear}.\n\nNothing is deleted: the expenses stay in Calendar (pick a day) and in Stats, and your bank balance doesn’t change.`,
     emptyTitle: 'No expenses yet',
     emptySubtitle: 'Add your first expense with the "+" button',
     thisMonth: 'This month',
     earned: 'Earned',
     spent: 'Spent',
     bank: 'Bank',
+    inPlans: 'in plans',
+    free: 'free',
     incoming: 'Incoming',
     total: 'After payday',
     editBankTitle: 'How much do you have on hand?',
     editBankHint: 'Set your current amount — after that, expenses are subtracted from it and confirmed salary is added.',
     salaryCredited: 'salary',
     accruing: 'accruing',
-    plannedIncluded: 'already minus planned',
-    plannedLink: 'Planned',
+    plannedIncluded: 'already minus expected expenses',
+    plannedLink: 'Expected',
     recurringLink: 'Recurring',
+    rateLink: 'Earnings',
     budgetTitle: 'Budget',
   },
   plannedExpenses: {
-    title: 'Planned Expenses',
-    hint: "Known future expenses that haven't happened yet — subtracted from the forecast on the Finance tab.",
+    title: 'Expected expenses',
+    hint: 'Future expenses that haven’t happened yet but will. They’re taken off only the Total in Finance, not your bank balance. For a monthly limit (food, transport) use “Planned spending” when adding an expense.',
     totalLabel: 'Total',
-    addButton: 'Add planned expense',
+    addButton: 'Add expected expense',
   },
   recurringExpenses: {
     title: 'Recurring Expenses',
@@ -1400,7 +1850,52 @@ const en: Translation = {
     minutes: 'min',
     streakChoose: 'Tap to choose',
   },
-  layoutEdit: { edit: 'Edit layout', done: 'Done', perRow: 'Per row', order: 'Order', byDeadline: 'By deadline', ownOrder: 'My own', resize: 'Size' },
+  layoutEdit: {
+    edit: 'Edit layout',
+    done: 'Done',
+    perRow: 'Per row',
+    order: 'Order',
+    byDeadline: 'By deadline',
+    ownOrder: 'My own',
+    resize: 'Size',
+    remove: 'Remove widget',
+    hiddenTitle: 'Removed widgets',
+    hiddenEmpty: 'Nothing here. Remove a widget with its “−” button and you can bring it back from here.',
+    modules: { balance: 'Balance', spendWeek: 'Spent this week', spendMonth: 'Spent this month', budget: 'Budget', workCalendar: 'Work calendar' },
+  },
+  plans: {
+    toggle: 'Planned spending',
+    toggleHint: 'The limit comes off your balance right away. Tick off purchases on its bar in Finance — it fills up, and at the end of the month offers to start over.',
+    nameLabel: 'Name',
+    namePlaceholder: 'Food',
+    limitLabel: 'Limit',
+    spentLabel: 'How much you spent',
+    add: 'Add',
+    history: 'Purchases this period',
+    noSpends: 'Nothing yet',
+    changeLimit: 'Change limit',
+    confirmChangeTitle: 'Change the limit?',
+    confirmChangeText: 'The new limit comes off your balance instead of the old one, and the percentage is recalculated.',
+    confirmYes: 'Change',
+    cancel: 'Cancel',
+    passwordLabel: 'Profile password',
+    passwordWrong: 'Wrong password',
+    confirm: 'Confirm',
+    devicePrompt: 'Confirm the new limit',
+    monthEnd: 'The plan starts over on the 1st',
+    nextLimit: (amount) => `from next month: ${amount}`,
+    newPeriod: 'New month — the plan started over',
+    reset: 'Start over',
+    changeBudget: 'Change budget',
+    newLimit: 'New limit',
+    save: 'Save',
+    remove: 'Delete plan',
+    removeTitle: 'Delete the plan?',
+    removeText: 'All of this plan’s money goes back to your balance, and the purchases logged in it are deleted.',
+    overspend: 'Over the limit',
+    planTag: 'Plan',
+    editorNote: 'This is planned spending. Purchases and the limit are on its bar in Finance.',
+  },
   level: { tasksDone: 'Tasks done', sound: 'Task done sound', soundHint: 'Plays when a task is done' },
   habitWidget: {
     title: 'Streak widget',
@@ -1484,7 +1979,7 @@ const en: Translation = {
     saved: 'Saved',
   },
   securitySettings: {
-    title: 'Security',
+    title: 'Security & storage',
     lockFinances: 'Lock finances',
     lockFinancesHint: 'Amounts in Finance, Stats, Calendar and widgets stay hidden until you unlock.',
     needPassword: 'Set a profile password first — it\'s the way in if the fingerprint fails.',

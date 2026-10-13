@@ -106,10 +106,21 @@ export interface AppSettings {
   taskManualOrder: string[];
   /** Editable card boards (Finance, Stats tabs): saved order and half/full sizes per board. */
   moduleLayouts: Record<string, { order: string[]; sizes: Record<string, 'half' | 'full'> }>;
+  /** Widgets removed from a screen with the "−" in edit mode, per board; ⋮ brings them back. */
+  hiddenModules: Record<string, string[]>;
   /** Calendar: the user's order of each day's expenses (date key → expense ids). */
   expenseDayOrder: Record<string, string[]>;
   /** App version whose "What's new" was already shown (null = never). */
   lastSeenVersion: string | null;
+  /** Security & storage → auto clean-up: delete done tasks and expenses older than this many
+   * months (0 = never). */
+  autoCleanupMonths: number;
+  /** yyyy-MM-dd the auto clean-up last ran — it runs at most once a day. */
+  lastAutoCleanup: string | null;
+  /** Done tasks removed by the clean-up — still counted by the level ring. */
+  purgedDoneCount: number;
+  /** Spending plans: a limit chosen at the end of a month for the next one (plan id → limit). */
+  planNextLimits: Record<string, number>;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -161,6 +172,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   taskOrderMode: 'deadline',
   taskManualOrder: [],
   moduleLayouts: {},
+  hiddenModules: {},
   expenseDayOrder: {},
   lastSeenVersion: null,
+  autoCleanupMonths: 0,
+  lastAutoCleanup: null,
+  purgedDoneCount: 0,
+  planNextLimits: {},
 };
