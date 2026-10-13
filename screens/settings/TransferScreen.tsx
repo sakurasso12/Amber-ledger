@@ -140,8 +140,11 @@ function SendPanel() {
   );
 }
 
-/** Camera behind an explanation first; one scan → confirm → password → pull the data. */
-function ReceivePanel() {
+/**
+ * Camera behind an explanation first; one scan → confirm → password → pull the data.
+ * Also the first step of the first launch (components/onboarding), with `onDone` there.
+ */
+export function ReceivePanel({ onDone }: { onDone?: () => void } = {}) {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
@@ -194,7 +197,7 @@ function ReceivePanel() {
     return (
       <View style={styles.center}>
         <Status icon="checkmark-circle" color={theme.colors.success} text={tr.transfer.received} />
-        <Button title="OK" onPress={() => router.navigate('/')} />
+        <Button title="OK" onPress={() => (onDone ? onDone() : router.navigate('/'))} />
       </View>
     );
   }

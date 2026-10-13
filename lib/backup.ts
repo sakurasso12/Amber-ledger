@@ -1,4 +1,5 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import Constants from 'expo-constants';
 import { getDb } from '@/db/client';
 import { SCHEMA_VERSION } from '@/db/schema';
 import { useTaskStore } from '@/store/useTaskStore';
@@ -6,6 +7,7 @@ import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { AppSettings } from '@/types';
 import { refreshHomeWidget } from './widgetRefresh';
+import { clearProfilePassword, readPasswordRecord, writePasswordRecord } from './password';
 
 /**
  * The data that moves to another phone (QR transfer, see lib/transfer.ts): every table as raw rows
@@ -29,12 +31,10 @@ const TABLES = [
   'plan_spends',
 ] as const;
 
-/** Settings that belong to this phone, not to the data: kept as they are on import. */
+/** Settings that belong to this phone, not to the data: kept as they are on import. (The profile
+ * and its lock settings do move — with the password record below.) */
 const DEVICE_SETTINGS: (keyof AppSettings)[] = [
   'profilePasswordSet',
-  'financeLockEnabled',
-  'financeLockMethod',
-  'financeLockMinutes',
   'financeUnlockedUntil',
   'profileAvatarUri',
   'backgroundImageUri',
@@ -52,6 +52,8 @@ export interface BackupPayload {
   exportedAt: string;
   tables: Record<string, Record<string, unknown>[]>;
   settings: Partial<AppSettings>;
+  /** The profile password's salted hash (see lib/password), so the same password works there. */
+  passwordRecord?: string | null;
 }
 
 export async function buildBackup(): Promise<BackupPayload> {
@@ -62,7 +64,14 @@ export async function buildBackup(): Promise<BackupPayload> {
   }
   const settings: Partial<AppSettings> = { ...useSettingsStore.getState().settings };
   for (const key of DEVICE_SETTINGS) delete settings[key];
-  return { app: APP_ID, schema: SCHEMA_VERSION, exportedAt: new Date().toISOString(), tables, settings };
+  return {
+    app: APP_ID,
+    schema: SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    tables,
+    settings,
+    passwordRecord: await readPasswordRecord(),
+  };
 }
 
 export type BackupProblem = 'notBackup' | 'newer';
@@ -120,7 +129,19 @@ export async function restoreBackup(payload: BackupPayload): Promise<void> {
   const { settings, updateSettings } = useSettingsStore.getState();
   const imported = { ...payload.settings };
   for (const key of DEVICE_SETTINGS) delete imported[key];
-  updateSettings({ ...imported, onboardingDone: true, lastSeenVersion: settings.lastSeenVersion });
+  // The profile comes along: same name, same password (and so the same finance lock).
+  const hasPassword = !!payload.passwordRecord;
+  if (payload.passwordRecord) await writePasswordRecord(payload.passwordRecord);
+  else await clearProfilePassword();
+  updateSettings({
+    ...imported,
+    profilePasswordSet: hasPassword,
+    financeLockEnabled: hasPassword && !!imported.financeLockEnabled,
+    financeUnlockedUntil: null,
+    onboardingDone: true,
+    // Coming from another phone during the first launch: nothing "new" to show on top.
+    lastSeenVersion: settings.lastSeenVersion ?? Constants.expoConfig?.version ?? null,
+  });
 
   await Promise.all([useTaskStore.getState().load(), useFinanceStore.getState().load()]);
   useTaskStore.getState().resyncAllReminders();

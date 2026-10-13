@@ -49,3 +49,14 @@ export async function checkProfilePassword(password: string): Promise<boolean> {
 export async function clearProfilePassword(): Promise<void> {
   await SecureStore.deleteItemAsync(STORE_KEY);
 }
+
+/** Moving to a new phone: the stored salted hash travels (inside the encrypted transfer), never the
+ * password itself — so the same password works there. */
+export async function readPasswordRecord(): Promise<string | null> {
+  return SecureStore.getItemAsync(STORE_KEY);
+}
+
+export async function writePasswordRecord(record: string): Promise<void> {
+  if (!record.startsWith('sha256$')) return;
+  await SecureStore.setItemAsync(STORE_KEY, record);
+}

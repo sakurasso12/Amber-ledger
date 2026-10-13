@@ -131,6 +131,10 @@ export interface Translation {
     failed: string;
     noNetwork: string;
     needsApp: string;
+    welcomeTitle: string;
+    welcomeText: string;
+    welcomeYes: string;
+    welcomeNo: string;
   };
   financeScreen: {
     header: string;
@@ -608,6 +612,10 @@ const ru: Translation = {
     failed: 'Не получилось связаться с другим телефоном. Оба должны быть в одной Wi-Fi сети (или один раздаёт точку доступа другому), а код — ещё открыт.',
     noNetwork: 'Этот телефон не в Wi-Fi сети. Подключись к Wi-Fi или включи точку доступа.',
     needsApp: 'Перенос работает только в установленном приложении (APK), не в Expo Go.',
+    welcomeTitle: 'Переносишь данные со старого телефона?',
+    welcomeText: 'Если Amber Ledger уже стоит на другом телефоне — перенеси задачи, финансы и профиль по QR-коду. Оба телефона должны быть в одной Wi-Fi сети.',
+    welcomeYes: 'Да, перенести',
+    welcomeNo: 'Нет, начать с нуля',
   },
   financeScreen: {
     header: 'Финансы',
@@ -630,17 +638,17 @@ const ru: Translation = {
     editBankHint: 'Задай текущую сумму — дальше траты будут вычитаться из неё, а подтверждённая зарплата добавляться.',
     salaryCredited: 'зарплата',
     accruing: 'набирается',
-    plannedIncluded: 'уже минус плановые',
-    plannedLink: 'Планы',
+    plannedIncluded: 'уже минус ожидаемые траты',
+    plannedLink: 'Ожидаемые',
     recurringLink: 'Повторы',
     rateLink: 'Заработок',
     budgetTitle: 'Бюджет',
   },
   plannedExpenses: {
-    title: 'Плановые траты',
-    hint: 'Известные будущие траты, которые ещё не потрачены, но точно будут — вычитаются из прогноза в разделе "Финансы".',
+    title: 'Ожидаемые траты',
+    hint: 'Будущие траты, которых ещё не было, но они точно будут. Вычитаются только из «Итого» в Финансах, сумму в банке не меняют. Для лимита на месяц (еда, транспорт) используй «Плановую трату» при добавлении траты.',
     totalLabel: 'Итого',
-    addButton: 'Добавить плановую трату',
+    addButton: 'Добавить ожидаемую трату',
   },
   recurringExpenses: {
     title: 'Повторяющиеся траты',
@@ -1122,6 +1130,10 @@ const uk: Translation = {
     failed: "Не вдалося зв'язатися з іншим телефоном. Обидва мають бути в одній Wi-Fi мережі (або один роздає точку доступу іншому), а код — ще відкритий.",
     noNetwork: 'Цей телефон не в Wi-Fi мережі. Підключись до Wi-Fi або увімкни точку доступу.',
     needsApp: 'Перенесення працює лише у встановленому застосунку (APK), не в Expo Go.',
+    welcomeTitle: 'Переносиш дані зі старого телефона?',
+    welcomeText: 'Якщо Amber Ledger уже стоїть на іншому телефоні — перенеси задачі, фінанси й профіль за QR-кодом. Обидва телефони мають бути в одній Wi-Fi мережі.',
+    welcomeYes: 'Так, перенести',
+    welcomeNo: 'Ні, почати з нуля',
   },
   financeScreen: {
     header: 'Фінанси',
@@ -1144,17 +1156,17 @@ const uk: Translation = {
     editBankHint: 'Задай поточну суму — далі витрати відніматимуться з неї, а підтверджена зарплата додаватиметься.',
     salaryCredited: 'зарплата',
     accruing: 'набирається',
-    plannedIncluded: 'вже мінус планові',
-    plannedLink: 'Плани',
+    plannedIncluded: 'вже мінус очікувані витрати',
+    plannedLink: 'Очікувані',
     recurringLink: 'Повтори',
     rateLink: 'Заробіток',
     budgetTitle: 'Бюджет',
   },
   plannedExpenses: {
-    title: 'Планові витрати',
-    hint: 'Відомі майбутні витрати, які ще не сплачені, але точно будуть — віднімаються з прогнозу в розділі "Фінанси".',
+    title: 'Очікувані витрати',
+    hint: 'Майбутні витрати, яких ще не було, але вони точно будуть. Віднімаються лише з «Разом» у Фінансах, суму в банку не змінюють. Для ліміту на місяць (їжа, транспорт) використовуй «Планову витрату» під час додавання витрати.',
     totalLabel: 'Разом',
-    addButton: 'Додати планову витрату',
+    addButton: 'Додати очікувану витрату',
   },
   recurringExpenses: {
     title: 'Повторювані витрати',
@@ -1634,6 +1646,10 @@ const en: Translation = {
     failed: 'Couldn’t reach the other phone. Both must be on the same Wi-Fi (or one sharing a hotspot with the other), and the code still open.',
     noNetwork: 'This phone isn’t on a Wi-Fi network. Connect to Wi-Fi or turn on the hotspot.',
     needsApp: 'Moving data works only in the installed app (APK), not in Expo Go.',
+    welcomeTitle: 'Moving from an old phone?',
+    welcomeText: 'If Amber Ledger is already on another phone, bring your tasks, finances and profile over by QR code. Both phones need to be on the same Wi-Fi.',
+    welcomeYes: 'Yes, move my data',
+    welcomeNo: 'No, start fresh',
   },
   financeScreen: {
     header: 'Finance',
@@ -1656,17 +1672,17 @@ const en: Translation = {
     editBankHint: 'Set your current amount — after that, expenses are subtracted from it and confirmed salary is added.',
     salaryCredited: 'salary',
     accruing: 'accruing',
-    plannedIncluded: 'already minus planned',
-    plannedLink: 'Planned',
+    plannedIncluded: 'already minus expected expenses',
+    plannedLink: 'Expected',
     recurringLink: 'Recurring',
     rateLink: 'Earnings',
     budgetTitle: 'Budget',
   },
   plannedExpenses: {
-    title: 'Planned Expenses',
-    hint: "Known future expenses that haven't happened yet — subtracted from the forecast on the Finance tab.",
+    title: 'Expected expenses',
+    hint: 'Future expenses that haven’t happened yet but will. They’re taken off only the Total in Finance, not your bank balance. For a monthly limit (food, transport) use “Planned spending” when adding an expense.',
     totalLabel: 'Total',
-    addButton: 'Add planned expense',
+    addButton: 'Add expected expense',
   },
   recurringExpenses: {
     title: 'Recurring Expenses',

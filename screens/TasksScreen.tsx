@@ -89,7 +89,7 @@ export function TasksScreen() {
     [visibleTasks]
   );
   const showFocus = layout.tasks === 'focus' && !!focusTask && !selectionMode;
-  const hiddenModules = useHiddenTaskModules(habitList, showFocus);
+  const hiddenModules = useHiddenTaskModules(showFocus);
 
   const board = (boardTasks: typeof visibleTasks) => (
     <TaskBoard

@@ -60,7 +60,7 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
           ...(hasFocus ? [{ key: FOCUS_KEY, habit: null }] : []),
         ],
         savedOrder
-      ).filter((m) => !hidden.includes(m.key)),
+      ).filter((m) => m.habit !== null || !hidden.includes(m.key)),
     [habits, savedOrder, hasFocus, hidden]
   );
   const size = Math.floor((width - GAP * (columns - 1)) / columns);
@@ -114,7 +114,8 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
                     {item.key === FOCUS_KEY ? focus : item.habit ? <HabitCard habit={item.habit} size={size} editing={editing} /> : <LevelCard size={size} />}
                     {/* The faint outline that marks each module's place while editing. */}
                     {editing ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.outline, { borderColor: theme.colors.primary }]} /> : null}
-                    {editing ? <RemoveModuleButton onPress={() => hide(item.key)} /> : null}
+                    {/* Habits can't be removed: if one isn't needed, it's simply not made a habit. */}
+                    {editing && !item.habit ? <RemoveModuleButton onPress={() => hide(item.key)} /> : null}
                   </LayoutEditItem>
                 </View>
               ))}
@@ -134,11 +135,11 @@ const styles = StyleSheet.create({
   outline: { borderWidth: 1, borderStyle: 'dashed', borderRadius: 20, opacity: 0.35, margin: -4 },
 });
 
-/** The modules removed from the top of Tasks, for the ⋮ list: the level ring, habits, the focus card. */
-export function useHiddenTaskModules(habits: Habit[], hasFocus: boolean): HiddenModuleItem[] {
+/** The modules removed from the top of Tasks, for the ⋮ list: the level ring and the focus card. */
+export function useHiddenTaskModules(hasFocus: boolean): HiddenModuleItem[] {
   const tr = useTranslation();
   const { hidden, show } = useHiddenModules(BOARD_ID);
-  const titles = new Map<string, string>([[LEVEL_KEY, tr.level.tasksDone], ...habits.map((h) => [h.seriesId, `🔥 ${h.title}`] as [string, string])]);
+  const titles = new Map<string, string>([[LEVEL_KEY, tr.level.tasksDone]]);
   if (hasFocus) titles.set(FOCUS_KEY, tr.layoutText.focus);
   return hidden.filter((key) => titles.has(key)).map((key) => ({ key, title: titles.get(key)!, restore: () => show(key) }));
 }

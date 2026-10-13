@@ -19,6 +19,7 @@ import { DayOffWidget } from './widget/DayOffWidget';
 import { NextTaskWidget } from './widget/NextTaskWidget';
 import { StreakWidget } from './widget/StreakWidget';
 import { buildHabits, habitCardId } from '@/lib/streaks';
+import { spendingExpenses } from '@/lib/plans';
 
 export const WIDGET_NAME = 'AmberLedgerToday';
 export const DAY_OFF_WIDGET_NAME = 'AmberLedgerDayOff';
@@ -116,9 +117,18 @@ async function upcomingTasks(): Promise<WidgetTask[]> {
 }
 
 export async function buildTodayWidget(widgetInfo: WidgetInfo) {
-  const [tasks, expenses, settings] = await Promise.all([upcomingTasks(), financeRepo.listExpenses(), readWidgetSettings()]);
+  const [tasks, expenses, plans, planSpends, settings] = await Promise.all([
+    upcomingTasks(),
+    financeRepo.listExpenses(),
+    financeRepo.listSpendPlans(),
+    financeRepo.listPlanSpends(),
+    readWidgetSettings(),
+  ]);
   const today = todayKey();
-  const spentToday = expenses.filter((e) => e.date === today).reduce((sum, e) => sum + e.amount, 0);
+  // What was bought today — plan purchases count, not a plan's whole limit (same as in the app).
+  const spentToday = spendingExpenses(expenses, plans, planSpends)
+    .filter((e) => e.date === today)
+    .reduce((sum, e) => sum + e.amount, 0);
 
   return React.createElement(TodayWidget, {
     upcomingTasks: tasks,

@@ -14,10 +14,27 @@ import { Button, PressableScale, Text, TextField, useKeyboardHeight } from '@/co
 import { useTranslation } from '@/i18n';
 import { AppLanguage } from '@/types';
 import { TourCards } from './TourCards';
+import { ReceivePanel } from '@/screens/settings/TransferScreen';
+import { transferAvailable } from '@/lib/transfer';
 import { APP_VERSION } from './WhatsNew';
 
-type Step = 'language' | 'profile' | 'tour';
+type Step = 'transfer' | 'receive' | 'language' | 'profile' | 'tour';
+/** The steps with dots; 'transfer' (and its scanner) comes before them when moving is possible. */
 const STEPS: Step[] = ['language', 'profile', 'tour'];
+const FIRST: Step = transferAvailable ? 'transfer' : 'language';
+
+/** The phone's own language — the first question comes before a language is picked. */
+function deviceLanguage(): AppLanguage {
+  let locale = 'en';
+  try {
+    locale = Intl.DateTimeFormat().resolvedOptions().locale.toLowerCase();
+  } catch {
+    // No Intl data — English it is.
+  }
+  if (locale.startsWith('uk')) return 'uk';
+  if (locale.startsWith('ru')) return 'ru';
+  return 'en';
+}
 
 /** Each language names itself, so the list reads right before anything is picked. */
 const LANGUAGES: { value: AppLanguage; label: string; code: string }[] = [
@@ -29,7 +46,8 @@ const LANGUAGES: { value: AppLanguage; label: string; code: string }[] = [
 const AVATAR_SIZE = 104;
 
 /**
- * First launch: pick a language → create the profile → a short tour of the app.
+ * First launch: moving from an old phone? (scan its QR — done) → otherwise pick a language →
+ * create the profile → a short tour of the app.
  * The first two steps cover the app; the tour sits over it, dimmed. Ends by setting
  * settings.onboardingDone — shown once, on the very first launch.
  */
@@ -38,13 +56,17 @@ export function Onboarding() {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const [step, setStep] = useState<Step>('language');
+  const [step, setStep] = useState<Step>(FIRST);
   const tourBack = useRef<(() => boolean) | null>(null);
   const router = useRouter();
 
   // Start from the first step every time it opens.
   useEffect(() => {
-    if (!done) setStep('language');
+    if (done) return;
+    setStep(FIRST);
+    // Ask in the phone's language; it's also preselected on the language step.
+    updateSettings({ language: deviceLanguage() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
 
   // Steps slide in from the side and fade, with the app's spring.
@@ -65,6 +87,7 @@ export function Onboarding() {
 
   function back() {
     if (step === 'tour' && tourBack.current?.()) return;
+    if (step === 'receive' || (step === 'language' && FIRST === 'transfer')) return go('transfer');
     const i = STEPS.indexOf(step);
     if (i > 0) go(STEPS[i - 1]);
   }
@@ -90,12 +113,15 @@ export function Onboarding() {
             },
           ]}
         >
+          {step === 'transfer' ? <TransferStep onYes={() => go('receive')} onNo={() => go('language')} /> : null}
+          {/* Moved over: the data came with its language, profile and settings — straight in. */}
+          {step === 'receive' ? <ReceivePanel onDone={() => router.navigate('/')} /> : null}
           {step === 'language' ? <LanguageStep onNext={() => go('profile')} /> : null}
           {step === 'profile' ? <ProfileStep onBack={() => go('language')} onNext={() => go('tour')} /> : null}
           {isTour ? <TourCards backRef={tourBack} onFinish={finish} /> : null}
         </Animated.View>
 
-        {!isTour ? <StepDots step={STEPS.indexOf(step)} /> : null}
+        {STEPS.includes(step) && !isTour ? <StepDots step={STEPS.indexOf(step)} /> : null}
       </View>
     </Modal>
   );
@@ -111,6 +137,26 @@ function StepDots({ step }: { step: number }) {
           style={[styles.stepDot, { backgroundColor: i === step ? theme.colors.primary : theme.colors.border }, i === step && styles.stepDotActive]}
         />
       ))}
+    </View>
+  );
+}
+
+function TransferStep({ onYes, onNo }: { onYes: () => void; onNo: () => void }) {
+  const theme = useTheme();
+  const tr = useTranslation();
+  return (
+    <View style={styles.step}>
+      <View style={styles.header}>
+        <View style={[styles.iconCircle, { backgroundColor: `${theme.colors.primary}22` }]}>
+          <Ionicons name="phone-portrait-outline" size={38} color={theme.colors.primary} />
+        </View>
+        <Text style={[styles.title, { color: theme.colors.text }]}>{tr.transfer.welcomeTitle}</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{tr.transfer.welcomeText}</Text>
+      </View>
+      <View style={styles.transferButtons}>
+        <Button title={tr.transfer.welcomeYes} onPress={onYes} />
+        <Button title={tr.transfer.welcomeNo} variant="secondary" onPress={onNo} />
+      </View>
     </View>
   );
 }
@@ -254,6 +300,7 @@ function ProfileStep({ onBack, onNext }: { onBack: () => void; onNext: () => voi
 }
 
 const styles = StyleSheet.create({
+  transferButtons: { gap: 10, marginTop: 'auto' },
   flex: { flex: 1 },
   root: { flex: 1 },
   step: { flex: 1, paddingHorizontal: 24, gap: 24 },
