@@ -6,7 +6,8 @@ import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
-import { useFinanceStore } from '@/store/useFinanceStore';
+import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
+import { unspentInPlans } from '@/lib/plans';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar, useHiddenBoardItems } from '@/components/ui';
 import { useFinanceLocked } from '@/store/useFinanceLock';
@@ -36,6 +37,10 @@ export function FinanceScreen() {
   const workDays = useFinanceStore((s) => s.workDays);
   const plannedExpenses = useFinanceStore((s) => s.plannedExpenses);
   const spendPlans = useFinanceStore((s) => s.spendPlans);
+  const planSpends = useFinanceStore((s) => s.planSpends);
+  const rollOverSpendPlans = useFinanceStore((s) => s.rollOverSpendPlans);
+  const spending = useSpendingExpenses();
+  const inPlans = useMemo(() => unspentInPlans(spendPlans, planSpends), [spendPlans, planSpends]);
   const addExpense = useFinanceStore((s) => s.addExpense);
   const plannedTotal = useMemo(() => plannedExpenses.reduce((sum, p) => sum + p.amount, 0), [plannedExpenses]);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -85,13 +90,15 @@ export function FinanceScreen() {
   );
   const bank = bankBeforeSalary + payroll.creditedSinceSet;
 
-  function handleEditBank(newBase: number) {
+  // What's typed is what's in the account; the plans' unspent part comes off to keep "free" right.
+  function handleEditBank(inAccount: number) {
     const setAt = new Date().toISOString();
-    updateSettings({ bankBalanceBase: newBase, bankBalanceSetAt: setAt, lastSettledAt: todayKey() });
+    updateSettings({ bankBalanceBase: inAccount - inPlans, bankBalanceSetAt: setAt, lastSettledAt: todayKey() });
   }
 
-  const spentThisWeek = useMemo(() => totalExpenses(expenses, weekRange(new Date())), [expenses]);
-  const spentThisMonth = useMemo(() => totalExpenses(expenses, monthRange(new Date())), [expenses]);
+  // Spent = what was bought: plan purchases count, not a plan's whole limit.
+  const spentThisWeek = useMemo(() => totalExpenses(spending, weekRange(new Date())), [spending]);
+  const spentThisMonth = useMemo(() => totalExpenses(spending, monthRange(new Date())), [spending]);
   const hasBudgetLimits = !!settings.budgetLimitWeek || !!settings.budgetLimitMonth;
 
   const expenseMode = theme.layout.expenses;
@@ -154,6 +161,7 @@ export function FinanceScreen() {
       render: () => (
         <BalanceCard
           bank={bank}
+          inPlans={inPlans}
           spentSinceSet={spentSinceSet}
           creditedSinceSet={payroll.creditedSinceSet}
           onEditBank={handleEditBank}
@@ -210,6 +218,10 @@ export function FinanceScreen() {
   // The list shows this month only and starts empty on the 1st. Nothing is deleted — every
   // expense stays in Calendar and Stats, and the bank figure doesn't move.
   const monthStartKey = toDateKey(startOfMonth(now));
+  // A new month: every spending plan starts over (also checked at app start).
+  useEffect(() => {
+    rollOverSpendPlans();
+  }, [monthStartKey, rollOverSpendPlans]);
   const monthExpenses = useMemo(() => expenses.filter((e) => e.date >= monthStartKey), [expenses, monthStartKey]);
   function showListInfo() {
     const nextClear = startOfMonth(addMonths(now, 1)).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'long' });

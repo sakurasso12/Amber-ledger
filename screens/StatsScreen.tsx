@@ -4,7 +4,7 @@ import { Text } from '@/components/ui/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
-import { useFinanceStore } from '@/store/useFinanceStore';
+import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { BoardModule, CustomizableCard, EditLayoutButton, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, SegmentedControl, useHiddenBoardItems } from '@/components/ui';
 import { useFinanceLocked } from '@/store/useFinanceLock';
@@ -27,7 +27,8 @@ export function StatsScreen() {
   const [tab, setTab] = useState<Tab>('tasks');
 
   const tasks = useTaskStore((s) => s.tasks);
-  const expenses = useFinanceStore((s) => s.expenses);
+  // What was bought: plan purchases instead of a plan's whole limit.
+  const expenses = useSpendingExpenses();
   const categories = useFinanceStore((s) => s.categories);
   const workDays = useFinanceStore((s) => s.workDays);
   const settings = useSettingsStore((s) => s.settings);

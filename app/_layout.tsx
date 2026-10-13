@@ -89,6 +89,8 @@ function AppGate({ children }: { children: React.ReactNode }) {
     Promise.all([loadTasks(), loadFinance()]).then(async () => {
       setDataLoaded(true);
       await syncRecurringExpenses();
+      // A new month since last time: spending plans start over.
+      await useFinanceStore.getState().rollOverSpendPlans();
       // Security & storage → auto clean-up (off unless chosen; once a day).
       await runAutoCleanup().catch((error) => console.warn('[cleanup] failed:', error));
 

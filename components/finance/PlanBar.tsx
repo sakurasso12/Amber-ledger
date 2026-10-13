@@ -61,7 +61,7 @@ export function PlanBar({ plan, disabled = false }: { plan: SpendPlan; disabled?
   const tr = useTranslation();
   const currency = useSettingsStore((s) => s.settings.currency);
   const planSpends = useFinanceStore((s) => s.planSpends);
-  const resetSpendPlan = useFinanceStore((s) => s.resetSpendPlan);
+  const nextLimit = useSettingsStore((s) => s.settings.planNextLimits[plan.id]);
   const spent = useMemo(() => spentInPeriod(plan, planSpends), [plan, planSpends]);
   const ratio = planRatio(plan, spent);
   const over = ratio > 1;
@@ -81,19 +81,6 @@ export function PlanBar({ plan, disabled = false }: { plan: SpendPlan; disabled?
   const fillColor = over ? theme.colors.danger : theme.colors.primary;
   // Barely-there grey: a see-through tint of the text colour, so it works on any background.
   const empty = theme.dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
-
-  function startOver() {
-    Alert.alert(tr.plans.reset, undefined, [
-      { text: tr.plans.cancel, style: 'cancel' },
-      {
-        text: tr.plans.reset,
-        onPress: () => {
-          haptics.success();
-          resetSpendPlan(plan.id);
-        },
-      },
-    ]);
-  }
 
   return (
     <View style={styles.wrap}>
@@ -124,15 +111,20 @@ export function PlanBar({ plan, disabled = false }: { plan: SpendPlan; disabled?
       </PressableScale>
 
       {needsMonthEndChoice(plan) ? (
+        // The plan starts over by itself on the 1st; here the next month's limit can be changed.
         <View style={styles.monthEnd}>
-          <Text style={[styles.monthEndText, { color: theme.colors.textMuted }]}>{tr.plans.monthEnd}</Text>
-          <Pressable disabled={disabled} onPress={startOver} hitSlop={6} style={[styles.chip, { backgroundColor: `${theme.colors.primary}1F` }]}>
-            <Text style={[styles.chipText, { color: theme.colors.primary }]}>{tr.plans.reset}</Text>
-          </Pressable>
+          <Text style={[styles.monthEndText, { color: theme.colors.textMuted }]}>
+            {tr.plans.monthEnd}
+            {nextLimit ? ` · ${tr.plans.nextLimit(`${nextLimit.toFixed(0)} ${currency}`)}` : ''}
+          </Text>
           <Pressable disabled={disabled} onPress={() => setSheet('newBudget')} hitSlop={6} style={[styles.chip, { backgroundColor: `${theme.colors.primary}1F` }]}>
             <Text style={[styles.chipText, { color: theme.colors.primary }]}>{tr.plans.changeBudget}</Text>
           </Pressable>
         </View>
+      ) : null}
+
+      {plan.period > 0 && daysSince(plan.periodStart) < 3 ? (
+        <Text style={[styles.monthEndText, { color: theme.colors.textMuted }]}>{tr.plans.newPeriod}</Text>
       ) : null}
 
       <PlanSheet plan={plan} mode={sheet} onClose={() => setSheet(null)} />
@@ -142,7 +134,7 @@ export function PlanBar({ plan, disabled = false }: { plan: SpendPlan; disabled?
 
 /**
  * The plan opened from its bar. 'plan': log a purchase, see this period's purchases, change the
- * limit or delete. 'newBudget': the month-end "change budget" — a new limit that starts a fresh period.
+ * limit or delete. 'newBudget': the month-end "change budget" — the limit for next month's plan.
  * A new limit is asked to be confirmed, then checked with the profile password (or the phone's
  * fingerprint/PIN when there's no password).
  */
@@ -157,7 +149,6 @@ function PlanSheet({ plan, mode, onClose }: { plan: SpendPlan; mode: null | 'pla
   const addPlanSpend = useFinanceStore((s) => s.addPlanSpend);
   const removePlanSpend = useFinanceStore((s) => s.removePlanSpend);
   const updateSpendPlan = useFinanceStore((s) => s.updateSpendPlan);
-  const resetSpendPlan = useFinanceStore((s) => s.resetSpendPlan);
   const deleteSpendPlan = useFinanceStore((s) => s.deleteSpendPlan);
 
   // 'limit' = typing the new limit, 'password' = checking it's really you.
@@ -205,8 +196,11 @@ function PlanSheet({ plan, mode, onClose }: { plan: SpendPlan; mode: null | 'pla
     const n = parse(limit);
     if (!n) return;
     haptics.success();
-    if (mode === 'newBudget') await resetSpendPlan(plan.id, n);
-    else await updateSpendPlan(plan.id, { limit: n });
+    if (mode === 'newBudget') {
+      // Month end: the new limit starts with next month's plan (on the 1st).
+      const { settings, updateSettings } = useSettingsStore.getState();
+      updateSettings({ planNextLimits: { ...settings.planNextLimits, [plan.id]: n } });
+    } else await updateSpendPlan(plan.id, { limit: n });
     close();
   }
 
@@ -369,3 +363,7 @@ const styles = StyleSheet.create({
   buttons: { flexDirection: 'row', gap: 10 },
   error: { fontSize: 13, fontWeight: '600' },
 });
+
+function daysSince(dateKey: string): number {
+  return (Date.now() - new Date(`${dateKey}T00:00:00`).getTime()) / 86_400_000;
+}

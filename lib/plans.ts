@@ -1,5 +1,5 @@
 import { endOfMonth, parseISO } from 'date-fns';
-import { PlanSpend, SpendPlan } from '@/types';
+import { Expense, PlanSpend, SpendPlan } from '@/types';
 import { toDateKey, todayKey } from './dateRanges';
 
 /** Purchases ticked off in the plan's current period. */
@@ -28,4 +28,38 @@ export function overspendOf(plan: SpendPlan, spent: number): number {
 export function needsMonthEndChoice(plan: SpendPlan, today: string = todayKey()): boolean {
   // A plan started on the last day itself isn't asked that same day.
   return today > plan.periodStart && today >= toDateKey(endOfMonth(parseISO(plan.periodStart)));
+}
+
+/**
+ * Expenses as spending: a plan's records (the limit taken off at once, the overspend) are swapped
+ * for the purchases actually ticked off in it. Stats, the week/month totals and budget alerts use
+ * this — a 800 zł food plan with 300 zł bought is 300 zł of food, not 800. The bank still counts
+ * the whole limit (that's the point of a plan).
+ */
+export function spendingExpenses(expenses: Expense[], plans: SpendPlan[], spends: PlanSpend[]): Expense[] {
+  if (plans.length === 0) return expenses;
+  const byId = new Map(plans.map((p) => [p.id, p]));
+  const own = expenses.filter((e) => !(e.planRole && e.planId && byId.has(e.planId)));
+  const purchases: Expense[] = [];
+  for (const s of spends) {
+    const plan = byId.get(s.planId);
+    if (!plan) continue;
+    purchases.push({
+      id: `spend-${s.id}`,
+      amount: s.amount,
+      categoryId: plan.categoryId,
+      date: s.date,
+      comment: plan.name,
+      createdAt: s.createdAt,
+      planId: plan.id,
+      planRole: null,
+      taskId: null,
+    });
+  }
+  return [...own, ...purchases];
+}
+
+/** The part of the plans' limits not spent yet this period — still physically in the account. */
+export function unspentInPlans(plans: SpendPlan[], spends: PlanSpend[]): number {
+  return plans.reduce((sum, p) => sum + (p.reserveExpenseId ? Math.max(0, p.limit - spentInPeriod(p, spends)) : 0), 0);
 }

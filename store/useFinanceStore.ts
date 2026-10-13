@@ -3,7 +3,10 @@ import * as financeRepo from '@/db/financeRepo';
 import { todayKey } from '@/lib/dateRanges';
 import { nextOccurrenceDateKey } from '@/lib/recurrence';
 import { checkBudgetAlerts } from '@/notifications';
-import { overspendOf, spentInPeriod } from '@/lib/plans';
+import { useMemo } from 'react';
+import { startOfMonth } from 'date-fns';
+import { overspendOf, spendingExpenses, spentInPeriod } from '@/lib/plans';
+import { toDateKey } from '@/lib/dateRanges';
 import { generateId } from '@/lib/id';
 import { useSettingsStore } from './useSettingsStore';
 import {
@@ -67,7 +70,9 @@ interface FinanceState {
   updateSpendPlan: (planId: string, patch: { name?: string; limit?: number }) => Promise<void>;
   /** New period: the (new) limit comes off the bank again and the bar starts from 0 %. The old
    * period's limit stays spent in full. */
-  resetSpendPlan: (planId: string, newLimit?: number) => Promise<void>;
+  resetSpendPlan: (planId: string, newLimit?: number, startKey?: string) => Promise<void>;
+  /** On a new month every plan starts over by itself (with the limit picked for it, if any). */
+  rollOverSpendPlans: () => Promise<void>;
   /** Undoes the plan completely: its expenses (every period's limit and overspend) are deleted, so
    * all of that money goes back to the bank. Purchases logged inside it go with it. */
   deleteSpendPlan: (planId: string) => Promise<void>;
@@ -99,7 +104,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
   addExpense: async (draft) => {
     const expense = await financeRepo.createExpense(draft);
     set((state) => ({ expenses: [expense, ...state.expenses] }));
-    checkBudgetAlerts(get().expenses, useSettingsStore.getState().settings, get().categories);
+    checkAlerts();
   },
 
   editExpense: async (expense) => {
@@ -108,7 +113,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     keepBankInStep([expense], +1);
     await financeRepo.updateExpense(expense);
     set((state) => ({ expenses: state.expenses.map((e) => (e.id === expense.id ? expense : e)) }));
-    checkBudgetAlerts(get().expenses, useSettingsStore.getState().settings, get().categories);
+    checkAlerts();
   },
 
   removeExpense: async (id) => {
@@ -208,7 +213,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
 
     if (newExpenses.length > 0) {
       set((state) => ({ expenses: [...newExpenses, ...state.expenses] }));
-      checkBudgetAlerts(get().expenses, useSettingsStore.getState().settings, get().categories);
+      checkAlerts();
     }
   },
 
@@ -230,12 +235,26 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     set((state) => ({ expenses: [reserve, ...state.expenses], spendPlans: [...state.spendPlans, plan] }));
   },
 
+  rollOverSpendPlans: async () => {
+    const monthStart = toDateKey(startOfMonth(new Date()));
+    const { settings, updateSettings } = useSettingsStore.getState();
+    const planNextLimits = settings.planNextLimits;
+    let used = false;
+    for (const plan of get().spendPlans) {
+      if (plan.periodStart >= monthStart) continue;
+      await get().resetSpendPlan(plan.id, planNextLimits[plan.id], monthStart);
+      used = used || plan.id in planNextLimits;
+    }
+    if (used) updateSettings({ planNextLimits: {} });
+  },
+
   addPlanSpend: async (planId, amount) => {
     const plan = get().spendPlans.find((p) => p.id === planId);
     if (!plan) return;
     const spend = await financeRepo.createPlanSpend(planId, plan.period, amount, todayKey());
     set((state) => ({ planSpends: [spend, ...state.planSpends] }));
     await syncOverspend(planId);
+    checkAlerts();
   },
 
   removePlanSpend: async (spendId) => {
@@ -258,14 +277,15 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     await syncOverspend(planId);
   },
 
-  resetSpendPlan: async (planId, newLimit) => {
+  resetSpendPlan: async (planId, newLimit, startKey) => {
     const plan = get().spendPlans.find((p) => p.id === planId);
     if (!plan) return;
     const limit = newLimit ?? plan.limit;
+    const start = startKey ?? todayKey();
     const reserve = await financeRepo.createExpense({
       amount: limit,
       categoryId: plan.categoryId,
-      date: todayKey(),
+      date: start,
       comment: plan.name,
       planId,
       planRole: 'reserve',
@@ -274,7 +294,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
       ...plan,
       limit,
       period: plan.period + 1,
-      periodStart: todayKey(),
+      periodStart: start,
       reserveExpenseId: reserve.id,
       overspendExpenseId: null,
     };
@@ -356,4 +376,18 @@ function keepBankInStep(expenses: Expense[], sign: 1 | -1): void {
   if (before === 0) return;
   // Removing −X from the bank = +X; adding = −X.
   useSettingsStore.getState().updateSettings({ bankBalanceBase: bankBalanceBase - sign * before });
+}
+
+/** Budget alerts look at what was actually bought (plan purchases, not whole plan limits). */
+function checkAlerts(): void {
+  const { expenses, spendPlans, planSpends, categories } = useFinanceStore.getState();
+  checkBudgetAlerts(spendingExpenses(expenses, spendPlans, planSpends), useSettingsStore.getState().settings, categories);
+}
+
+/** Expenses as spending — see spendingExpenses: plan purchases instead of whole plan limits. */
+export function useSpendingExpenses() {
+  const expenses = useFinanceStore((s) => s.expenses);
+  const plans = useFinanceStore((s) => s.spendPlans);
+  const spends = useFinanceStore((s) => s.planSpends);
+  return useMemo(() => spendingExpenses(expenses, plans, spends), [expenses, plans, spends]);
 }

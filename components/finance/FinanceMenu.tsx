@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useTranslation } from '@/i18n';
+import { useFinanceStore } from '@/store/useFinanceStore';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -18,8 +19,11 @@ interface MenuItem {
 
 function useMenuItems(): MenuItem[] {
   const tr = useTranslation();
+  // The old "Planned" list (future expenses taken off the forecast) is replaced by spending plans
+  // with their bars; it stays reachable only while something is still in it.
+  const hasOldPlanned = useFinanceStore((s) => s.plannedExpenses.length > 0);
 
-  return [
+  const items: MenuItem[] = [
     {
       key: 'recurring',
       icon: 'repeat',
@@ -46,6 +50,7 @@ function useMenuItems(): MenuItem[] {
       route: '/settings/earnings',
     },
   ];
+  return hasOldPlanned ? items : items.filter((item) => item.key !== 'planned');
 }
 
 /**

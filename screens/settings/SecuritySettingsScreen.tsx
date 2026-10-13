@@ -11,6 +11,9 @@ import { Button, PressableScale, Screen, SegmentedControl, SubScreenHeader, Text
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { eraseEverything, eraseFinance, eraseProfile, eraseTasks } from '@/lib/dataWipe';
+import { exportBackup, parseBackup, restoreBackup } from '@/lib/backup';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { haptics } from '@/lib/haptics';
 import { FINANCE_LOCK_MAX_MINUTES, FinanceLockMethod } from '@/types';
 import { useTranslation } from '@/i18n';
@@ -188,6 +191,43 @@ function StorageSection() {
     else Alert.alert(tr.storage.done);
   }
 
+  async function handleExport() {
+    try {
+      await exportBackup(tr.storage.backupTitle);
+    } catch (error) {
+      console.warn('[backup] export failed:', error);
+    }
+  }
+
+  async function handleImport() {
+    const picked = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
+    if (picked.canceled || !picked.assets[0]) return;
+    const payload = parseBackup(await FileSystem.readAsStringAsync(picked.assets[0].uri));
+    if (payload === 'notBackup' || payload === 'newer') {
+      haptics.warning();
+      Alert.alert(payload === 'newer' ? tr.storage.importNewer : tr.storage.importBad);
+      return;
+    }
+    Alert.alert(tr.storage.importTitle, tr.storage.importConfirm, [
+      { text: tr.storage.cancel, style: 'cancel' },
+      {
+        text: tr.storage.importButton,
+        style: 'destructive',
+        onPress: async () => {
+          if (!(await ask('profile'))) return;
+          setBusy(true);
+          try {
+            await restoreBackup(payload);
+            haptics.success();
+            Alert.alert(tr.storage.importDone);
+          } finally {
+            setBusy(false);
+          }
+        },
+      },
+    ]);
+  }
+
   function confirm(kind: EraseKind) {
     haptics.warning();
     Alert.alert(tr.storage.confirmTitle, confirmText[kind], [
@@ -215,6 +255,15 @@ function StorageSection() {
           {cleanupMonths > 0 ? `${tr.storage.months(cleanupMonths)} · ` : ''}
           {tr.storage.autoHint}
         </Text>
+      </View>
+
+      <View style={styles.field}>
+        <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.storage.backupTitle}</Text>
+        <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.storage.backupHint}</Text>
+        <View style={styles.eraseGrid}>
+          <Button title={tr.storage.exportButton} disabled={busy} onPress={handleExport} />
+          <Button title={tr.storage.importButton} variant="secondary" disabled={busy} onPress={handleImport} />
+        </View>
       </View>
 
       <View style={styles.field}>

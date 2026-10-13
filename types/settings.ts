@@ -119,6 +119,8 @@ export interface AppSettings {
   lastAutoCleanup: string | null;
   /** Done tasks removed by the clean-up — still counted by the level ring. */
   purgedDoneCount: number;
+  /** Spending plans: a limit chosen at the end of a month for the next one (plan id → limit). */
+  planNextLimits: Record<string, number>;
 }
 
 export type FinanceLockMethod = 'device' | 'password';
@@ -176,4 +178,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoCleanupMonths: 0,
   lastAutoCleanup: null,
   purgedDoneCount: 0,
+  planNextLimits: {},
 };

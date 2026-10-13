@@ -99,6 +99,15 @@ export interface Translation {
     countdown: string;
     countdownHint: string;
     done: string;
+    backupTitle: string;
+    backupHint: string;
+    exportButton: string;
+    importButton: string;
+    importTitle: string;
+    importConfirm: string;
+    importBad: string;
+    importNewer: string;
+    importDone: string;
   };
   financeScreen: {
     header: string;
@@ -112,6 +121,8 @@ export interface Translation {
     earned: string;
     spent: string;
     bank: string;
+    inPlans: string;
+    free: string;
     incoming: string;
     total: string;
     editBankTitle: string;
@@ -274,6 +285,8 @@ export interface Translation {
     confirm: string;
     devicePrompt: string;
     monthEnd: string;
+    nextLimit: (amount: string) => string;
+    newPeriod: string;
     reset: string;
     changeBudget: string;
     newLimit: string;
@@ -522,7 +535,7 @@ const ru: Translation = {
     hint: 'Все данные хранятся только на этом телефоне и сами по себе не удаляются.',
     counts: (tasks, expenses) => `Задач: ${tasks} · Трат: ${expenses}`,
     autoTitle: 'Автоочистка',
-    autoHint: 'Удалять выполненные задачи и траты старше выбранного срока. Привычки, текущие планы и сумма в банке не меняются.',
+    autoHint: 'Удалять выполненные задачи и траты старше выбранного срока — и из Календаря тоже. Привычки, текущие планы и сумма в банке не меняются.',
     off: 'Выкл',
     months: (n) => `${n} мес`,
     eraseTitle: 'Стереть данные',
@@ -540,6 +553,15 @@ const ru: Translation = {
     countdown: 'Стирание всех данных',
     countdownHint: 'Ещё можно передумать',
     done: 'Готово, данные стёрты',
+    backupTitle: 'Резервная копия',
+    backupHint: 'Файл со всеми задачами, тратами и настройками — сохрани его себе или перекинь на другой телефон. Фото и пароль в файл не попадают.',
+    exportButton: 'Сохранить в файл',
+    importButton: 'Восстановить из файла',
+    importTitle: 'Восстановить из файла?',
+    importConfirm: 'Все задачи и финансы на этом телефоне заменятся данными из файла.',
+    importBad: 'Это не файл резервной копии Amber Ledger',
+    importNewer: 'Файл из более новой версии приложения — сначала обнови приложение',
+    importDone: 'Готово, данные восстановлены',
   },
   financeScreen: {
     header: 'Финансы',
@@ -554,6 +576,8 @@ const ru: Translation = {
     earned: 'Заработано',
     spent: 'Потрачено',
     bank: 'Банк',
+    inPlans: 'в планах',
+    free: 'свободно',
     incoming: 'Должно прийти',
     total: 'После зарплаты',
     editBankTitle: 'Сколько у тебя на руках?',
@@ -745,7 +769,9 @@ const ru: Translation = {
     passwordWrong: 'Неверный пароль',
     confirm: 'Подтвердить',
     devicePrompt: 'Подтверди изменение лимита',
-    monthEnd: 'Месяц подходит к концу',
+    monthEnd: '1-го числа план начнётся заново',
+    nextLimit: (amount) => `со следующего месяца: ${amount}`,
+    newPeriod: 'Новый месяц — план начат заново',
     reset: 'Обнулить',
     changeBudget: 'Изменить бюджет',
     newLimit: 'Новый лимит',
@@ -1000,7 +1026,7 @@ const uk: Translation = {
     hint: 'Усі дані зберігаються лише на цьому телефоні й самі не видаляються.',
     counts: (tasks, expenses) => `Задач: ${tasks} · Витрат: ${expenses}`,
     autoTitle: 'Автоочищення',
-    autoHint: 'Видаляти виконані задачі й витрати, старші за обраний строк. Звички, поточні плани й сума в банку не змінюються.',
+    autoHint: 'Видаляти виконані задачі й витрати, старші за обраний строк, — і з Календаря теж. Звички, поточні плани й сума в банку не змінюються.',
     off: 'Вимк',
     months: (n) => `${n} міс`,
     eraseTitle: 'Стерти дані',
@@ -1018,6 +1044,15 @@ const uk: Translation = {
     countdown: 'Стирання всіх даних',
     countdownHint: 'Ще можна передумати',
     done: 'Готово, дані стерто',
+    backupTitle: 'Резервна копія',
+    backupHint: 'Файл з усіма задачами, витратами й налаштуваннями — збережи його собі або перекинь на інший телефон. Фото й пароль у файл не потрапляють.',
+    exportButton: 'Зберегти у файл',
+    importButton: 'Відновити з файлу',
+    importTitle: 'Відновити з файлу?',
+    importConfirm: 'Усі задачі й фінанси на цьому телефоні заміняться даними з файлу.',
+    importBad: 'Це не файл резервної копії Amber Ledger',
+    importNewer: 'Файл з новішої версії застосунку — спершу онови застосунок',
+    importDone: 'Готово, дані відновлено',
   },
   financeScreen: {
     header: 'Фінанси',
@@ -1032,6 +1067,8 @@ const uk: Translation = {
     earned: 'Зароблено',
     spent: 'Витрачено',
     bank: 'Банк',
+    inPlans: 'у планах',
+    free: 'вільно',
     incoming: 'Має надійти',
     total: 'Після зарплати',
     editBankTitle: 'Скільки у тебе на руках?',
@@ -1221,7 +1258,9 @@ const uk: Translation = {
     passwordWrong: 'Невірний пароль',
     confirm: 'Підтвердити',
     devicePrompt: 'Підтверди зміну ліміту',
-    monthEnd: 'Місяць добігає кінця',
+    monthEnd: '1-го числа план почнеться знову',
+    nextLimit: (amount) => `з наступного місяця: ${amount}`,
+    newPeriod: 'Новий місяць — план почато знову',
     reset: 'Обнулити',
     changeBudget: 'Змінити бюджет',
     newLimit: 'Новий ліміт',
@@ -1476,7 +1515,7 @@ const en: Translation = {
     hint: 'Everything is stored only on this phone and is never deleted on its own.',
     counts: (tasks, expenses) => `Tasks: ${tasks} · Expenses: ${expenses}`,
     autoTitle: 'Auto clean-up',
-    autoHint: 'Delete done tasks and expenses older than the chosen time. Habits, current plans and your bank balance stay as they are.',
+    autoHint: 'Delete done tasks and expenses older than the chosen time — from Calendar too. Habits, current plans and your bank balance stay as they are.',
     off: 'Off',
     months: (n) => `${n} mo`,
     eraseTitle: 'Erase data',
@@ -1494,6 +1533,15 @@ const en: Translation = {
     countdown: 'Erasing all data',
     countdownHint: 'You can still change your mind',
     done: 'Done, the data is erased',
+    backupTitle: 'Backup',
+    backupHint: 'A file with all your tasks, expenses and settings — keep it somewhere safe or move it to another phone. Photos and the password aren’t in it.',
+    exportButton: 'Save to a file',
+    importButton: 'Restore from a file',
+    importTitle: 'Restore from the file?',
+    importConfirm: 'All tasks and finances on this phone will be replaced with the ones in the file.',
+    importBad: 'This isn’t an Amber Ledger backup file',
+    importNewer: 'This file is from a newer version of the app — update the app first',
+    importDone: 'Done, the data is restored',
   },
   financeScreen: {
     header: 'Finance',
@@ -1508,6 +1556,8 @@ const en: Translation = {
     earned: 'Earned',
     spent: 'Spent',
     bank: 'Bank',
+    inPlans: 'in plans',
+    free: 'free',
     incoming: 'Incoming',
     total: 'After payday',
     editBankTitle: 'How much do you have on hand?',
@@ -1697,7 +1747,9 @@ const en: Translation = {
     passwordWrong: 'Wrong password',
     confirm: 'Confirm',
     devicePrompt: 'Confirm the new limit',
-    monthEnd: 'The month is almost over',
+    monthEnd: 'The plan starts over on the 1st',
+    nextLimit: (amount) => `from next month: ${amount}`,
+    newPeriod: 'New month — the plan started over',
     reset: 'Start over',
     changeBudget: 'Change budget',
     newLimit: 'New limit',
