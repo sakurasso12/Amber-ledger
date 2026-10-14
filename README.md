@@ -15,6 +15,14 @@ install over the previous version and keep your data. I publish a new APK in
 [Releases](https://github.com/sakurasso12/Amber-ledger/releases) every time there's a fix, even a
 small one.
 
+## 💬 News & feedback
+
+- **Telegram channel — [@amberledger](https://t.me/amberledger):** every new version with the APK
+  and what's new, in English and Ukrainian.
+- **Found a bug or have an idea?** Write to **[@amberledgerbot](https://t.me/amberledgerbot)** —
+  pick your language (Ukrainian, Russian or English), tell what happened and add screenshots.
+  I read every message.
+
 ## 📱 Screens
 
 ### Tasks
@@ -82,7 +90,7 @@ Everything lives only on your phone — no accounts, no servers. In *Settings �
 
 - **Move to another phone by QR:** the old phone shows a code, the new one scans it and pulls your
   tasks, finances and profile straight over Wi-Fi, encrypted with a one-time key that exists only
-  in that QR. Photos stay behind.
+  in that QR. Photos stay behind. The QR can also be picked from a photo in your gallery.
 - **Auto clean-up** of done tasks and expenses older than 1–12 months, if you want it.
 - **Erase** tasks, finances, your profile or everything — erasing everything asks twice, counts
   down from 10 and wants your password.
@@ -127,7 +135,8 @@ amount — Finance, Stats, Calendar and the widget — stays blurred until you u
 
 It locks again after the time you choose (0–30 minutes after unlocking; 0 = as soon as you leave
 Finance). The profile password is never stored — only a salted hash kept in Android's encrypted
-Keystore.
+Keystore. Forgot it? *Profile → Password → Forgot password?* lets you set a new one after your
+fingerprint or phone PIN.
 
 | Locked | Security settings | Profile |
 |:---:|:---:|:---:|
