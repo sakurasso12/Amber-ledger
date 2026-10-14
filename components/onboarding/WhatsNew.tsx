@@ -14,6 +14,7 @@ export const APP_VERSION = Constants.expoConfig?.version ?? '0';
 const ICONS: Record<string, (keyof typeof Ionicons.glyphMap)[]> = {
   '1.2.0': ['gift-outline', 'flame', 'ellipse-outline', 'move-outline', 'apps-outline'],
   '1.3.0': ['gift-outline', 'water-outline', 'wallet-outline', 'calendar-outline', 'shield-checkmark-outline', 'qr-code-outline', 'remove-circle-outline'],
+  '1.3.1': ['gift-outline', 'scan-outline', 'key-outline'],
 };
 
 /**
