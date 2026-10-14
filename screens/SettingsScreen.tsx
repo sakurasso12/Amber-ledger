@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,13 +8,20 @@ import { cardSurface } from '@/theme/surfaces';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { LayoutScreen, PressableScale } from '@/components/ui';
 import { useTranslation } from '@/i18n';
+import { APP_VERSION } from '@/components/onboarding/WhatsNew';
 
 interface Row {
   icon: string;
   title: string;
   value: string;
   route: string;
+  /** Opens outside the app (Telegram) instead of a settings screen. */
+  url?: string;
 }
+
+const CHANNEL_URL = 'https://t.me/amberledger';
+// The bot reads the version from the start parameter: 1.3.2 → v1_3_2.
+const supportUrl = () => `https://t.me/amberledgerbot?start=v${APP_VERSION.replace(/\./g, '_')}`;
 
 export function SettingsScreen() {
   const theme = useTheme();
@@ -79,10 +86,12 @@ export function SettingsScreen() {
       value: settings.homeWidgetBackgroundUri ? tr.settingsScreen.backgroundSet : tr.settingsScreen.notSet,
       route: '/settings/home-widget',
     },
+    { icon: '💬', title: tr.settingsScreen.support, value: tr.settingsScreen.supportValue, route: 'support', url: supportUrl() },
+    { icon: '📣', title: tr.settingsScreen.channel, value: '@amberledger', route: 'channel', url: CHANNEL_URL },
   ];
 
   const mode = theme.layout.settings;
-  const open = (row: Row) => router.push(row.route as never);
+  const open = (row: Row) => (row.url ? Linking.openURL(row.url) : router.push(row.route as never));
 
   let body: React.ReactNode;
   if (mode === 'big') {
