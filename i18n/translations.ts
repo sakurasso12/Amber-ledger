@@ -120,6 +120,8 @@ export interface Translation {
     cameraText: string;
     cameraGrant: string;
     pointCamera: string;
+    fromGallery: string;
+    noQrInPhoto: string;
     notOurCode: string;
     codeExpired: string;
     confirmTitle: string;
@@ -400,6 +402,10 @@ export interface Translation {
     mismatch: string;
     wrongPassword: string;
     saved: string;
+    forgotPassword: string;
+    resetPrompt: string;
+    resetUnlocked: string;
+    resetNoDeviceLock: string;
   };
   securitySettings: {
     title: string;
@@ -483,6 +489,11 @@ const ru: Translation = {
         { title: 'Безопасность и память', text: 'Автоочистка старого, стирание данных с отсчётом и паролем — в настройках.' },
         { title: 'Перенос по QR', text: 'Новый телефон? Перенеси задачи, финансы и профиль по QR-коду через Wi-Fi, без интернета.' },
         { title: 'Свой набор виджетов', text: 'В режиме карандаша ✏️ убирай ненужные карточки кнопкой «−», вернуть — через «⋮».' },
+      ],
+      '1.3.1': [
+        { title: 'Что нового в 1.3.1', text: 'Небольшие, но важные исправления.' },
+        { title: 'Сканер QR работает', text: 'Камера при переносе больше не показывает чёрный экран. А QR можно взять и из фото в галерее.' },
+        { title: 'Забыли пароль?', text: 'Профиль → Пароль: подтвердите отпечатком или PIN телефона и задайте новый — старый не нужен.' },
       ],
     },
   },
@@ -610,6 +621,8 @@ const ru: Translation = {
     cameraText: 'Камера нужна только чтобы прочитать QR-код с другого телефона. Ничего не снимается и не сохраняется.',
     cameraGrant: 'Разрешить камеру',
     pointCamera: 'Наведи камеру на QR-код на другом телефоне',
+    fromGallery: 'Выбрать фото с QR',
+    noQrInPhoto: 'На этом фото не нашлось QR-кода',
     notOurCode: 'Это не QR-код переноса Amber Ledger',
     codeExpired: 'Этот код уже не действует — покажи новый на другом телефоне',
     confirmTitle: 'Перенести данные сюда?',
@@ -927,6 +940,10 @@ const ru: Translation = {
     mismatch: 'Пароли не совпадают',
     wrongPassword: 'Неверный текущий пароль',
     saved: 'Сохранено',
+    forgotPassword: 'Забыли пароль?',
+    resetPrompt: 'Подтвердите, что это вы',
+    resetUnlocked: 'Подтверждено. Задайте новый пароль, старый не нужен.',
+    resetNoDeviceLock: 'На телефоне не включена блокировка экрана (PIN, отпечаток) — сбросить пароль нельзя.',
   },
   securitySettings: {
     title: 'Безопасность и память',
@@ -1010,6 +1027,11 @@ const uk: Translation = {
         { title: "Безпека й пам'ять", text: 'Автоочищення старого, стирання даних з відліком і паролем — у налаштуваннях.' },
         { title: 'Перенесення за QR', text: 'Новий телефон? Перенеси задачі, фінанси й профіль за QR-кодом через Wi-Fi, без інтернету.' },
         { title: 'Свій набір віджетів', text: 'У режимі олівця ✏️ прибирай непотрібні картки кнопкою «−», повернути — через «⋮».' },
+      ],
+      '1.3.1': [
+        { title: 'Що нового в 1.3.1', text: 'Невеликі, але важливі виправлення.' },
+        { title: 'Сканер QR працює', text: 'Камера під час перенесення більше не показує чорний екран. А QR можна взяти й із фото в галереї.' },
+        { title: 'Забули пароль?', text: 'Профіль → Пароль: підтвердіть відбитком або PIN телефону й задайте новий — старий не потрібен.' },
       ],
     },
   },
@@ -1137,6 +1159,8 @@ const uk: Translation = {
     cameraText: 'Камера потрібна лише щоб прочитати QR-код з іншого телефона. Нічого не знімається й не зберігається.',
     cameraGrant: 'Дозволити камеру',
     pointCamera: 'Наведи камеру на QR-код на іншому телефоні',
+    fromGallery: 'Вибрати фото з QR',
+    noQrInPhoto: 'На цьому фото не знайшлося QR-коду',
     notOurCode: 'Це не QR-код перенесення Amber Ledger',
     codeExpired: 'Цей код уже не діє — покажи новий на іншому телефоні',
     confirmTitle: 'Перенести дані сюди?',
@@ -1452,6 +1476,10 @@ const uk: Translation = {
     mismatch: 'Паролі не збігаються',
     wrongPassword: 'Невірний поточний пароль',
     saved: 'Збережено',
+    forgotPassword: 'Забули пароль?',
+    resetPrompt: 'Підтвердіть, що це ви',
+    resetUnlocked: 'Підтверджено. Задайте новий пароль, старий не потрібен.',
+    resetNoDeviceLock: 'На телефоні не ввімкнено блокування екрана (PIN, відбиток) — скинути пароль неможливо.',
   },
   securitySettings: {
     title: "Безпека й пам'ять",
@@ -1535,6 +1563,11 @@ const en: Translation = {
         { title: 'Security & storage', text: 'Auto clean-up of old records and erasing data with a countdown and your password — in Settings.' },
         { title: 'Move by QR', text: 'New phone? Bring tasks, finances and your profile over by QR code through Wi-Fi, no internet.' },
         { title: 'Your own set of widgets', text: 'In pencil mode ✏️ remove the cards you don’t need with “−”; bring them back from “⋮”.' },
+      ],
+      '1.3.1': [
+        { title: 'What’s new in 1.3.1', text: 'Small but important fixes.' },
+        { title: 'The QR scanner works', text: 'The camera no longer shows a black screen when moving data. You can also pick the QR from a photo in your gallery.' },
+        { title: 'Forgot your password?', text: 'Profile → Password: confirm with your fingerprint or phone PIN and set a new one — the old one isn’t needed.' },
       ],
     },
   },
@@ -1662,6 +1695,8 @@ const en: Translation = {
     cameraText: 'The camera is only used to read the QR code from the other phone. Nothing is recorded or saved.',
     cameraGrant: 'Allow camera',
     pointCamera: 'Point the camera at the QR code on the other phone',
+    fromGallery: 'Pick a photo with the QR',
+    noQrInPhoto: 'No QR code found in this photo',
     notOurCode: 'This isn’t an Amber Ledger transfer code',
     codeExpired: 'This code no longer works — show a new one on the other phone',
     confirmTitle: 'Move the data here?',
@@ -1977,6 +2012,10 @@ const en: Translation = {
     mismatch: 'Passwords don\'t match',
     wrongPassword: 'Current password is wrong',
     saved: 'Saved',
+    forgotPassword: 'Forgot password?',
+    resetPrompt: 'Confirm it\'s you',
+    resetUnlocked: 'Confirmed. Set a new password — the old one isn\'t needed.',
+    resetNoDeviceLock: 'This phone has no screen lock (PIN, fingerprint), so the password can\'t be reset.',
   },
   securitySettings: {
     title: 'Security & storage',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
@@ -9,6 +10,7 @@ import { Button, Screen, SubScreenHeader, Text, TextField } from '@/components/u
 import { deletePersistedImage, pickAndPersistImage } from '@/lib/imagePicker';
 import { checkProfilePassword, MIN_PASSWORD_LENGTH, setProfilePassword } from '@/lib/password';
 import { haptics } from '@/lib/haptics';
+import { confirmWithDevice } from '@/store/useFinanceLock';
 import { useTranslation } from '@/i18n';
 
 const AVATAR_SIZE = 112;
@@ -84,6 +86,20 @@ function PasswordSection() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Forgot the password: the phone's own lock (fingerprint / PIN) stands in for the old one.
+  const [resetting, setResetting] = useState(false);
+  const needCurrent = passwordSet && !resetting;
+
+  async function handleForgot() {
+    setError(null);
+    setSaved(false);
+    const level = await LocalAuthentication.getEnrolledLevelAsync();
+    if (level === LocalAuthentication.SecurityLevel.NONE) return setError(tr.profileSettings.resetNoDeviceLock);
+    if (!(await confirmWithDevice(tr.profileSettings.resetPrompt, tr.financeLock.cancel))) return;
+    haptics.success();
+    setCurrent('');
+    setResetting(true);
+  }
 
   async function handleSave() {
     setError(null);
@@ -91,7 +107,7 @@ function PasswordSection() {
     if (next.length < MIN_PASSWORD_LENGTH) return setError(tr.profileSettings.tooShort(MIN_PASSWORD_LENGTH));
     if (next !== repeat) return setError(tr.profileSettings.mismatch);
     setBusy(true);
-    if (passwordSet && !(await checkProfilePassword(current))) {
+    if (needCurrent && !(await checkProfilePassword(current))) {
       setBusy(false);
       haptics.warning();
       return setError(tr.profileSettings.wrongPassword);
@@ -103,6 +119,7 @@ function PasswordSection() {
     setCurrent('');
     setNext('');
     setRepeat('');
+    setResetting(false);
     setSaved(true);
   }
 
@@ -116,9 +133,15 @@ function PasswordSection() {
       </View>
       <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.profileSettings.passwordHint}</Text>
 
-      {passwordSet ? (
-        <TextField value={current} onChangeText={setCurrent} placeholder={tr.profileSettings.currentPassword} secureTextEntry />
+      {needCurrent ? (
+        <>
+          <TextField value={current} onChangeText={setCurrent} placeholder={tr.profileSettings.currentPassword} secureTextEntry />
+          <Pressable onPress={handleForgot} hitSlop={8} style={styles.forgot}>
+            <Text style={{ color: theme.colors.primary, fontSize: 13, fontWeight: '600' }}>{tr.profileSettings.forgotPassword}</Text>
+          </Pressable>
+        </>
       ) : null}
+      {resetting ? <Text style={{ color: theme.colors.success, fontSize: 13 }}>✓ {tr.profileSettings.resetUnlocked}</Text> : null}
       <TextField value={next} onChangeText={setNext} placeholder={tr.profileSettings.newPassword} secureTextEntry />
       <TextField value={repeat} onChangeText={setRepeat} placeholder={tr.profileSettings.repeatPassword} secureTextEntry />
 
@@ -131,7 +154,7 @@ function PasswordSection() {
         <Button
           title={passwordSet ? tr.profileSettings.changePassword : tr.profileSettings.setPassword}
           onPress={handleSave}
-          disabled={!next || !repeat || (!!passwordSet && !current)}
+          disabled={!next || !repeat || (!!needCurrent && !current)}
         />
       )}
     </View>
@@ -166,4 +189,5 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
   hint: { fontSize: 12, lineHeight: 17 },
+  forgot: { alignSelf: 'flex-start', marginTop: -4 },
 });
