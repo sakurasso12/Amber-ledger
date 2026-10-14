@@ -244,6 +244,9 @@ export interface Translation {
     notificationsOn: string;
     notificationsOff: string;
     backgroundSet: string;
+    support: string;
+    supportValue: string;
+    channel: string;
     perHourShort: string;
   };
   earningsSettings: {
@@ -494,6 +497,12 @@ const ru: Translation = {
         { title: 'Что нового в 1.3.1', text: 'Небольшие, но важные исправления.' },
         { title: 'Сканер QR работает', text: 'Камера при переносе больше не показывает чёрный экран. А QR можно взять и из фото в галерее.' },
         { title: 'Забыли пароль?', text: 'Профиль → Пароль: подтвердите отпечатком или PIN телефона и задайте новый — старый не нужен.' },
+      ],
+      '1.3.2': [
+        { title: 'Что нового в 1.3.2', text: 'Теперь с нами легко связаться.' },
+        { title: 'Поддержка', text: 'Настройки → Поддержка: напишите нашему боту об ошибке, идее или вопросе — можно со скриншотами.' },
+        { title: 'Наш канал', text: 'Новые версии и новости — в Telegram-канале @amberledger.' },
+        { title: 'Легче на 20 МБ', text: 'Приложение стало меньше: теперь только для 64-битных телефонов.' },
       ],
     },
   },
@@ -749,6 +758,9 @@ const ru: Translation = {
     notificationsOn: 'Включены',
     notificationsOff: 'Выключены',
     backgroundSet: 'Установлен',
+    support: 'Поддержка',
+    supportValue: 'Ошибка, идея, вопрос',
+    channel: 'Наш Telegram-канал',
     perHourShort: 'час',
   },
   earningsSettings: {
@@ -1033,6 +1045,12 @@ const uk: Translation = {
         { title: 'Сканер QR працює', text: 'Камера під час перенесення більше не показує чорний екран. А QR можна взяти й із фото в галереї.' },
         { title: 'Забули пароль?', text: 'Профіль → Пароль: підтвердіть відбитком або PIN телефону й задайте новий — старий не потрібен.' },
       ],
+      '1.3.2': [
+        { title: 'Що нового в 1.3.2', text: "Тепер з нами легко зв'язатися." },
+        { title: 'Підтримка', text: 'Налаштування → Підтримка: напишіть нашому боту про помилку, ідею чи питання — можна зі скріншотами.' },
+        { title: 'Наш канал', text: 'Нові версії та новини — у Telegram-каналі @amberledger.' },
+        { title: 'Легший на 20 МБ', text: 'Застосунок став меншим: тепер лише для 64-бітних телефонів.' },
+      ],
     },
   },
   welcome: {
@@ -1285,6 +1303,9 @@ const uk: Translation = {
     notificationsOn: 'Увімкнені',
     notificationsOff: 'Вимкнені',
     backgroundSet: 'Встановлено',
+    support: 'Підтримка',
+    supportValue: 'Помилка, ідея, питання',
+    channel: 'Наш Telegram-канал',
     perHourShort: 'год',
   },
   earningsSettings: {
@@ -1569,6 +1590,12 @@ const en: Translation = {
         { title: 'The QR scanner works', text: 'The camera no longer shows a black screen when moving data. You can also pick the QR from a photo in your gallery.' },
         { title: 'Forgot your password?', text: 'Profile → Password: confirm with your fingerprint or phone PIN and set a new one — the old one isn’t needed.' },
       ],
+      '1.3.2': [
+        { title: 'What’s new in 1.3.2', text: 'Reaching us is now easy.' },
+        { title: 'Support', text: 'Settings → Support: tell our bot about a bug, an idea or a question — screenshots welcome.' },
+        { title: 'Our channel', text: 'New versions and news are in the Telegram channel @amberledger.' },
+        { title: '20 MB lighter', text: 'The app got smaller: it’s now for 64-bit phones only.' },
+      ],
     },
   },
   welcome: {
@@ -1821,6 +1848,9 @@ const en: Translation = {
     notificationsOn: 'On',
     notificationsOff: 'Off',
     backgroundSet: 'Set',
+    support: 'Support',
+    supportValue: 'Bug, idea, question',
+    channel: 'Our Telegram channel',
     perHourShort: 'hr',
   },
   earningsSettings: {
