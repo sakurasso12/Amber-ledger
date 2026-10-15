@@ -20,7 +20,7 @@ small one.
 - **Telegram channel — [@amberledger](https://t.me/amberledger):** every new version with the APK
   and what's new, in English and Ukrainian.
 - **Found a bug or have an idea?** Write to **[@amberledgerbot](https://t.me/amberledgerbot)** —
-  pick your language (Ukrainian, Russian or English), tell what happened and add screenshots.
+  pick your language (Ukrainian or English), tell what happened and add screenshots.
   I read every message.
 
 ## 📱 Screens
@@ -119,7 +119,7 @@ Everything about the look can be changed — except the font (coming soon):
   (calendar, balance, charts…)
 - **Home screen widgets:** today's tasks and spending, next task, next day off — each with its
   own background
-- **Language:** English, Russian, Ukrainian
+- **Language:** English, Ukrainian
 - Smooth, spring-based animations everywhere
 
 | Standard | Vertical | Themes | Widgets |
