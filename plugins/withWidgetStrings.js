@@ -4,7 +4,7 @@
  * react-native-android-widget writes `label` straight into the manifest and `description` into
  * res/values/strings.xml only, so both always showed in one language. Here the labels point at
  * string resources (see app.json: "@string/widget_<name>_label") and this plugin adds English
- * defaults plus Russian and Ukrainian copies — Android then picks the one matching the system
+ * defaults plus Ukrainian copies — Android then picks the one matching the system
  * language. The English descriptions come from app.json via the widget plugin itself.
  */
 const fs = require('fs');
@@ -17,16 +17,6 @@ const STRINGS = {
     widget_amberledgerdayoff_label: 'Amber Ledger — day off',
     widget_amberledgernexttask_label: 'Amber Ledger — next task',
     widget_amberledgerstreak_label: 'Amber Ledger — streak',
-  },
-  ru: {
-    widget_amberledgertoday_label: 'Amber Ledger — сегодня',
-    widget_amberledgertoday_description: 'Ближайшие задачи и траты за сегодня (большой)',
-    widget_amberledgerdayoff_label: 'Amber Ledger — выходной',
-    widget_amberledgerdayoff_description: 'Когда ближайший выходной (маленький)',
-    widget_amberledgernexttask_label: 'Amber Ledger — ближайшая задача',
-    widget_amberledgernexttask_description: 'Ближайшая задача и сколько до неё осталось (средний)',
-    widget_amberledgerstreak_label: 'Amber Ledger — серия',
-    widget_amberledgerstreak_description: 'Серия одной привычки с огоньком (1×1, нажми, чтобы выбрать)',
   },
   uk: {
     widget_amberledgertoday_label: 'Amber Ledger — сьогодні',
@@ -56,7 +46,7 @@ module.exports = function withWidgetStrings(config) {
     'android',
     (modConfig) => {
       const resDir = path.join(modConfig.modRequest.platformProjectRoot, 'app/src/main/res');
-      for (const lang of ['ru', 'uk']) {
+      for (const lang of ['uk']) {
         const dir = path.join(resDir, `values-${lang}`);
         fs.mkdirSync(dir, { recursive: true });
         const items = Object.entries(STRINGS[lang])

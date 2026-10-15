@@ -32,14 +32,12 @@ function deviceLanguage(): AppLanguage {
     // No Intl data — English it is.
   }
   if (locale.startsWith('uk')) return 'uk';
-  if (locale.startsWith('ru')) return 'ru';
   return 'en';
 }
 
 /** Each language names itself, so the list reads right before anything is picked. */
 const LANGUAGES: { value: AppLanguage; label: string; code: string }[] = [
   { value: 'en', label: 'English', code: 'EN' },
-  { value: 'ru', label: 'Русский', code: 'RU' },
   { value: 'uk', label: 'Українська', code: 'UK' },
 ];
 
@@ -174,7 +172,7 @@ function LanguageStep({ onNext }: { onNext: () => void }) {
           <Ionicons name="language" size={38} color={theme.colors.primary} />
         </View>
         {/* Before a language is chosen, ask in all three. */}
-        <Text style={[styles.title, { color: theme.colors.text }]}>Language · Язык · Мова</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Language · Мова</Text>
         <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>Amber Ledger</Text>
       </View>
 

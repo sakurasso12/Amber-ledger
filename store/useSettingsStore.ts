@@ -4,6 +4,7 @@ import { sqliteStateStorage } from '@/db/settingsRepo';
 import { AppSettings, DEFAULT_SETTINGS } from '@/types';
 import { LAYOUTS } from '@/theme/layouts';
 import { DESIGNS } from '@/theme/designs';
+import { translations } from '@/i18n/translations';
 
 interface SettingsState {
   settings: AppSettings;
@@ -50,6 +51,8 @@ export const useSettingsStore = create<SettingsState>()(
         // Layouts and themes that were tried and dropped fall back to the defaults.
         if (!LAYOUTS[settings.layoutId]) settings.layoutId = DEFAULT_SETTINGS.layoutId;
         if (!DESIGNS[settings.designId]) settings.designId = DEFAULT_SETTINGS.designId;
+        // Russian was removed in 1.3.3: those users continue in English.
+        if (!(settings.language in translations)) settings.language = 'en';
         // 'fingerprint' was merged into 'device' (fingerprint or phone PIN).
         if (settings.financeLockMethod !== 'password') settings.financeLockMethod = 'device';
         // Updating from a version before the first-launch setup existed: the app is already set up,

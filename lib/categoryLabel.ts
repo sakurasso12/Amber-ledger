@@ -4,8 +4,9 @@ import type { Translation } from '@/i18n/translations';
 
 const DEFAULT_NAME_BY_ID = new Map(DEFAULT_CATEGORIES.map((c) => [c.id, c.name]));
 
-/** Display name of a category. The built-in ones are stored with their Russian names (seeded on
- * first launch), so they're translated here — unless the user renamed them, then their own name wins. */
+/** Display name of a category. The built-in ones are stored with their original Russian seed names
+ * (kept so existing databases still match), so they're translated here — unless the user renamed
+ * them, then their own name wins. */
 export function categoryLabel(category: Pick<Category, 'id' | 'name'> | undefined | null, tr: Translation): string {
   if (!category) return '—';
   const builtIn = tr.defaultCategories[category.id as keyof Translation['defaultCategories']];
