@@ -14,7 +14,10 @@ interface BalanceCardProps {
   spentSinceSet: number;
   /** Salary added to Bank automatically on paydays since it was last set by hand. */
   creditedSinceSet: number;
-  onEditBank: (newBase: number) => void;
+  /** The typed-in amount (null = left as it was, only the name changed) and the bank's name. */
+  onEditBank: (newBase: number | null, bankName: string) => void;
+  /** Bank name of the main card ("" = not named). */
+  bankName: string;
   /** Closed pay periods waiting for their salary to be confirmed. */
   awaiting: number;
   /** Date range of the awaiting periods, or null when nothing is waiting. */
@@ -39,6 +42,7 @@ export function BalanceCard({
   accruingLabel,
   plannedTotal,
   currency,
+  bankName,
 }: BalanceCardProps) {
   const theme = useTheme();
   const keyboardHeight = useKeyboardHeight();
@@ -52,15 +56,20 @@ export function BalanceCard({
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [nameDraft, setNameDraft] = useState('');
+  const bankLabel = bankName.trim() || tr.financeScreen.bank;
 
   function openEditor() {
     setDraft(bank.toFixed(0));
+    setNameDraft(bankName);
     setEditing(true);
   }
 
   function save() {
     const n = parseFloat(draft.replace(',', '.'));
-    if (Number.isFinite(n)) onEditBank(n);
+    // Just renaming must not reset the balance (and its "spent" count).
+    if (draft.trim() === bank.toFixed(0)) onEditBank(null, nameDraft.trim());
+    else if (Number.isFinite(n)) onEditBank(n, nameDraft.trim());
     setEditing(false);
   }
 
@@ -105,7 +114,7 @@ export function BalanceCard({
           {plannedNote}
           <View style={styles.heroPills}>
             <Pressable onPress={openEditor} style={[styles.heroPill, { backgroundColor: theme.colors.surfaceAlt }]}>
-              <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.bank} ✏️</Text>
+              <Text style={[styles.header, { color: muted }]}>{bankLabel} ✏️</Text>
               <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: bankColor }]}>{signed(bank)}</Text>
               {bankDetails}
             </Pressable>
@@ -136,7 +145,7 @@ export function BalanceCard({
           <View style={styles.columns}>
             <Pressable style={styles.column} onPress={openEditor}>
               <Text style={[styles.header, { color: muted }]}>
-                {tr.financeScreen.bank} <Text style={{ color: theme.colors.accent }}>✏️</Text>
+                {bankLabel} <Text style={{ color: theme.colors.accent }}>✏️</Text>
               </Text>
               <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: bankColor }]}>{signed(bank)}</Text>
               {bankDetails}
@@ -179,8 +188,14 @@ export function BalanceCard({
             style={[styles.dialog, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
             onPress={(e) => e.stopPropagation()}
           >
-            <Text style={[styles.dialogTitle, { color: theme.colors.text }]}>{tr.financeScreen.editBankTitle}</Text>
+            <Text style={[styles.dialogTitle, { color: theme.colors.text }]}>{tr.financeScreen.editBankTitle(currency)}</Text>
             <Text style={[styles.dialogHint, { color: theme.colors.textMuted }]}>{tr.financeScreen.editBankHint}</Text>
+            <TextField
+              label={tr.accounts.bankName}
+              value={nameDraft}
+              onChangeText={setNameDraft}
+              placeholder={tr.accounts.bankNamePlaceholder}
+            />
             <TextField value={draft} onChangeText={setDraft} keyboardType="decimal-pad" autoFocus />
             <View style={styles.dialogActions}>
               <Button title={tr.taskEditor.cancel} variant="secondary" onPress={() => setEditing(false)} style={styles.dialogButton} />

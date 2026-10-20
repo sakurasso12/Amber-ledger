@@ -1,5 +1,6 @@
 import { subMonths } from 'date-fns';
 import { getDb } from '@/db/client';
+import * as financeRepo from '@/db/financeRepo';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -7,6 +8,8 @@ import { lockFinances } from '@/store/useFinanceLock';
 import { cancelTaskReminder, clearStickyNotification } from '@/notifications';
 import { DEFAULT_SETTINGS } from '@/types';
 import { buildHabits } from './streaks';
+import { isMainExpense } from './accounts';
+import { countsInBalance } from './expenses';
 import { clearProfilePassword } from './password';
 import { deleteAllPersistedImages, deletePersistedImage } from './imagePicker';
 import { refreshHomeWidget } from './widgetRefresh';
@@ -45,6 +48,9 @@ export async function eraseFinance(): Promise<void> {
     await db.execAsync(`
       DELETE FROM plan_spends;
       DELETE FROM spend_plans;
+      DELETE FROM transfers;
+      DELETE FROM accounts;
+      DELETE FROM loans;
       DELETE FROM expenses;
       DELETE FROM planned_expenses;
       DELETE FROM recurring_expenses;
@@ -59,6 +65,9 @@ export async function eraseFinance(): Promise<void> {
     bankBalanceSetAt: null,
     lastSettledAt: null,
     salaryConfirmations: {},
+    mainAccountName: '',
+    salaryAccountId: DEFAULT_SETTINGS.salaryAccountId,
+    salaryAccountAsked: false,
     salaryPromptSnoozedUntil: null,
     budgetLimitWeek: null,
     budgetLimitMonth: null,
@@ -114,7 +123,7 @@ export async function runAutoCleanup(): Promise<void> {
   const cutoffKey = toDateKey(cutoff);
   const cutoffIso = cutoff.toISOString();
   const { tasks } = useTaskStore.getState();
-  const { expenses, spendPlans } = useFinanceStore.getState();
+  const { expenses, spendPlans, accounts } = useFinanceStore.getState();
 
   const habitSeries = new Set(buildHabits(tasks).map((h) => h.seriesId));
   const oldTasks = tasks.filter(
@@ -122,8 +131,11 @@ export async function runAutoCleanup(): Promise<void> {
   );
   const keepExpenses = new Set(spendPlans.flatMap((p) => [p.reserveExpenseId, p.overspendExpenseId]).filter(Boolean) as string[]);
   const oldExpenses = expenses.filter((e) => e.date < cutoffKey && !keepExpenses.has(e.id));
-  // Bank = base − expenses logged after it was set; take the removed ones out of the base instead.
-  const countedInBank = oldExpenses.filter((e) => !bankBalanceSetAt || e.createdAt > bankBalanceSetAt).reduce((sum, e) => sum + e.amount, 0);
+  // A balance = base − expenses logged after it was set; take the removed ones out of the base
+  // instead (the main card's, and each other card's or cash wallet's).
+  const countedIn = (accountSetAt: string | null, list: typeof oldExpenses) =>
+    list.filter((e) => countsInBalance(e, accountSetAt)).reduce((sum, e) => sum + e.amount, 0);
+  const countedInBank = countedIn(bankBalanceSetAt, oldExpenses.filter(isMainExpense));
 
   const db = await getDb();
   await db.withTransactionAsync(async () => {
@@ -136,6 +148,11 @@ export async function runAutoCleanup(): Promise<void> {
   });
   for (const task of oldTasks) {
     if (task.imageUri) await deletePersistedImage(task.imageUri);
+  }
+
+  for (const account of accounts) {
+    const counted = countedIn(account.setAt, oldExpenses.filter((e) => e.accountId === account.id));
+    if (counted !== 0) await financeRepo.saveAccount({ ...account, base: account.base - counted });
   }
 
   useSettingsStore.getState().updateSettings({

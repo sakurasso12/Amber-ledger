@@ -54,6 +54,7 @@ export function spendingExpenses(expenses: Expense[], plans: SpendPlan[], spends
       planId: plan.id,
       planRole: null,
       taskId: null,
+      accountId: null,
     });
   }
   return [...own, ...purchases];

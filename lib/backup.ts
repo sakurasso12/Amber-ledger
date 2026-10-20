@@ -29,6 +29,9 @@ const TABLES = [
   'work_days',
   'spend_plans',
   'plan_spends',
+  'accounts',
+  'transfers',
+  'loans',
 ] as const;
 
 /** Settings that belong to this phone, not to the data: kept as they are on import. (The profile

@@ -31,6 +31,7 @@ export function SettingsScreen() {
   const settings = useSettingsStore((s) => s.settings);
 
   const languageLabels: Record<string, string> = {
+    ru: tr.settingsScreen.languageRu,
     uk: tr.settingsScreen.languageUk,
     en: tr.settingsScreen.languageEn,
   };

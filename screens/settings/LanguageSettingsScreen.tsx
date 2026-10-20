@@ -16,6 +16,7 @@ export function LanguageSettingsScreen() {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
 
   const languages: { value: AppLanguage; label: string }[] = [
+    { value: 'ru', label: tr.settingsScreen.languageRu },
     { value: 'uk', label: tr.settingsScreen.languageUk },
     { value: 'en', label: tr.settingsScreen.languageEn },
   ];

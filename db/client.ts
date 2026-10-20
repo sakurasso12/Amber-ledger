@@ -83,6 +83,18 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     if (!columns.some((c) => c.name === 'task_id')) await db.execAsync('ALTER TABLE expenses ADD COLUMN task_id TEXT');
   }
 
+  if (currentVersion < 8) {
+    // accounts / transfers are new tables (created above); expenses remember what paid for them.
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(expenses)');
+    if (!columns.some((c) => c.name === 'account_id')) await db.execAsync('ALTER TABLE expenses ADD COLUMN account_id TEXT');
+  }
+
+  if (currentVersion < 9) {
+    // Goals keep their target on the account row; loans are a new table (created above).
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(accounts)');
+    if (!columns.some((c) => c.name === 'target')) await db.execAsync('ALTER TABLE accounts ADD COLUMN target REAL');
+  }
+
   if (currentVersion < SCHEMA_VERSION) {
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }

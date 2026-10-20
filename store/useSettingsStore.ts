@@ -51,7 +51,7 @@ export const useSettingsStore = create<SettingsState>()(
         // Layouts and themes that were tried and dropped fall back to the defaults.
         if (!LAYOUTS[settings.layoutId]) settings.layoutId = DEFAULT_SETTINGS.layoutId;
         if (!DESIGNS[settings.designId]) settings.designId = DEFAULT_SETTINGS.designId;
-        // Russian was removed in 1.3.3: those users continue in English.
+        // A language this version doesn't have: continue in English.
         if (!(settings.language in translations)) settings.language = 'en';
         // 'fingerprint' was merged into 'device' (fingerprint or phone PIN).
         if (settings.financeLockMethod !== 'password') settings.financeLockMethod = 'device';

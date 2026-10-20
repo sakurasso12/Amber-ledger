@@ -1,4 +1,4 @@
-import { addMonths, getDaysInMonth, setDate, startOfMonth } from 'date-fns';
+import { addDays, addMonths, endOfDay, getDaysInMonth, setDate, startOfDay, startOfMonth } from 'date-fns';
 import { AppSettings, WorkDay } from '@/types';
 import { DateRange, isDateKeyInRange, parseDateKey, payPeriodRange, toDateKey } from './dateRanges';
 
@@ -60,6 +60,40 @@ export function paydayForPeriod(period: DateRange, paydayDay: number): Date {
   return inMonth(addMonths(startOfMonth(period.end), 1));
 }
 
+/** Days in the first half of a pay period when the money comes twice a month. */
+const FIRST_HALF_DAYS = 15;
+
+/**
+ * The stretch of work one payout pays for: the whole pay period, or — with an advance — its first
+ * 15 days or the rest.
+ */
+export function payoutRange(date: Date, settings: AppSettings): DateRange {
+  const period = payPeriodRange(date, settings.payPeriodStartDay);
+  if (settings.payoutsPerMonth !== 2) return period;
+  const firstEnd = endOfDay(addDays(period.start, FIRST_HALF_DAYS - 1));
+  return date <= firstEnd ? { start: period.start, end: firstEnd } : { start: startOfDay(addDays(firstEnd, 1)), end: period.end };
+}
+
+/**
+ * Twice a month: the first time `day` comes on or after the half's last day (so an advance on the
+ * 15th pays for the 1st–15th the same day). Days from 28 on mean "the end of the month".
+ */
+function halfPayday(half: DateRange, day: number): Date {
+  const wanted = Math.max(1, Math.min(31, Math.round(day) || 1));
+  const inMonth = (month: Date): Date =>
+    setDate(month, wanted >= 28 ? getDaysInMonth(month) : Math.min(wanted, getDaysInMonth(month)));
+  const lastDay = startOfDay(half.end);
+  const sameMonth = inMonth(startOfMonth(lastDay));
+  return sameMonth >= lastDay ? sameMonth : inMonth(addMonths(startOfMonth(lastDay), 1));
+}
+
+/** When the money for a payout range arrives (see payoutRange). */
+export function paydayForPayout(range: DateRange, settings: AppSettings): Date {
+  if (settings.payoutsPerMonth !== 2) return paydayForPeriod(range, settings.paydayDay);
+  const isFirstHalf = toDateKey(range.start) === toDateKey(payPeriodRange(range.start, settings.payPeriodStartDay).start);
+  return halfPayday(range, isFirstHalf ? settings.advanceDay : settings.paydayDay);
+}
+
 export interface PeriodEarnings {
   /** Pay period start date (yyyy-MM-dd) — the key used in settings.salaryConfirmations. */
   key: string;
@@ -76,7 +110,7 @@ export interface PayrollState {
   accruing: { amount: number; range: DateRange };
   /** Oldest awaiting period whose payday has come — what the salary prompt asks about. */
   due: PeriodEarnings | null;
-  /** Salaries confirmed after "Банк" was last set by hand — added to Bank. */
+  /** Salaries paid into the main card after "Банк" was last set by hand — added to Bank. */
   creditedSinceSet: number;
 }
 
@@ -87,12 +121,12 @@ export interface PayrollState {
  */
 export function payrollState(workDays: WorkDay[], settings: AppSettings, now: Date = new Date()): PayrollState {
   const setAt = settings.bankBalanceSetAt ? new Date(settings.bankBalanceSetAt) : null;
-  const currentPeriod = payPeriodRange(now, settings.payPeriodStartDay);
+  const currentPeriod = payoutRange(now, settings);
 
   const byPeriod = new Map<string, { period: DateRange; amount: number }>();
   for (const workDay of workDays) {
     if (!workDay.isWorked) continue;
-    const period = payPeriodRange(parseDateKey(workDay.date), settings.payPeriodStartDay);
+    const period = payoutRange(parseDateKey(workDay.date), settings);
     const key = toDateKey(period.start);
     const entry = byPeriod.get(key) ?? { period, amount: 0 };
     entry.amount += dayEarning(workDay, settings);
@@ -110,14 +144,15 @@ export function payrollState(workDays: WorkDay[], settings: AppSettings, now: Da
       continue;
     }
     if (settings.salaryConfirmations[key]) continue;
-    const payday = paydayForPeriod(period, settings.paydayDay);
+    const payday = paydayForPayout(period, settings);
     if (setAt && payday <= setAt) continue;
     awaiting.push({ key, period, amount, payday });
   }
   awaiting.sort((a, b) => a.period.start.getTime() - b.period.start.getTime());
 
+  // Only what went to the main card — salary paid into another card counts there (lib/accounts).
   const creditedSinceSet = Object.values(settings.salaryConfirmations)
-    .filter((c) => !setAt || new Date(c.confirmedAt) > setAt)
+    .filter((c) => (c.accountId ?? 'main') === 'main' && (!setAt || new Date(c.confirmedAt) > setAt))
     .reduce((sum, c) => sum + c.amount, 0);
 
   return {

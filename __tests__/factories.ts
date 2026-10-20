@@ -36,6 +36,7 @@ export function expense(fields: Partial<Expense> = {}): Expense {
     planId: null,
     planRole: null,
     taskId: null,
+    accountId: null,
     ...fields,
   };
 }

@@ -7,6 +7,8 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { Button, DateField, Screen, TextField } from '@/components/ui';
 import { CategoryPicker } from '@/components/finance/CategoryPicker';
+import { AccountPicker, useAccountOptions } from '@/components/finance/AccountPicker';
+import { accountIdOf, MAIN_ACCOUNT_ID } from '@/lib/accounts';
 import { todayKey } from '@/lib/dateRanges';
 import { useTranslation } from '@/i18n';
 
@@ -33,6 +35,11 @@ export function ExpenseEditorScreen() {
   const [categoryId, setCategoryId] = useState(existing?.categoryId ?? categories[0]?.id ?? '');
   const [date, setDate] = useState(existing?.date ?? todayKey());
   const [comment, setComment] = useState(existing?.comment ?? '');
+  // Card or cash it's paid from — only asked once there's more than the main card.
+  const accountOptions = useAccountOptions();
+  const [accountId, setAccountId] = useState(existing ? accountIdOf(existing) : MAIN_ACCOUNT_ID);
+  const currency = accountOptions.find((o) => o.id === accountId)?.currency ?? accountOptions[0].currency;
+  const paidFrom = accountId === MAIN_ACCOUNT_ID ? null : accountId;
   // New planned spending: the amount becomes the plan's limit and the comment its name.
   const [planned, setPlanned] = useState(false);
   // A plan's own records (its limit, its overspend) are managed from its bar, not edited here.
@@ -61,9 +68,9 @@ export function ExpenseEditorScreen() {
       }
       await createSpendPlan({ name: comment.trim(), categoryId, limit: parsedAmount, date });
     } else if (isEditing && existing) {
-      await editExpense({ ...existing, amount: parsedAmount, categoryId, date, comment: comment || null });
+      await editExpense({ ...existing, amount: parsedAmount, categoryId, date, comment: comment || null, accountId: paidFrom });
     } else {
-      await addExpense({ amount: parsedAmount, categoryId, date, comment: comment || null });
+      await addExpense({ amount: parsedAmount, categoryId, date, comment: comment || null, accountId: paidFrom });
     }
     close();
   }
@@ -133,8 +140,12 @@ export function ExpenseEditorScreen() {
               />
             </View>
           )}
+          {/* Plans always come off the main card. */}
+          {accountOptions.length > 1 && !planned ? (
+            <AccountPicker label={tr.accounts.payFrom} value={accountId} onChange={setAccountId} />
+          ) : null}
           <TextField
-            label={planned ? tr.plans.limitLabel : tr.expenseEditor.amountLabel}
+            label={`${planned ? tr.plans.limitLabel : tr.expenseEditor.amountLabel} (${planned ? accountOptions[0].currency : currency})`}
             value={amount}
             onChangeText={setAmount}
             placeholder="0"

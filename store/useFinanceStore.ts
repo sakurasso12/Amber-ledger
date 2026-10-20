@@ -9,9 +9,15 @@ import { overspendOf, spendingExpenses, spentInPeriod } from '@/lib/plans';
 import { toDateKey } from '@/lib/dateRanges';
 import { generateId } from '@/lib/id';
 import { useSettingsStore } from './useSettingsStore';
+import { accountIdOf, inAppCurrency, MAIN_ACCOUNT_ID } from '@/lib/accounts';
+import { chargedAt, isDue } from '@/lib/expenses';
+import { isPaidOff, monthlyPayment } from '@/lib/loans';
 import {
+  Account,
+  AccountKind,
   Category,
   Expense,
+  Loan,
   ExpenseDraft,
   PlannedExpenseDraft,
   PlannedExpense,
@@ -19,6 +25,7 @@ import {
   RecurringExpense,
   SpendPlan,
   RecurringExpenseDraft,
+  Transfer,
   WorkDay,
 } from '@/types';
 
@@ -30,6 +37,10 @@ interface FinanceState {
   recurringExpenses: RecurringExpense[];
   spendPlans: SpendPlan[];
   planSpends: PlanSpend[];
+  /** Cards besides the main one, and cash wallets (see lib/accounts). */
+  accounts: Account[];
+  transfers: Transfer[];
+  loans: Loan[];
   isLoaded: boolean;
 
   load: () => Promise<void>;
@@ -76,6 +87,24 @@ interface FinanceState {
   /** Undoes the plan completely: its expenses (every period's limit and overspend) are deleted, so
    * all of that money goes back to the bank. Purchases logged inside it go with it. */
   deleteSpendPlan: (planId: string) => Promise<void>;
+
+  addAccount: (draft: { kind: AccountKind; name: string; currency: string; balance: number; target?: number | null }) => Promise<void>;
+  /** Rename / change the currency. */
+  updateAccount: (account: Account) => Promise<void>;
+  /** The balance typed in by hand: from now on expenses and transfers move it from there. */
+  setAccountBalance: (id: string, balance: number) => Promise<void>;
+  /** The other accounts keep their balances; this one's expenses stay in the history. */
+  removeAccount: (id: string) => Promise<void>;
+  addTransfer: (draft: { fromId: string; toId: string; amount: number; amountTo: number; date: string }) => Promise<void>;
+  /** Undoes the transfer: the money goes back where it came from. */
+  removeTransfer: (id: string) => Promise<void>;
+
+  /** `paidCount`: payments already made before it was added (no expenses are logged for them). */
+  addLoan: (draft: Omit<Loan, 'id' | 'createdAt'>) => Promise<void>;
+  updateLoan: (loan: Loan) => Promise<void>;
+  removeLoan: (id: string) => Promise<void>;
+  /** "Paid": the monthly payment is logged as an expense of `accountId` and counted as made. */
+  payLoan: (id: string, accountId: string) => Promise<void>;
 }
 
 export const useFinanceStore = create<FinanceState>()((set, get) => ({
@@ -86,10 +115,13 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
   recurringExpenses: [],
   spendPlans: [],
   planSpends: [],
+  accounts: [],
+  transfers: [],
+  loans: [],
   isLoaded: false,
 
   load: async () => {
-    const [expenses, categories, workDays, plannedExpenses, recurringExpenses, spendPlans, planSpends] = await Promise.all([
+    const [expenses, categories, workDays, plannedExpenses, recurringExpenses, spendPlans, planSpends, accounts, transfers, loans] = await Promise.all([
       financeRepo.listExpenses(),
       financeRepo.listCategories(),
       financeRepo.listWorkDays(),
@@ -97,8 +129,11 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
       financeRepo.listRecurringExpenses(),
       financeRepo.listSpendPlans(),
       financeRepo.listPlanSpends(),
+      financeRepo.listAccounts(),
+      financeRepo.listTransfers(),
+      financeRepo.listLoans(),
     ]);
-    set({ expenses, categories, workDays, plannedExpenses, recurringExpenses, spendPlans, planSpends, isLoaded: true });
+    set({ expenses, categories, workDays, plannedExpenses, recurringExpenses, spendPlans, planSpends, accounts, transfers, loans, isLoaded: true });
   },
 
   addExpense: async (draft) => {
@@ -109,8 +144,8 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
 
   editExpense: async (expense) => {
     const before = get().expenses.find((e) => e.id === expense.id);
-    if (before) keepBankInStep([before], -1);
-    keepBankInStep([expense], +1);
+    if (before) await keepBalancesInStep([before], -1);
+    await keepBalancesInStep([expense], +1);
     await financeRepo.updateExpense(expense);
     set((state) => ({ expenses: state.expenses.map((e) => (e.id === expense.id ? expense : e)) }));
     checkAlerts();
@@ -118,7 +153,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
 
   removeExpense: async (id) => {
     const expense = get().expenses.find((e) => e.id === id);
-    if (expense) keepBankInStep([expense], -1);
+    if (expense) await keepBalancesInStep([expense], -1);
     await financeRepo.deleteExpense(id);
     set((state) => ({ expenses: state.expenses.filter((e) => e.id !== id) }));
   },
@@ -309,7 +344,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     const plan = get().spendPlans.find((p) => p.id === planId);
     if (!plan) return;
     const planExpenses = get().expenses.filter((e) => e.planId === planId);
-    keepBankInStep(planExpenses, -1);
+    await keepBalancesInStep(planExpenses, -1);
     for (const expense of planExpenses) {
       await financeRepo.deleteExpense(expense.id);
     }
@@ -320,7 +355,128 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
       planSpends: state.planSpends.filter((s) => s.planId !== planId),
     }));
   },
+
+  addAccount: async ({ kind, name, currency, balance, target = null }) => {
+    const now = new Date().toISOString();
+    const account: Account = {
+      id: generateId(),
+      kind,
+      name: name.trim(),
+      currency: currency.trim(),
+      base: balance,
+      setAt: now,
+      target,
+      sortOrder: get().accounts.length,
+      createdAt: now,
+    };
+    await financeRepo.saveAccount(account);
+    set((state) => ({ accounts: [...state.accounts, account] }));
+  },
+
+  updateAccount: async (account) => {
+    await financeRepo.saveAccount(account);
+    set((state) => ({ accounts: state.accounts.map((a) => (a.id === account.id ? account : a)) }));
+  },
+
+  setAccountBalance: async (id, balance) => {
+    const account = get().accounts.find((a) => a.id === id);
+    if (!account) return;
+    await get().updateAccount({ ...account, base: balance, setAt: new Date().toISOString() });
+  },
+
+  removeAccount: async (id) => {
+    const gone = get().transfers.filter((t) => t.fromId === id || t.toId === id);
+    // The other side of each transfer keeps the money it has now.
+    for (const t of gone) {
+      const otherId = t.fromId === id ? t.toId : t.fromId;
+      const effect = t.toId === otherId ? t.amountTo : -t.amount;
+      if (isCounted(otherId, t.createdAt)) await adjustBase(otherId, effect);
+    }
+    await financeRepo.deleteAccount(id);
+    set((state) => ({
+      accounts: state.accounts.filter((a) => a.id !== id),
+      transfers: state.transfers.filter((t) => t.fromId !== id && t.toId !== id),
+    }));
+    const { settings, updateSettings } = useSettingsStore.getState();
+    if (settings.salaryAccountId === id) updateSettings({ salaryAccountId: MAIN_ACCOUNT_ID });
+  },
+
+  addTransfer: async (draft) => {
+    const transfer = await financeRepo.createTransfer(draft);
+    set((state) => ({ transfers: [transfer, ...state.transfers] }));
+  },
+
+  removeTransfer: async (id) => {
+    const t = get().transfers.find((x) => x.id === id);
+    if (!t) return;
+    // Like an expense: if a side's balance was typed in after the transfer, it isn't part of that
+    // balance any more — undoing it has to go through the typed-in amount.
+    if (!isCounted(t.fromId, t.createdAt)) await adjustBase(t.fromId, t.amount);
+    if (!isCounted(t.toId, t.createdAt)) await adjustBase(t.toId, -t.amountTo);
+    await financeRepo.deleteTransfer(id);
+    set((state) => ({ transfers: state.transfers.filter((x) => x.id !== id) }));
+  },
+
+  addLoan: async (draft) => {
+    const loan: Loan = { ...draft, id: generateId(), createdAt: new Date().toISOString() };
+    await financeRepo.saveLoan(loan);
+    set((state) => ({ loans: [...state.loans, loan] }));
+  },
+
+  updateLoan: async (loan) => {
+    await financeRepo.saveLoan(loan);
+    set((state) => ({ loans: state.loans.map((l) => (l.id === loan.id ? loan : l)) }));
+  },
+
+  removeLoan: async (id) => {
+    await financeRepo.deleteLoan(id);
+    set((state) => ({ loans: state.loans.filter((l) => l.id !== id) }));
+  },
+
+  payLoan: async (id, accountId) => {
+    const loan = get().loans.find((l) => l.id === id);
+    if (!loan || isPaidOff(loan)) return;
+    const { categories } = get();
+    const categoryId = (categories.find((c) => c.id === 'cat-other') ?? categories[0])?.id;
+    if (categoryId) {
+      await get().addExpense({
+        amount: Math.round(monthlyPayment(loan) * 100) / 100,
+        categoryId,
+        date: todayKey(),
+        comment: loan.name,
+        accountId: accountId === MAIN_ACCOUNT_ID ? null : accountId,
+      });
+    }
+    await get().updateLoan({ ...loan, paidCount: loan.paidCount + 1 });
+  },
 }));
+
+/** When the account's balance was last typed in (null = never). */
+function setAtOf(accountId: string): string | null {
+  if (accountId === MAIN_ACCOUNT_ID) return useSettingsStore.getState().settings.bankBalanceSetAt;
+  return useFinanceStore.getState().accounts.find((a) => a.id === accountId)?.setAt ?? null;
+}
+
+/** Is something created at `createdAt` part of the account's balance (logged after it was set)? */
+function isCounted(accountId: string, createdAt: string): boolean {
+  const setAt = setAtOf(accountId);
+  return !setAt || createdAt > setAt;
+}
+
+/** Moves the typed-in amount of an account by `delta`. */
+async function adjustBase(accountId: string, delta: number): Promise<void> {
+  if (delta === 0) return;
+  if (accountId === MAIN_ACCOUNT_ID) {
+    const { settings, updateSettings } = useSettingsStore.getState();
+    updateSettings({ bankBalanceBase: settings.bankBalanceBase + delta });
+    return;
+  }
+  const account = useFinanceStore.getState().accounts.find((a) => a.id === accountId);
+  if (!account) return;
+  const updated = { ...account, base: account.base + delta };
+  await financeRepo.saveAccount(updated);
+  useFinanceStore.setState((state) => ({ accounts: state.accounts.map((a) => (a.id === accountId ? updated : a)) }));
+}
 
 /**
  * Keeps the plan's red "over the limit" expense equal to what was spent past the limit in this
@@ -363,31 +519,43 @@ async function syncOverspend(planId: string): Promise<void> {
 }
 
 /**
- * Bank = the amount set by hand − expenses logged after it was set. Expenses logged before that
- * moment aren't part of the sum, so deleting or changing one of them wouldn't move the bank at all.
+ * A balance = the amount set by hand − expenses logged after it was set. Expenses logged before that
+ * moment aren't part of the sum, so deleting or changing one of them wouldn't move the balance at all.
  * Deleting an expense must always give its money back (and changing it, the difference) — so for
- * those older expenses the change goes into the hand-set amount instead.
+ * those older expenses the change goes into the hand-set amount of the card or cash they were paid
+ * from instead.
  * `sign` −1: these expenses are going away; +1: they're coming in (the new version of an edited one).
  */
-function keepBankInStep(expenses: Expense[], sign: 1 | -1): void {
-  const { bankBalanceBase, bankBalanceSetAt } = useSettingsStore.getState().settings;
-  if (!bankBalanceSetAt) return;
-  const before = expenses.filter((e) => e.createdAt <= bankBalanceSetAt).reduce((sum, e) => sum + e.amount, 0);
-  if (before === 0) return;
-  // Removing −X from the bank = +X; adding = −X.
-  useSettingsStore.getState().updateSettings({ bankBalanceBase: bankBalanceBase - sign * before });
+async function keepBalancesInStep(expenses: Expense[], sign: 1 | -1): Promise<void> {
+  const byAccount = new Map<string, number>();
+  for (const e of expenses) {
+    const id = accountIdOf(e);
+    // Dated in the future: it hasn't left the card yet, and won't once it's gone — nothing to fix.
+    // Charged after the balance was typed in: the balance follows it by itself.
+    if (!isDue(e) || isCounted(id, chargedAt(e))) continue;
+    byAccount.set(id, (byAccount.get(id) ?? 0) + e.amount);
+  }
+  // Removing −X from the balance = +X; adding = −X.
+  for (const [id, amount] of byAccount) await adjustBase(id, -sign * amount);
 }
 
 /** Budget alerts look at what was actually bought (plan purchases, not whole plan limits). */
 function checkAlerts(): void {
-  const { expenses, spendPlans, planSpends, categories } = useFinanceStore.getState();
-  checkBudgetAlerts(spendingExpenses(expenses, spendPlans, planSpends), useSettingsStore.getState().settings, categories);
+  const { expenses, spendPlans, planSpends, categories, accounts } = useFinanceStore.getState();
+  const settings = useSettingsStore.getState().settings;
+  checkBudgetAlerts(inAppCurrency(spendingExpenses(expenses, spendPlans, planSpends), accounts, settings.currency), settings, categories);
 }
 
-/** Expenses as spending — see spendingExpenses: plan purchases instead of whole plan limits. */
+/** Expenses as spending — see spendingExpenses: plan purchases instead of whole plan limits. Only
+ * the ones in the app currency (see inAppCurrency). */
 export function useSpendingExpenses() {
   const expenses = useFinanceStore((s) => s.expenses);
   const plans = useFinanceStore((s) => s.spendPlans);
   const spends = useFinanceStore((s) => s.planSpends);
-  return useMemo(() => spendingExpenses(expenses, plans, spends), [expenses, plans, spends]);
+  const accounts = useFinanceStore((s) => s.accounts);
+  const currency = useSettingsStore((s) => s.settings.currency);
+  return useMemo(
+    () => inAppCurrency(spendingExpenses(expenses, plans, spends), accounts, currency),
+    [expenses, plans, spends, accounts, currency]
+  );
 }

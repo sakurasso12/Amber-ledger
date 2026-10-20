@@ -20,6 +20,7 @@ import { NextTaskWidget } from './widget/NextTaskWidget';
 import { StreakWidget } from './widget/StreakWidget';
 import { buildHabits, habitCardId } from '@/lib/streaks';
 import { spendingExpenses } from '@/lib/plans';
+import { inAppCurrency } from '@/lib/accounts';
 
 export const WIDGET_NAME = 'AmberLedgerToday';
 export const DAY_OFF_WIDGET_NAME = 'AmberLedgerDayOff';
@@ -117,16 +118,17 @@ async function upcomingTasks(): Promise<WidgetTask[]> {
 }
 
 export async function buildTodayWidget(widgetInfo: WidgetInfo) {
-  const [tasks, expenses, plans, planSpends, settings] = await Promise.all([
+  const [tasks, expenses, plans, planSpends, accounts, settings] = await Promise.all([
     upcomingTasks(),
     financeRepo.listExpenses(),
     financeRepo.listSpendPlans(),
     financeRepo.listPlanSpends(),
+    financeRepo.listAccounts(),
     readWidgetSettings(),
   ]);
   const today = todayKey();
   // What was bought today — plan purchases count, not a plan's whole limit (same as in the app).
-  const spentToday = spendingExpenses(expenses, plans, planSpends)
+  const spentToday = inAppCurrency(spendingExpenses(expenses, plans, planSpends), accounts, settings.currency)
     .filter((e) => e.date === today)
     .reduce((sum, e) => sum + e.amount, 0);
 

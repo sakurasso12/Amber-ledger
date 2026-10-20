@@ -17,6 +17,7 @@ const ICONS: Record<string, (keyof typeof Ionicons.glyphMap)[]> = {
   '1.3.1': ['gift-outline', 'scan-outline', 'key-outline'],
   '1.3.2': ['gift-outline', 'chatbubbles-outline', 'paper-plane-outline', 'phone-portrait-outline'],
   '1.3.3': ['gift-outline'],
+  '1.4.0': ['gift-outline', 'card-outline', 'swap-horizontal-outline', 'archive-outline', 'flag-outline', 'business-outline', 'cash-outline', 'calendar-outline'],
 };
 
 /**

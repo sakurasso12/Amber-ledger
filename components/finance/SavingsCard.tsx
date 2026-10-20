@@ -41,19 +41,22 @@ function ProjectionCard({ onPress, compact }: { onPress: () => void; compact: bo
   return (
     <PressableScale onPress={onPress} scaleTo={0.98}>
       <CustomizableCard widgetId="finance-savings">
+        {/* Half width: the same small header and figure as the other tiles, so they line up. */}
         <View style={styles.titleRow}>
-          <Ionicons name="shield-checkmark" size={18} color={theme.colors.success} />
-          <Text style={[styles.title, { color: theme.colors.text }]}>{tr.savings.title}</Text>
+          <Ionicons name="shield-checkmark" size={compact ? 14 : 18} color={theme.colors.success} />
+          <Text style={[compact ? styles.titleCompact : styles.title, { color: compact ? theme.colors.textMuted : theme.colors.text }]} numberOfLines={1}>
+            {tr.savings.title}
+          </Text>
           {savingsRatePercent > 0 ? (
             <Text style={[styles.rate, { color: theme.colors.textMuted }]}>{savingsRatePercent}%</Text>
           ) : null}
         </View>
-        <Text style={[styles.balance, { color: theme.colors.success }]} numberOfLines={1} adjustsFontSizeToFit>
+        <Text style={[compact ? styles.balanceCompact : styles.balance, { color: theme.colors.success }]} numberOfLines={1} adjustsFontSizeToFit>
           {money(savingsBalance)}
         </Text>
         {compact ? (
           projection ? (
-            <Text style={[styles.line, { color: theme.colors.textMuted }]} numberOfLines={2}>
+            <Text style={[styles.lineCompact, { color: theme.colors.textMuted }]} numberOfLines={1}>
               ≈ {money(projection.projected)} · {projection.yearEnds.toLocaleDateString(tr.localeCode, { month: 'short' })}
             </Text>
           ) : null
@@ -167,6 +170,9 @@ function SavingsEditor({ visible, onClose }: { visible: boolean; onClose: () => 
 }
 
 const styles = StyleSheet.create({
+  titleCompact: { flex: 1, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
+  balanceCompact: { fontSize: 24, fontWeight: '800' },
+  lineCompact: { fontSize: 11 },
   flex: { flex: 1 },
   // paddingRight keeps the rate clear of the card's ⋮ menu in the top-right corner.
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 28 },

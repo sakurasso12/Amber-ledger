@@ -4,8 +4,9 @@ import { Text } from '@/components/ui/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { Screen, SubScreenHeader, TextField } from '@/components/ui';
+import { Screen, SegmentedControl, SubScreenHeader, TextField } from '@/components/ui';
 import { useTranslation } from '@/i18n';
+import { AccountPicker, useAccountOptions } from '@/components/finance/AccountPicker';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   const theme = useTheme();
@@ -29,6 +30,8 @@ export function EarningsSettingsScreen() {
   const [currency, setCurrency] = useState(settings.currency);
   const [payPeriodStartDay, setPayPeriodStartDay] = useState(String(settings.payPeriodStartDay));
   const [paydayDay, setPaydayDay] = useState(String(settings.paydayDay));
+  const [advanceDay, setAdvanceDay] = useState(String(settings.advanceDay));
+  const accountOptions = useAccountOptions();
 
   function commitNumber(text: string, setter: (v: string) => void, key: 'hourlyRate' | 'hoursPerShift') {
     setter(text);
@@ -36,7 +39,7 @@ export function EarningsSettingsScreen() {
     if (Number.isFinite(n)) updateSettings({ [key]: n });
   }
 
-  function commitDay(text: string, setter: (v: string) => void, key: 'payPeriodStartDay' | 'paydayDay') {
+  function commitDay(text: string, setter: (v: string) => void, key: 'payPeriodStartDay' | 'paydayDay' | 'advanceDay') {
     setter(text);
     const n = parseInt(text, 10);
     if (Number.isFinite(n) && n >= 1 && n <= 31) updateSettings({ [key]: n });
@@ -76,10 +79,38 @@ export function EarningsSettingsScreen() {
         </Field>
         <Text style={{ color: theme.colors.textMuted, fontSize: 12, lineHeight: 18 }}>{tr.earningsSettings.payPeriodHint}</Text>
 
+        <Field label={tr.earningsSettings.payouts}>
+          <SegmentedControl
+            segments={[
+              { value: '1', label: tr.earningsSettings.payoutsOnce },
+              { value: '2', label: tr.earningsSettings.payoutsTwice },
+            ]}
+            value={String(settings.payoutsPerMonth)}
+            onChange={(v) => updateSettings({ payoutsPerMonth: v === '2' ? 2 : 1 })}
+          />
+        </Field>
+        {settings.payoutsPerMonth === 2 ? (
+          <>
+            <Field label={tr.earningsSettings.advanceDay}>
+              <TextField value={advanceDay} onChangeText={(t) => commitDay(t, setAdvanceDay, 'advanceDay')} keyboardType="number-pad" placeholder="15" />
+            </Field>
+            <Text style={{ color: theme.colors.textMuted, fontSize: 12, lineHeight: 18 }}>{tr.earningsSettings.advanceHint}</Text>
+          </>
+        ) : null}
         <Field label={tr.earningsSettings.paydayDay}>
           <TextField value={paydayDay} onChangeText={(t) => commitDay(t, setPaydayDay, 'paydayDay')} keyboardType="number-pad" placeholder="1" />
         </Field>
         <Text style={{ color: theme.colors.textMuted, fontSize: 12, lineHeight: 18 }}>{tr.earningsSettings.paydayHint}</Text>
+
+        {accountOptions.length > 1 ? (
+          <View>
+            <AccountPicker
+              label={tr.accounts.salaryAccount}
+              value={settings.salaryAccountId}
+              onChange={(id) => updateSettings({ salaryAccountId: id, salaryAccountAsked: true })}
+            />
+          </View>
+        ) : null}
       </ScrollView>
     </Screen>
   );

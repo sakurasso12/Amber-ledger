@@ -18,12 +18,20 @@ import { WorkCalendar } from '@/components/finance/WorkCalendar';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
 import { formatRangeLabel, monthRange, toDateKey, todayKey, weekRange } from '@/lib/dateRanges';
 import { payrollState } from '@/lib/earnings';
-import { syncSalaryReminder } from '@/notifications';
+import { syncLoanReminders, syncSalaryReminder } from '@/notifications';
 import { computeBankBalance, totalExpenses } from '@/lib/expenses';
 import { useTranslation } from '@/i18n';
 import { FinanceLockGate } from '@/components/finance/FinanceLockGate';
 import { SavingsCard } from '@/components/finance/SavingsCard';
 import { PlanBar } from '@/components/finance/PlanBar';
+import { AccountCard, AccountFormDialog } from '@/components/finance/AccountCard';
+import { LoanCard, LoanFormDialog } from '@/components/finance/LoanCard';
+import { MAX_LOANS } from '@/lib/loans';
+import { MoneyDialog } from '@/components/finance/MoneyDialog';
+import { AccountPicker } from '@/components/finance/AccountPicker';
+import { Button, Chip } from '@/components/ui';
+import { accountName, expenseCurrency, isMainExpense, isSpendable, MAIN_ACCOUNT_ID, MAX_CARDS, MAX_GOALS, MAX_STASHES, transfersNet } from '@/lib/accounts';
+import { AccountKind } from '@/types';
 
 export function FinanceScreen() {
   const theme = useTheme();
@@ -38,6 +46,9 @@ export function FinanceScreen() {
   const plannedExpenses = useFinanceStore((s) => s.plannedExpenses);
   const spendPlans = useFinanceStore((s) => s.spendPlans);
   const planSpends = useFinanceStore((s) => s.planSpends);
+  const accounts = useFinanceStore((s) => s.accounts);
+  const transfers = useFinanceStore((s) => s.transfers);
+  const loans = useFinanceStore((s) => s.loans);
   const rollOverSpendPlans = useFinanceStore((s) => s.rollOverSpendPlans);
   const spending = useSpendingExpenses();
   const inPlans = useMemo(() => unspentInPlans(spendPlans, planSpends), [spendPlans, planSpends]);
@@ -82,19 +93,52 @@ export function FinanceScreen() {
     syncSalaryReminder(payroll, settings);
   }, [payroll.due?.key, payroll.awaiting[0]?.key, settings.salaryPromptSnoozedUntil, settings.paydayDay, settings.language]);
 
-  // "Банк" — manually-set cash on hand, minus every expense logged since it was set, plus every
-  // salary confirmed since then.
+  // "Банк" (the main card) — the amount set by hand, minus its expenses charged since (one dated in
+  // the future only on its day), plus salary paid into it and transfers since then.
+  const today = toDateKey(now);
   const { bank: bankBeforeSalary, spentSinceSet } = useMemo(
-    () => computeBankBalance(expenses, settings.bankBalanceBase, settings.bankBalanceSetAt),
-    [expenses, settings.bankBalanceBase, settings.bankBalanceSetAt]
+    () => computeBankBalance(expenses.filter(isMainExpense), settings.bankBalanceBase, settings.bankBalanceSetAt, today),
+    [expenses, settings.bankBalanceBase, settings.bankBalanceSetAt, today]
   );
-  const bank = bankBeforeSalary + payroll.creditedSinceSet;
+  const bank =
+    bankBeforeSalary + payroll.creditedSinceSet + transfersNet(MAIN_ACCOUNT_ID, transfers, settings.bankBalanceSetAt);
 
   // What's typed is what's in the account; the plans' unspent part comes off to keep "free" right.
-  function handleEditBank(inAccount: number) {
+  function handleEditBank(inAccount: number | null, bankName: string) {
+    if (inAccount === null) {
+      updateSettings({ mainAccountName: bankName });
+      return;
+    }
     const setAt = new Date().toISOString();
-    updateSettings({ bankBalanceBase: inAccount - inPlans, bankBalanceSetAt: setAt, lastSettledAt: todayKey() });
+    updateSettings({
+      bankBalanceBase: inAccount - inPlans,
+      bankBalanceSetAt: setAt,
+      lastSettledAt: todayKey(),
+      mainAccountName: bankName,
+    });
   }
+
+  // Edit mode → "+": a new card (up to MAX_CARDS with the main one) or cash wallet.
+  const [addOpen, setAddOpen] = useState(false);
+  const [newKind, setNewKind] = useState<AccountKind | null>(null);
+  const [newLoan, setNewLoan] = useState(false);
+  const countOf = (kind: AccountKind) => accounts.filter((a) => a.kind === kind).length;
+  // With a second card or cash wallet, ask once which one the salary goes to.
+  const askSalaryAccount = !settings.salaryAccountAsked && accounts.some(isSpendable);
+  // Each kind has its own limit; past it the chip just says so.
+  const addChoices: { label: string; full: boolean; limit: string; open: () => void }[] = [
+    { label: tr.accounts.addCard, full: 1 + countOf('card') >= MAX_CARDS, limit: tr.accounts.cardsLimit(MAX_CARDS), open: () => setNewKind('card') },
+    { label: tr.accounts.addCash, full: false, limit: '', open: () => setNewKind('cash') },
+    { label: tr.accounts.addStash, full: countOf('stash') >= MAX_STASHES, limit: tr.accounts.stashesLimit(MAX_STASHES), open: () => setNewKind('stash') },
+    { label: tr.accounts.addGoal, full: countOf('goal') >= MAX_GOALS, limit: tr.accounts.goalsLimit(MAX_GOALS), open: () => setNewKind('goal') },
+    { label: tr.accounts.addLoan, full: loans.length >= MAX_LOANS, limit: tr.accounts.loansLimit(MAX_LOANS), open: () => setNewLoan(true) },
+  ];
+
+  // A reminder LOAN_REMINDER_DAYS before every loan payment.
+  useEffect(() => {
+    syncLoanReminders(loans, settings);
+  }, [loans, settings.notificationsEnabled, settings.language]);
+  const [salaryPick, setSalaryPick] = useState(settings.salaryAccountId);
 
   // Spent = what was bought: plan purchases count, not a plan's whole limit.
   const spentThisWeek = useMemo(() => totalExpenses(spending, weekRange(new Date())), [spending]);
@@ -108,7 +152,7 @@ export function FinanceScreen() {
       key={expense.id}
       expense={expense}
       category={categoryById.get(expense.categoryId)}
-      currency={settings.currency}
+      currency={expenseCurrency(expense, accounts, settings.currency)}
       onPress={() => router.push(`/expense/${expense.id}`)}
       variant={variant}
     />
@@ -171,9 +215,23 @@ export function FinanceScreen() {
           accruingLabel={formatRangeLabel(payroll.accruing.range, tr.localeCode)}
           plannedTotal={plannedTotal}
           currency={settings.currency}
+          bankName={settings.mainAccountName}
         />
       ),
     },
+    // The other cards, cash wallets, stashes and goals, each its own widget (a goal's bar needs the full width).
+    ...accounts.map((account) => ({
+      key: `account-${account.id}`,
+      title: accountName(account, tr.accounts),
+      sizes: (account.kind === 'goal' ? ['full'] : ['half', 'full']) as ModuleSize[],
+      render: (size: ModuleSize) => <AccountCard account={account} compact={size === 'half'} disabled={editingLayout} />,
+    })),
+    ...loans.map((loan) => ({
+      key: `loan-${loan.id}`,
+      title: loan.name || tr.loans.title,
+      sizes: ['full'] as ModuleSize[],
+      render: () => <LoanCard loan={loan} disabled={editingLayout} />,
+    })),
     { key: 'spend-week', title: tr.layoutEdit.modules.spendWeek, sizes: ['half'], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
     { key: 'spend-month', title: tr.layoutEdit.modules.spendMonth, sizes: ['half'], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
     // Planned spending: one bar per plan, full width.
@@ -231,6 +289,17 @@ export function FinanceScreen() {
   const listHeader = (
           <View style={styles.topSection}>
             {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
+            {askSalaryAccount ? (
+              <CustomizableCard widgetId="finance-salary-account" style={styles.askCard}>
+                <Text style={[styles.sectionTitle, styles.askTitle, { color: theme.colors.text }]}>{tr.accounts.salaryQuestion}</Text>
+                <Text style={{ color: theme.colors.textMuted, fontSize: 12, lineHeight: 17 }}>{tr.accounts.salaryHint}</Text>
+                <AccountPicker label="" value={salaryPick} onChange={setSalaryPick} />
+                <Button
+                  title={tr.accounts.save}
+                  onPress={() => updateSettings({ salaryAccountId: salaryPick, salaryAccountAsked: true })}
+                />
+              </CustomizableCard>
+            ) : null}
             <FinanceMenuBody />
             <ModuleBoard boardId="finance" modules={modules} editing={editingLayout} />
             <View style={styles.sectionRow}>
@@ -256,6 +325,11 @@ export function FinanceScreen() {
       right={
         <View style={styles.headerRight}>
           <FinanceMenuHeader />
+          {editingLayout ? (
+            <Pressable onPress={() => setAddOpen(true)} hitSlop={10} accessibilityLabel={tr.accounts.addWidget}>
+              <Ionicons name="add-circle-outline" size={24} color={theme.colors.primary} />
+            </Pressable>
+          ) : null}
           {editingLayout ? <HiddenModulesButton items={removedItems} /> : null}
           <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={locked} />
         </View>
@@ -290,6 +364,27 @@ export function FinanceScreen() {
         />
       )}
       </FinanceLockGate>
+
+      <MoneyDialog visible={addOpen} onClose={() => setAddOpen(false)} title={tr.accounts.addTitle}>
+        <View style={styles.addRow}>
+          {addChoices.map((choice) => (
+            <Chip
+              key={choice.label}
+              label={choice.label}
+              onPress={() => {
+                if (choice.full) {
+                  Alert.alert(choice.limit);
+                  return;
+                }
+                setAddOpen(false);
+                choice.open();
+              }}
+            />
+          ))}
+        </View>
+      </MoneyDialog>
+      <AccountFormDialog visible={newKind !== null} kind={newKind ?? 'card'} onClose={() => setNewKind(null)} />
+      <LoanFormDialog visible={newLoan} onClose={() => setNewLoan(false)} />
     </LayoutScreen>
   );
 }
@@ -308,5 +403,8 @@ const styles = StyleSheet.create({
   budgetLabelStack: { gap: 2 },
   statLabel: { fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
   statValue: { fontSize: 24, fontWeight: '800' },
+  askCard: { gap: 10 },
+  askTitle: { marginTop: 0 },
+  addRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   bigSectionTitle: { fontSize: 34, fontWeight: '800', letterSpacing: 2, marginTop: 12 },
 });
