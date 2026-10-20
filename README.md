@@ -119,7 +119,7 @@ Everything about the look can be changed — except the font (coming soon):
   (calendar, balance, charts…)
 - **Home screen widgets:** today's tasks and spending, next task, next day off — each with its
   own background
-- **Language:** English, Ukrainian
+- **Language:** English, Ukrainian, Russian
 - Smooth, spring-based animations everywhere
 
 | Standard | Vertical | Themes | Widgets |

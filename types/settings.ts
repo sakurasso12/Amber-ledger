@@ -3,7 +3,7 @@ import type { LayoutId } from '@/theme/layouts';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-export type AppLanguage = 'uk' | 'en';
+export type AppLanguage = 'ru' | 'uk' | 'en';
 
 
 export interface AppSettings {
