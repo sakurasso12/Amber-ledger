@@ -1,7 +1,7 @@
 export const DB_NAME = 'amber-ledger.db';
 
 /** Current schema version. Bump this and append a migration when the schema changes. */
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 9;
 
 export const CREATE_TABLES_SQL = `
 PRAGMA journal_mode = WAL;
@@ -62,7 +62,42 @@ CREATE TABLE IF NOT EXISTS expenses (
   created_at TEXT NOT NULL,
   plan_id TEXT,
   plan_role TEXT,
-  task_id TEXT
+  task_id TEXT,
+  account_id TEXT
+);
+
+CREATE TABLE IF NOT EXISTS accounts (
+  id TEXT PRIMARY KEY NOT NULL,
+  kind TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  currency TEXT NOT NULL,
+  base REAL NOT NULL DEFAULT 0,
+  set_at TEXT,
+  target REAL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS loans (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  principal REAL NOT NULL,
+  rate_percent REAL NOT NULL DEFAULT 0,
+  months INTEGER NOT NULL,
+  first_payment TEXT NOT NULL,
+  paid_count INTEGER NOT NULL DEFAULT 0,
+  currency TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS transfers (
+  id TEXT PRIMARY KEY NOT NULL,
+  from_id TEXT NOT NULL,
+  to_id TEXT NOT NULL,
+  amount REAL NOT NULL,
+  amount_to REAL NOT NULL,
+  date TEXT NOT NULL,
+  created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS spend_plans (

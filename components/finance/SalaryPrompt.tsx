@@ -32,7 +32,7 @@ export function SalaryPrompt({ due, currency }: SalaryPromptProps) {
     updateSettings({
       salaryConfirmations: {
         ...settings.salaryConfirmations,
-        [due.key]: { amount, confirmedAt: new Date().toISOString() },
+        [due.key]: { amount, confirmedAt: new Date().toISOString(), accountId: settings.salaryAccountId },
       },
       salaryPromptSnoozedUntil: null,
     });

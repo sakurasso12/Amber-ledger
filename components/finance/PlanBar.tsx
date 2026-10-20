@@ -17,18 +17,18 @@ import { SpendPlan } from '@/types';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-const BAR_HEIGHT = 68;
+export const BAR_HEIGHT = 68;
 /** How far the wave's crest swings left and right of the fill line, in points. */
 const AMPLITUDE = 5;
 /** Two full waves over the bar's height. */
 const WAVES = 2;
-const FILL = { duration: 900, easing: Easing.inOut(Easing.cubic) };
+export const FILL = { duration: 900, easing: Easing.inOut(Easing.cubic) };
 
 /**
  * The filled part of the bar, its right edge a wave that keeps rolling. `fill` is 0–1 of the
  * width; `phase` rolls the wave along.
  */
-function Wave({ width, fill, phase, offset, color, opacity }: {
+export function Wave({ width, fill, phase, offset, color, opacity }: {
   width: number;
   fill: SharedValue<number>;
   phase: SharedValue<number>;

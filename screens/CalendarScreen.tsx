@@ -7,6 +7,7 @@ import { addMonths } from 'date-fns';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore } from '@/store/useFinanceStore';
+import { expenseCurrency } from '@/lib/accounts';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { CustomizableCard, EditLayoutButton, EmptyState, LayoutScreen, useAuthPrompt } from '@/components/ui';
 import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
@@ -27,6 +28,7 @@ export function CalendarScreen() {
   const setStatus = useTaskStore((s) => s.setStatus);
   const expenses = useFinanceStore((s) => s.expenses);
   const categories = useFinanceStore((s) => s.categories);
+  const accounts = useFinanceStore((s) => s.accounts);
   const currency = useSettingsStore((s) => s.settings.currency);
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
@@ -186,7 +188,7 @@ export function CalendarScreen() {
                     <ExpenseListItem
                       expense={expense}
                       category={categoryById.get(expense.categoryId)}
-                      currency={currency}
+                      currency={expenseCurrency(expense, accounts, currency)}
                       onPress={() => openExpense(expense.id)}
                       variant={dayMode === 'big' ? 'big' : 'row'}
                     />

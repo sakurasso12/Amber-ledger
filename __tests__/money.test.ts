@@ -5,12 +5,21 @@ import { expense, plan, spend } from './factories';
 describe('bank', () => {
   it('takes off only expenses logged after the amount was set by hand', () => {
     const expenses = [
-      expense({ id: 'old', amount: 300, createdAt: '2026-10-01T10:00:00.000Z' }),
-      expense({ id: 'new', amount: 50, createdAt: '2026-10-05T10:00:00.000Z' }),
+      expense({ id: 'old', amount: 300, date: '2026-10-01', createdAt: '2026-10-01T10:00:00.000Z' }),
+      expense({ id: 'new', amount: 50, date: '2026-10-05', createdAt: '2026-10-05T10:00:00.000Z' }),
     ];
-    const { bank, spentSinceSet } = computeBankBalance(expenses, 1000, '2026-10-03T00:00:00.000Z');
+    const { bank, spentSinceSet } = computeBankBalance(expenses, 1000, '2026-10-03T00:00:00.000Z', '2026-10-06');
     expect(spentSinceSet).toBe(50);
     expect(bank).toBe(950);
+  });
+
+  it('takes an expense dated in the future off only on its day', () => {
+    // Typed in on the 5th for the 30th.
+    const rent = expense({ amount: 900, date: '2026-10-30', createdAt: '2026-10-05T10:00:00.000Z' });
+    expect(computeBankBalance([rent], 1000, '2026-10-03T00:00:00.000Z', '2026-10-29').bank).toBe(1000);
+    expect(computeBankBalance([rent], 1000, '2026-10-03T00:00:00.000Z', '2026-10-30').bank).toBe(100);
+    // The balance typed in on the 31st already has it in.
+    expect(computeBankBalance([rent], 1000, '2026-10-31T09:00:00.000Z', '2026-10-31').bank).toBe(1000);
   });
 
   it('counts every expense while the amount was never set', () => {

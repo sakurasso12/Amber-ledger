@@ -27,6 +27,8 @@ export interface Expense {
   /** Logged by completing this task ("log an expense when done") — un-doing or deleting the task
    * takes the expense back. */
   taskId: string | null;
+  /** Card or cash it was paid from (see Account); null = the main card. */
+  accountId: string | null;
 }
 
 export interface ExpenseDraft {
@@ -37,6 +39,60 @@ export interface ExpenseDraft {
   planId?: string | null;
   planRole?: PlanRole | null;
   taskId?: string | null;
+  accountId?: string | null;
+}
+
+/**
+ * Where money is kept besides the main card: another bank card or cash in any currency (you can pay
+ * with these), a stash — just an amount to keep in mind, e.g. € put aside, nothing is paid from it —
+ * or a goal: money put aside for something, filling a bar towards `target`. The main
+ * card is not a row here — it's the old "Bank" figure in settings (bankBalanceBase/SetAt), with
+ * MAIN_ACCOUNT_ID standing for it (see lib/accounts.ts).
+ */
+export type AccountKind = 'card' | 'cash' | 'stash' | 'goal';
+
+export interface Account {
+  id: string;
+  kind: AccountKind;
+  /** Bank name for a card ("PKO", "Revolut"); for cash, empty or whatever the user calls it. */
+  name: string;
+  /** Shown after amounts: "zł", "€", "$" ... */
+  currency: string;
+  /** Balance typed by hand at `setAt`; expenses and transfers after that move it. */
+  base: number;
+  setAt: string | null;
+  /** Goal: the amount to save up (null for the other kinds). */
+  target: number | null;
+  sortOrder: number;
+  createdAt: string;
+}
+
+/** A loan or instalment plan: the monthly payment and what's left are worked out from these. */
+export interface Loan {
+  id: string;
+  name: string;
+  principal: number;
+  /** Yearly interest in percent (e.g. 9.5). */
+  ratePercent: number;
+  months: number;
+  /** yyyy-MM-dd of the first payment; the next ones fall on the same day of each month. */
+  firstPayment: string;
+  /** Payments already made ("Paid" pressed). */
+  paidCount: number;
+  currency: string;
+  createdAt: string;
+}
+
+/** Money moved between two of the user's accounts (e.g. cash taken out of an ATM). Currencies can
+ * differ, so the amount that arrives is kept separately. */
+export interface Transfer {
+  id: string;
+  fromId: string;
+  toId: string;
+  amount: number;
+  amountTo: number;
+  date: string;
+  createdAt: string;
 }
 
 /**

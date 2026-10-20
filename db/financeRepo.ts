@@ -1,6 +1,9 @@
 import { getDb } from './client';
 import { generateId } from '@/lib/id';
 import {
+  Account,
+  AccountKind,
+  Loan,
   Category,
   Expense,
   ExpenseDraft,
@@ -12,6 +15,7 @@ import {
   RecurrenceFreq,
   RecurringExpense,
   RecurringExpenseDraft,
+  Transfer,
   WorkDay,
 } from '@/types';
 
@@ -34,6 +38,7 @@ interface ExpenseRow {
   plan_id: string | null;
   plan_role: string | null;
   task_id: string | null;
+  account_id: string | null;
 }
 
 interface WorkDayRow {
@@ -66,6 +71,7 @@ function rowToExpense(row: ExpenseRow): Expense {
     planId: row.plan_id ?? null,
     planRole: (row.plan_role as PlanRole | null) ?? null,
     taskId: row.task_id ?? null,
+    accountId: row.account_id ?? null,
   };
 }
 
@@ -151,25 +157,32 @@ export async function createExpense(draft: ExpenseDraft): Promise<Expense> {
     planId: draft.planId ?? null,
     planRole: draft.planRole ?? null,
     taskId: draft.taskId ?? null,
+    accountId: draft.accountId ?? null,
   };
   await db.runAsync(
-    'INSERT INTO expenses (id, amount, category_id, date, comment, created_at, plan_id, plan_role, task_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [expense.id, expense.amount, expense.categoryId, expense.date, expense.comment, expense.createdAt, expense.planId, expense.planRole, expense.taskId]
+    'INSERT INTO expenses (id, amount, category_id, date, comment, created_at, plan_id, plan_role, task_id, account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      expense.id,
+      expense.amount,
+      expense.categoryId,
+      expense.date,
+      expense.comment,
+      expense.createdAt,
+      expense.planId,
+      expense.planRole,
+      expense.taskId,
+      expense.accountId,
+    ]
   );
   return expense;
 }
 
 export async function updateExpense(expense: Expense): Promise<void> {
   const db = await getDb();
-  await db.runAsync('UPDATE expenses SET amount = ?, category_id = ?, date = ?, comment = ?, plan_id = ?, plan_role = ? WHERE id = ?', [
-    expense.amount,
-    expense.categoryId,
-    expense.date,
-    expense.comment,
-    expense.planId,
-    expense.planRole,
-    expense.id,
-  ]);
+  await db.runAsync(
+    'UPDATE expenses SET amount = ?, category_id = ?, date = ?, comment = ?, plan_id = ?, plan_role = ?, account_id = ? WHERE id = ?',
+    [expense.amount, expense.categoryId, expense.date, expense.comment, expense.planId, expense.planRole, expense.accountId, expense.id]
+  );
 }
 
 export async function deleteExpense(id: string): Promise<void> {
@@ -430,4 +443,159 @@ export async function createPlanSpend(planId: string, period: number, amount: nu
 export async function deletePlanSpend(id: string): Promise<void> {
   const db = await getDb();
   await db.runAsync('DELETE FROM plan_spends WHERE id = ?', [id]);
+}
+
+// ---- Accounts (cards besides the main one, cash) ----
+
+interface AccountRow {
+  id: string;
+  kind: string;
+  name: string;
+  currency: string;
+  base: number;
+  set_at: string | null;
+  target: number | null;
+  sort_order: number;
+  created_at: string;
+}
+
+function rowToAccount(row: AccountRow): Account {
+  return {
+    id: row.id,
+    kind: row.kind as AccountKind,
+    name: row.name,
+    currency: row.currency,
+    base: row.base,
+    setAt: row.set_at,
+    target: row.target ?? null,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+  };
+}
+
+export async function listAccounts(): Promise<Account[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<AccountRow>('SELECT * FROM accounts ORDER BY sort_order ASC, created_at ASC');
+  return rows.map(rowToAccount);
+}
+
+/** Inserts the account, or rewrites every field of an existing one. */
+export async function saveAccount(account: Account): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO accounts (id, kind, name, currency, base, set_at, target, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      account.id,
+      account.kind,
+      account.name,
+      account.currency,
+      account.base,
+      account.setAt,
+      account.target,
+      account.sortOrder,
+      account.createdAt,
+    ]
+  );
+}
+
+/** Removes the account and the transfers to and from it. Its expenses stay in the history. */
+export async function deleteAccount(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM transfers WHERE from_id = ? OR to_id = ?', [id, id]);
+  await db.runAsync('DELETE FROM accounts WHERE id = ?', [id]);
+}
+
+// ---- Transfers ----
+
+interface TransferRow {
+  id: string;
+  from_id: string;
+  to_id: string;
+  amount: number;
+  amount_to: number;
+  date: string;
+  created_at: string;
+}
+
+function rowToTransfer(row: TransferRow): Transfer {
+  return {
+    id: row.id,
+    fromId: row.from_id,
+    toId: row.to_id,
+    amount: row.amount,
+    amountTo: row.amount_to,
+    date: row.date,
+    createdAt: row.created_at,
+  };
+}
+
+export async function listTransfers(): Promise<Transfer[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<TransferRow>('SELECT * FROM transfers ORDER BY date DESC, created_at DESC');
+  return rows.map(rowToTransfer);
+}
+
+export async function createTransfer(draft: Omit<Transfer, 'id' | 'createdAt'>): Promise<Transfer> {
+  const db = await getDb();
+  const transfer: Transfer = { ...draft, id: generateId(), createdAt: new Date().toISOString() };
+  await db.runAsync(
+    'INSERT INTO transfers (id, from_id, to_id, amount, amount_to, date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [transfer.id, transfer.fromId, transfer.toId, transfer.amount, transfer.amountTo, transfer.date, transfer.createdAt]
+  );
+  return transfer;
+}
+
+export async function deleteTransfer(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM transfers WHERE id = ?', [id]);
+}
+
+// ---- Loans ----
+
+interface LoanRow {
+  id: string;
+  name: string;
+  principal: number;
+  rate_percent: number;
+  months: number;
+  first_payment: string;
+  paid_count: number;
+  currency: string;
+  created_at: string;
+}
+
+function rowToLoan(row: LoanRow): Loan {
+  return {
+    id: row.id,
+    name: row.name,
+    principal: row.principal,
+    ratePercent: row.rate_percent,
+    months: row.months,
+    firstPayment: row.first_payment,
+    paidCount: row.paid_count,
+    currency: row.currency,
+    createdAt: row.created_at,
+  };
+}
+
+export async function listLoans(): Promise<Loan[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<LoanRow>('SELECT * FROM loans ORDER BY created_at ASC');
+  return rows.map(rowToLoan);
+}
+
+/** Inserts the loan, or rewrites every field of an existing one. */
+export async function saveLoan(loan: Loan): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT OR REPLACE INTO loans
+      (id, name, principal, rate_percent, months, first_payment, paid_count, currency, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [loan.id, loan.name, loan.principal, loan.ratePercent, loan.months, loan.firstPayment, loan.paidCount, loan.currency, loan.createdAt]
+  );
+}
+
+export async function deleteLoan(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM loans WHERE id = ?', [id]);
 }

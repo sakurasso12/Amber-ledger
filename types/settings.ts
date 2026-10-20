@@ -18,6 +18,11 @@ export interface AppSettings {
    * (1-31). Until the user confirms, that period's earnings stay in "Должно прийти" — salary often
    * lands a few days late, so nothing moves into "Банк" on its own. */
   paydayDay: number;
+  /** 2 = the money comes twice a month: an advance (аванс) for the first half of the pay period on
+   * `advanceDay`, the rest for the second half on `paydayDay`. 1 = once, on `paydayDay`. */
+  payoutsPerMonth: 1 | 2;
+  /** Day of month the advance arrives (1-31), used when payoutsPerMonth is 2. */
+  advanceDay: number;
   themeMode: ThemeMode;
   /** Custom accent hex color overriding the active theme's primary/accent, or null to use the
    * theme's own default. */
@@ -51,7 +56,13 @@ export interface AppSettings {
   /** Salaries the user confirmed in the "did your salary arrive?" prompt, keyed by the pay period's
    * start date (yyyy-MM-dd): the amount that actually arrived and when it was confirmed. Confirmed
    * after the last manual Bank update → added to Bank (see lib/earnings.ts payrollState). */
-  salaryConfirmations: Record<string, { amount: number; confirmedAt: string }>;
+  salaryConfirmations: Record<string, { amount: number; confirmedAt: string; accountId?: string }>;
+  /** Bank name of the main card ("PKO"); empty = just "Card". */
+  mainAccountName: string;
+  /** Card or cash the salary goes to (lib/accounts MAIN_ACCOUNT_ID = the main card). */
+  salaryAccountId: string;
+  /** The "which card does your salary go to?" question on Finance was answered. */
+  salaryAccountAsked: boolean;
   /** ISO time until which the salary prompt stays hidden after "remind me in a day". */
   salaryPromptSnoozedUntil: string | null;
   /** Theme style: palettes, fonts and shapes — see theme/designs.ts (Settings → Тема). */
@@ -132,6 +143,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   currency: 'zł',
   payPeriodStartDay: 1,
   paydayDay: 1,
+  payoutsPerMonth: 1,
+  advanceDay: 15,
   themeMode: 'system',
   accentColor: null,
   language: 'en',
@@ -147,6 +160,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lastSettledAt: null,
   widgetBackgrounds: {},
   salaryConfirmations: {},
+  mainAccountName: '',
+  salaryAccountId: 'main',
+  salaryAccountAsked: false,
   salaryPromptSnoozedUntil: null,
   designId: 'amber',
   layoutId: 'standard',
