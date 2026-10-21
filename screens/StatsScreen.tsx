@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { Text } from '@/components/ui/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -8,6 +9,7 @@ import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { BoardModule, CustomizableCard, EditLayoutButton, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, SegmentedControl, useHiddenBoardItems } from '@/components/ui';
 import { useFinanceLocked } from '@/store/useFinanceLock';
+import { LayoutScrollContext } from '@/components/ui/LayoutEditing';
 import { BarChart } from '@/components/charts/BarChart';
 import { CategoryBreakdownBars } from '@/components/charts/CategoryBreakdownBars';
 import { lastNWeeks, monthRange } from '@/lib/dateRanges';
@@ -24,6 +26,7 @@ export function StatsScreen() {
   const theme = useTheme();
   const tr = useTranslation();
   const insets = useSafeAreaInsets();
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const [tab, setTab] = useState<Tab>('tasks');
 
   const tasks = useTaskStore((s) => s.tasks);
@@ -159,7 +162,8 @@ export function StatsScreen() {
         </View>
       }
     >
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
+      <LayoutScrollContext.Provider value={scrollRef}>
+      <Animated.ScrollView ref={scrollRef} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
         <SegmentedControl<Tab>
           value={tab}
           onChange={setTab}
@@ -180,7 +184,8 @@ export function StatsScreen() {
             <ModuleBoard boardId="stats-finance" modules={financeModules} editing={editingLayout} />
           </FinanceLockGate>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
+      </LayoutScrollContext.Provider>
     </LayoutScreen>
   );
 }

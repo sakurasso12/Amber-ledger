@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, startOfMonth } from 'date-fns';
 import { Text } from '@/components/ui/Text';
@@ -10,6 +11,7 @@ import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
 import { unspentInPlans } from '@/lib/plans';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar, useHiddenBoardItems } from '@/components/ui';
+import { LayoutScrollContext } from '@/components/ui/LayoutEditing';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { BalanceCard } from '@/components/finance/BalanceCard';
 import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
@@ -31,13 +33,14 @@ import { MoneyDialog } from '@/components/finance/MoneyDialog';
 import { AccountPicker } from '@/components/finance/AccountPicker';
 import { Button, Chip } from '@/components/ui';
 import { accountName, expenseCurrency, isMainExpense, isSpendable, MAIN_ACCOUNT_ID, MAX_CARDS, MAX_GOALS, MAX_STASHES, transfersNet } from '@/lib/accounts';
-import { AccountKind } from '@/types';
+import { AccountKind, Expense } from '@/types';
 
 export function FinanceScreen() {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const scrollRef = useAnimatedRef<Animated.FlatList<Expense>>();
   const settings = useSettingsStore((s) => s.settings);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const expenses = useFinanceStore((s) => s.expenses);
@@ -336,7 +339,9 @@ export function FinanceScreen() {
       }
     >
       <FinanceLockGate clearRail>
-      <FlatList
+      <LayoutScrollContext.Provider value={scrollRef}>
+      <Animated.FlatList
+        ref={scrollRef}
         data={monthExpenses}
         keyExtractor={(expense) => expense.id}
         contentContainerStyle={styles.listContent}
@@ -345,6 +350,7 @@ export function FinanceScreen() {
         ItemSeparatorComponent={() => <View style={{ height: expenseMode === 'big' ? 12 : 8 }} />}
         ListEmptyComponent={<EmptyState icon="💰" title={tr.financeScreen.emptyTitle} subtitle={tr.financeScreen.emptySubtitle} />}
       />
+      </LayoutScrollContext.Provider>
 
       {quickAddOpen ? (
         <QuickAddBar

@@ -7,7 +7,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { Habit } from '@/lib/streaks';
 import { SegmentedControl, Text } from '@/components/ui';
 import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
-import { LayoutEditingContext } from '@/components/ui/LayoutEditing';
+import { LAYOUT_SCROLL_SPEED, LayoutEditingContext, useLayoutScroll } from '@/components/ui/LayoutEditing';
 import { HiddenModuleItem, RemoveModuleButton, useHiddenModules } from '@/components/ui/HiddenModules';
 import { useTranslation } from '@/i18n';
 import { HabitCard } from './HabitCard';
@@ -42,6 +42,7 @@ interface TaskModulesProps {
 export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
   const theme = useTheme();
   const tr = useTranslation();
+  const scrollableRef = useLayoutScroll();
   const savedOrder = useSettingsStore((s) => s.settings.tasksModuleOrder);
   const columns = useSettingsStore((s) => s.settings.tasksModuleColumns);
   const { showHint, markSeen } = useLayoutHint(BOARD_ID);
@@ -93,6 +94,8 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
               rowGap={GAP}
               columnGap={GAP}
               sortEnabled={editing}
+              scrollableRef={scrollableRef}
+              autoScrollMaxVelocity={LAYOUT_SCROLL_SPEED}
               dragActivationDelay={150}
               activeItemScale={0.9}
               inactiveItemOpacity={1}
