@@ -1,59 +1,63 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { addMonths, startOfMonth } from 'date-fns';
+import { addMonths, endOfMonth, startOfMonth } from 'date-fns';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
-import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
-import { unspentInPlans } from '@/lib/plans';
+import { useFinanceStore, usePrimaryAccount, useSpendingExpenses } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar, useHiddenBoardItems } from '@/components/ui';
+import { LayoutScrollContext } from '@/components/ui/LayoutEditing';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { BalanceCard } from '@/components/finance/BalanceCard';
-import { SalaryPrompt } from '@/components/finance/SalaryPrompt';
+import { PendingList } from '@/components/finance/PendingList';
+import { BudgetBar, BudgetFormDialog } from '@/components/finance/BudgetBar';
 import { FinanceMenuBody, FinanceMenuHeader } from '@/components/finance/FinanceMenu';
 import { WorkCalendar } from '@/components/finance/WorkCalendar';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
 import { formatRangeLabel, monthRange, toDateKey, todayKey, weekRange } from '@/lib/dateRanges';
 import { payrollState } from '@/lib/earnings';
-import { syncLoanReminders, syncSalaryReminder } from '@/notifications';
-import { computeBankBalance, totalExpenses } from '@/lib/expenses';
+import { syncCheckReminder, syncLoanReminders, syncSalaryReminder } from '@/notifications';
+import { totalExpenses } from '@/lib/expenses';
+import { balanceOf, committedUntil, nextPayday, spentFrom } from '@/lib/ledger';
+import { pendingItems } from '@/lib/pending';
 import { useTranslation } from '@/i18n';
 import { FinanceLockGate } from '@/components/finance/FinanceLockGate';
-import { SavingsCard } from '@/components/finance/SavingsCard';
-import { PlanBar } from '@/components/finance/PlanBar';
 import { AccountCard, AccountFormDialog } from '@/components/finance/AccountCard';
 import { LoanCard, LoanFormDialog } from '@/components/finance/LoanCard';
 import { MAX_LOANS } from '@/lib/loans';
 import { MoneyDialog } from '@/components/finance/MoneyDialog';
 import { AccountPicker } from '@/components/finance/AccountPicker';
 import { Button, Chip } from '@/components/ui';
-import { accountName, expenseCurrency, isMainExpense, isSpendable, MAIN_ACCOUNT_ID, MAX_CARDS, MAX_GOALS, MAX_STASHES, transfersNet } from '@/lib/accounts';
-import { AccountKind } from '@/types';
+import { accountName, expenseCurrency, isSpendable, MAX_CARDS, MAX_GOALS, MAX_STASHES } from '@/lib/accounts';
+import { AccountKind, Expense } from '@/types';
 
 export function FinanceScreen() {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const scrollRef = useAnimatedRef<Animated.FlatList<Expense>>();
   const settings = useSettingsStore((s) => s.settings);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const expenses = useFinanceStore((s) => s.expenses);
   const categories = useFinanceStore((s) => s.categories);
   const workDays = useFinanceStore((s) => s.workDays);
-  const plannedExpenses = useFinanceStore((s) => s.plannedExpenses);
-  const spendPlans = useFinanceStore((s) => s.spendPlans);
-  const planSpends = useFinanceStore((s) => s.planSpends);
   const accounts = useFinanceStore((s) => s.accounts);
   const transfers = useFinanceStore((s) => s.transfers);
+  const incomes = useFinanceStore((s) => s.incomes);
+  const adjustments = useFinanceStore((s) => s.adjustments);
+  const upcoming = useFinanceStore((s) => s.upcoming);
   const loans = useFinanceStore((s) => s.loans);
-  const rollOverSpendPlans = useFinanceStore((s) => s.rollOverSpendPlans);
+  const primary = usePrimaryAccount();
+  const pid = primary?.id ?? '';
   const spending = useSpendingExpenses();
-  const inPlans = useMemo(() => unspentInPlans(spendPlans, planSpends), [spendPlans, planSpends]);
   const addExpense = useFinanceStore((s) => s.addExpense);
-  const plannedTotal = useMemo(() => plannedExpenses.reduce((sum, p) => sum + p.amount, 0), [plannedExpenses]);
+  const updateAccount = useFinanceStore((s) => s.updateAccount);
+  const setAccountBalance = useFinanceStore((s) => s.setAccountBalance);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   // Quick-add defaults to whatever category was used most recently, falling back to the first one.
@@ -62,7 +66,7 @@ export function FinanceScreen() {
   function quickAddExpense(amountText: string) {
     const amount = parseFloat(amountText.replace(',', '.'));
     if (!defaultQuickAddCategoryId || !Number.isFinite(amount) || amount <= 0) return;
-    addExpense({ amount, categoryId: defaultQuickAddCategoryId, date: todayKey(), comment: null });
+    addExpense({ amount, categoryId: defaultQuickAddCategoryId, date: todayKey(), comment: null, accountId: pid || null });
   }
 
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
@@ -87,58 +91,64 @@ export function FinanceScreen() {
       : null;
 
   const snoozedUntil = settings.salaryPromptSnoozedUntil ? new Date(settings.salaryPromptSnoozedUntil) : null;
-  const showSalaryPrompt = !!payroll.due && (!snoozedUntil || snoozedUntil <= now);
+  const salaryDue = payroll.due && (!snoozedUntil || snoozedUntil <= now) ? payroll.due : null;
+  // "Awaiting answer": salary, loan payments, upcoming payments whose day came, the weekly check.
+  const pending = useMemo(
+    () => pendingItems({ salaryDue, upcoming, loans, accounts, settings, now }),
+    [salaryDue, upcoming, loans, accounts, settings, now]
+  );
 
   useEffect(() => {
     syncSalaryReminder(payroll, settings);
   }, [payroll.due?.key, payroll.awaiting[0]?.key, settings.salaryPromptSnoozedUntil, settings.paydayDay, settings.language]);
 
-  // "Банк" (the main card) — the amount set by hand, minus its expenses charged since (one dated in
-  // the future only on its day), plus salary paid into it and transfers since then.
+  // The main card: the sum of its records (finance v2), and what's already spoken for until payday.
   const today = toDateKey(now);
-  const { bank: bankBeforeSalary, spentSinceSet } = useMemo(
-    () => computeBankBalance(expenses.filter(isMainExpense), settings.bankBalanceBase, settings.bankBalanceSetAt, today),
-    [expenses, settings.bankBalanceBase, settings.bankBalanceSetAt, today]
+  const ledger = useMemo(() => ({ expenses, incomes, adjustments, transfers }), [expenses, incomes, adjustments, transfers]);
+  const bank = useMemo(() => (pid ? balanceOf(pid, ledger, pid, today) : 0), [pid, ledger, today]);
+  const monthStart = toDateKey(startOfMonth(now));
+  const spentMonth = useMemo(() => (pid ? spentFrom(pid, expenses, pid, monthStart, today) : 0), [pid, expenses, monthStart, today]);
+  const payday = nextPayday(settings, today);
+  const committed = useMemo(
+    () => (pid ? committedUntil({ accountId: pid, primaryId: pid, expenses, upcoming, loans, categories, spending, until: payday, today }) : []),
+    [pid, expenses, upcoming, loans, categories, spending, payday, today]
   );
-  const bank =
-    bankBeforeSalary + payroll.creditedSinceSet + transfersNet(MAIN_ACCOUNT_ID, transfers, settings.bankBalanceSetAt);
+  const paydayLabel = new Date(`${payday}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' });
 
-  // What's typed is what's in the account; the plans' unspent part comes off to keep "free" right.
-  function handleEditBank(inAccount: number | null, bankName: string) {
-    if (inAccount === null) {
-      updateSettings({ mainAccountName: bankName });
-      return;
-    }
-    const setAt = new Date().toISOString();
-    updateSettings({
-      bankBalanceBase: inAccount - inPlans,
-      bankBalanceSetAt: setAt,
-      lastSettledAt: todayKey(),
-      mainAccountName: bankName,
-    });
+  async function handleEditBank(real: number | null, bankName: string) {
+    if (!primary) return;
+    if (bankName !== primary.name) await updateAccount({ ...primary, name: bankName });
+    if (real !== null) await setAccountBalance(primary.id, real);
   }
 
   // Edit mode → "+": a new card (up to MAX_CARDS with the main one) or cash wallet.
   const [addOpen, setAddOpen] = useState(false);
   const [newKind, setNewKind] = useState<AccountKind | null>(null);
   const [newLoan, setNewLoan] = useState(false);
+  const [newBudget, setNewBudget] = useState(false);
   const countOf = (kind: AccountKind) => accounts.filter((a) => a.kind === kind).length;
   // With a second card or cash wallet, ask once which one the salary goes to.
-  const askSalaryAccount = !settings.salaryAccountAsked && accounts.some(isSpendable);
+  const askSalaryAccount = !settings.salaryAccountAsked && accounts.filter(isSpendable).length > 1;
   // Each kind has its own limit; past it the chip just says so.
   const addChoices: { label: string; full: boolean; limit: string; open: () => void }[] = [
-    { label: tr.accounts.addCard, full: 1 + countOf('card') >= MAX_CARDS, limit: tr.accounts.cardsLimit(MAX_CARDS), open: () => setNewKind('card') },
+    { label: tr.accounts.addCard, full: countOf('card') >= MAX_CARDS, limit: tr.accounts.cardsLimit(MAX_CARDS), open: () => setNewKind('card') },
     { label: tr.accounts.addCash, full: false, limit: '', open: () => setNewKind('cash') },
     { label: tr.accounts.addStash, full: countOf('stash') >= MAX_STASHES, limit: tr.accounts.stashesLimit(MAX_STASHES), open: () => setNewKind('stash') },
     { label: tr.accounts.addGoal, full: countOf('goal') >= MAX_GOALS, limit: tr.accounts.goalsLimit(MAX_GOALS), open: () => setNewKind('goal') },
+    { label: tr.accounts.addSavings, full: false, limit: '', open: () => setNewKind('savings') },
     { label: tr.accounts.addLoan, full: loans.length >= MAX_LOANS, limit: tr.accounts.loansLimit(MAX_LOANS), open: () => setNewLoan(true) },
+    { label: `📊 ${tr.money.newBudget}`, full: categories.every((c) => !!c.limitMonth), limit: '', open: () => setNewBudget(true) },
   ];
 
   // A reminder LOAN_REMINDER_DAYS before every loan payment.
   useEffect(() => {
     syncLoanReminders(loans, settings);
   }, [loans, settings.notificationsEnabled, settings.language]);
-  const [salaryPick, setSalaryPick] = useState(settings.salaryAccountId);
+  // The weekly balance check's evening reminder.
+  useEffect(() => {
+    syncCheckReminder(settings);
+  }, [settings.reconcileWeekday, settings.notificationsEnabled, settings.language]);
+  const [salaryPick, setSalaryPick] = useState(settings.salaryAccountId || pid);
 
   // Spent = what was bought: plan purchases count, not a plan's whole limit.
   const spentThisWeek = useMemo(() => totalExpenses(spending, weekRange(new Date())), [spending]);
@@ -204,28 +214,30 @@ export function FinanceScreen() {
       sizes: ['full'],
       render: () => (
         <BalanceCard
-          bank={bank}
-          inPlans={inPlans}
-          spentSinceSet={spentSinceSet}
-          creditedSinceSet={payroll.creditedSinceSet}
-          onEditBank={handleEditBank}
+          name={primary?.name ?? ''}
+          balance={bank}
+          spentMonth={spentMonth}
+          committed={committed}
+          paydayLabel={paydayLabel}
+          onEdit={handleEditBank}
           awaiting={awaitingTotal}
           awaitingLabel={awaitingLabel}
           accruing={payroll.accruing.amount}
           accruingLabel={formatRangeLabel(payroll.accruing.range, tr.localeCode)}
-          plannedTotal={plannedTotal}
-          currency={settings.currency}
-          bankName={settings.mainAccountName}
+          currency={primary?.currency ?? settings.currency}
+          categories={categories}
         />
       ),
     },
-    // The other cards, cash wallets, stashes and goals, each its own widget (a goal's bar needs the full width).
-    ...accounts.map((account) => ({
-      key: `account-${account.id}`,
-      title: accountName(account, tr.accounts),
-      sizes: (account.kind === 'goal' ? ['full'] : ['half', 'full']) as ModuleSize[],
-      render: (size: ModuleSize) => <AccountCard account={account} compact={size === 'half'} disabled={editingLayout} />,
-    })),
+    // The other cards, cash wallets, stashes, goals and savings, each its own widget (a goal's bar needs the full width).
+    ...accounts
+      .filter((account) => !account.isPrimary)
+      .map((account) => ({
+        key: `account-${account.id}`,
+        title: accountName(account, tr.accounts),
+        sizes: (account.kind === 'goal' ? ['full'] : ['half', 'full']) as ModuleSize[],
+        render: (size: ModuleSize) => <AccountCard account={account} compact={size === 'half'} disabled={editingLayout} />,
+      })),
     ...loans.map((loan) => ({
       key: `loan-${loan.id}`,
       title: loan.name || tr.loans.title,
@@ -234,13 +246,15 @@ export function FinanceScreen() {
     })),
     { key: 'spend-week', title: tr.layoutEdit.modules.spendWeek, sizes: ['half'], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
     { key: 'spend-month', title: tr.layoutEdit.modules.spendMonth, sizes: ['half'], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
-    // Planned spending: one bar per plan, full width.
-    ...spendPlans.map((plan) => ({
-      key: `plan-${plan.id}`,
-      title: plan.name,
-      sizes: ['full'] as ModuleSize[],
-      render: () => <PlanBar plan={plan} disabled={editingLayout} />,
-    })),
+    // Category budgets (finance v2 — what spending plans became): one bar each, full width.
+    ...categories
+      .filter((c) => !!c.limitMonth)
+      .map((category) => ({
+        key: `budget-${category.id}`,
+        title: category.name,
+        sizes: ['full'] as ModuleSize[],
+        render: () => <BudgetBar category={category} disabled={editingLayout} />,
+      })),
     ...(hasBudgetLimits ? [{ key: 'budget', title: tr.layoutEdit.modules.budget, sizes: ['full', 'half'] as ModuleSize[], render: budgetCard }] : []),
     {
       key: 'work-calendar',
@@ -252,35 +266,19 @@ export function FinanceScreen() {
         </CustomizableCard>
       ),
     },
-    ...(settings.savingsCard === 'off'
-      ? []
-      : [
-          {
-            key: 'savings',
-            title: tr.savings.title,
-            // The opt-in question needs the full width; the card itself also fits in half.
-            sizes: (settings.savingsCard === 'ask' ? ['full'] : ['full', 'half']) as ModuleSize[],
-            render: (size: ModuleSize) => <SavingsCard compact={size === 'half'} />,
-          },
-        ]),
   ];
 
-  // ⋮ while editing: widgets removed from this screen. The savings card switched off from its own
-  // menu counts as removed too, and coming back turns it on.
-  const hiddenItems = useHiddenBoardItems('finance', modules);
-  const removedItems =
-    settings.savingsCard === 'off'
-      ? [...hiddenItems, { key: 'savings-off', title: tr.savings.title, restore: () => updateSettings({ savingsCard: 'on' }) }]
-      : hiddenItems;
+  // ⋮ while editing: widgets removed from this screen.
+  const removedItems = useHiddenBoardItems('finance', modules);
 
-  // The list shows this month only and starts empty on the 1st. Nothing is deleted — every
-  // expense stays in Calendar and Stats, and the bank figure doesn't move.
-  const monthStartKey = toDateKey(startOfMonth(now));
-  // A new month: every spending plan starts over (also checked at app start).
-  useEffect(() => {
-    rollOverSpendPlans();
-  }, [monthStartKey, rollOverSpendPlans]);
-  const monthExpenses = useMemo(() => expenses.filter((e) => e.date >= monthStartKey), [expenses, monthStartKey]);
+  // The list shows one month — this one by default; ‹ › go back through the history. Nothing is
+  // deleted on the 1st: every expense stays in Calendar and Stats, and balances don't move.
+  const [monthOffset, setMonthOffset] = useState(0);
+  const shownMonth = startOfMonth(addMonths(now, monthOffset));
+  const shownStart = toDateKey(shownMonth);
+  const shownEnd = toDateKey(endOfMonth(shownMonth));
+  const monthExpenses = useMemo(() => expenses.filter((e) => e.date >= shownStart && e.date <= shownEnd), [expenses, shownStart, shownEnd]);
+  const monthName = shownMonth.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' });
   function showListInfo() {
     const nextClear = startOfMonth(addMonths(now, 1)).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'long' });
     Alert.alert(tr.financeScreen.listInfoTitle, tr.financeScreen.listInfo(nextClear));
@@ -288,7 +286,7 @@ export function FinanceScreen() {
 
   const listHeader = (
           <View style={styles.topSection}>
-            {showSalaryPrompt && payroll.due ? <SalaryPrompt due={payroll.due} currency={settings.currency} /> : null}
+            <PendingList items={pending} />
             {askSalaryAccount ? (
               <CustomizableCard widgetId="finance-salary-account" style={styles.askCard}>
                 <Text style={[styles.sectionTitle, styles.askTitle, { color: theme.colors.text }]}>{tr.accounts.salaryQuestion}</Text>
@@ -306,12 +304,22 @@ export function FinanceScreen() {
               <Text
                 style={[
                   styles.sectionTitle,
-                  { color: theme.colors.text },
+                  { color: theme.colors.text, flex: 1 },
                   expenseMode === 'big' && styles.bigSectionTitle,
                 ]}
               >
-                {expenseMode === 'big' ? tr.layoutText.expenses.toUpperCase() : tr.financeScreen.recentExpenses}
+                {monthOffset === 0
+                  ? expenseMode === 'big'
+                    ? tr.layoutText.expenses.toUpperCase()
+                    : tr.financeScreen.recentExpenses
+                  : monthName}
               </Text>
+              <Pressable onPress={() => setMonthOffset((m) => m - 1)} hitSlop={10} accessibilityLabel="‹">
+                <Ionicons name="chevron-back" size={20} color={theme.colors.textMuted} />
+              </Pressable>
+              <Pressable onPress={() => setMonthOffset((m) => Math.min(0, m + 1))} hitSlop={10} disabled={monthOffset === 0} accessibilityLabel="›">
+                <Ionicons name="chevron-forward" size={20} color={monthOffset === 0 ? theme.colors.border : theme.colors.textMuted} />
+              </Pressable>
               <Pressable onPress={showListInfo} hitSlop={10} accessibilityLabel={tr.financeScreen.listInfoTitle}>
                 <Ionicons name="information-circle-outline" size={20} color={theme.colors.textMuted} />
               </Pressable>
@@ -336,7 +344,9 @@ export function FinanceScreen() {
       }
     >
       <FinanceLockGate clearRail>
-      <FlatList
+      <LayoutScrollContext.Provider value={scrollRef}>
+      <Animated.FlatList
+        ref={scrollRef}
         data={monthExpenses}
         keyExtractor={(expense) => expense.id}
         contentContainerStyle={styles.listContent}
@@ -345,6 +355,7 @@ export function FinanceScreen() {
         ItemSeparatorComponent={() => <View style={{ height: expenseMode === 'big' ? 12 : 8 }} />}
         ListEmptyComponent={<EmptyState icon="💰" title={tr.financeScreen.emptyTitle} subtitle={tr.financeScreen.emptySubtitle} />}
       />
+      </LayoutScrollContext.Provider>
 
       {quickAddOpen ? (
         <QuickAddBar
@@ -385,6 +396,7 @@ export function FinanceScreen() {
       </MoneyDialog>
       <AccountFormDialog visible={newKind !== null} kind={newKind ?? 'card'} onClose={() => setNewKind(null)} />
       <LoanFormDialog visible={newLoan} onClose={() => setNewLoan(false)} />
+      <BudgetFormDialog visible={newBudget} onClose={() => setNewBudget(false)} />
     </LayoutScreen>
   );
 }

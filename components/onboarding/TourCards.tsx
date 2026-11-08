@@ -129,7 +129,8 @@ export function TourCards({ onFinish, backRef, slides: customSlides, finishLabel
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   page: { alignItems: 'center', justifyContent: 'center' },
-  card: { paddingHorizontal: 26, paddingVertical: 34, gap: 14, alignItems: 'center' },
+  // maxWidth: a phone on its side shouldn't stretch the card across the whole screen.
+  card: { paddingHorizontal: 26, paddingVertical: 34, gap: 14, alignItems: 'center', maxWidth: 520 },
   iconCircle: { width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   title: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
   text: { fontSize: 15, lineHeight: 22, textAlign: 'center' },

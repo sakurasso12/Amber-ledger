@@ -5,7 +5,7 @@ import { Button, CustomizableCard, DateField, ProgressBar, TextField } from '@/c
 import { useTheme } from '@/theme/ThemeProvider';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { MAIN_ACCOUNT_ID } from '@/lib/accounts';
+import { primaryId } from '@/lib/accounts';
 import { daysToPayment, isPaidOff, LOAN_REMINDER_DAYS, monthlyPayment, nextPaymentDate, remainingDebt, totalInterest } from '@/lib/loans';
 import { parseDateKey, todayKey } from '@/lib/dateRanges';
 import { haptics } from '@/lib/haptics';
@@ -26,7 +26,8 @@ export function LoanCard({ loan, disabled }: { loan: Loan; disabled: boolean }) 
   const payLoan = useFinanceStore((s) => s.payLoan);
   const removeLoan = useFinanceStore((s) => s.removeLoan);
   const [step, setStep] = useState<null | 'menu' | 'pay' | 'edit'>(null);
-  const [payFrom, setPayFrom] = useState(MAIN_ACCOUNT_ID);
+  const pid = useFinanceStore((s) => primaryId(s.accounts));
+  const [payFrom, setPayFrom] = useState(pid);
 
   const pay = monthlyPayment(loan);
   const money = (n: number) => `${n.toFixed(0)} ${loan.currency}`;

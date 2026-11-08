@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, type SharedValue } from 'react-native-reanimated';
 import { initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -55,7 +55,10 @@ export function PillTabBar({ state, descriptors, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   // Keep clear of Android's navigation buttons even if the live inset arrives as 0 (it can inside
   // the tab pager); the window metrics measured at launch are the fallback.
-  const bottomInset = Math.max(insets.bottom, initialWindowMetrics?.insets.bottom ?? 0);
+  // (Only in portrait: in landscape the buttons move to a side and the launch value would be wrong.)
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const portrait = windowHeight >= windowWidth;
+  const bottomInset = portrait ? Math.max(insets.bottom, initialWindowMetrics?.insets.bottom ?? 0) : insets.bottom;
   const { colors } = theme;
   const count = state.routes.length;
   const position = useSharedValue(state.index);
@@ -74,8 +77,13 @@ export function PillTabBar({ state, descriptors, navigation }: TabBarProps) {
   }));
 
   return (
-    <View style={[styles.wrap, { paddingBottom: bottomInset + 8, backgroundColor: colors.background }]}>
-      <View style={[styles.bar, cardSurface(theme)]} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}>
+    <View
+      style={[
+        styles.wrap,
+        { paddingBottom: bottomInset + 8, paddingLeft: 12 + insets.left, paddingRight: 12 + insets.right, backgroundColor: colors.background },
+      ]}
+    >
+      <View style={[styles.bar, styles.barWidth, cardSurface(theme)]} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}>
         {unit > 0 ? (
           <>
             <Animated.View
@@ -185,6 +193,8 @@ function TabFace({
 
 const styles = StyleSheet.create({
   wrap: { paddingHorizontal: 12, paddingTop: 6 },
+  // A phone on its side: five tabs don't need 900 points — the bar stays the size it is in portrait-ish.
+  barWidth: { width: '100%', maxWidth: 560, alignSelf: 'center' },
   bar: { height: ITEM_HEIGHT + PAD * 2, padding: PAD },
   pill: { position: 'absolute', left: 0, top: PAD, height: ITEM_HEIGHT, borderRadius: ITEM_HEIGHT / 2 },
   face: { position: 'absolute', left: 0, top: PAD, height: ITEM_HEIGHT, alignItems: 'center', justifyContent: 'center' },

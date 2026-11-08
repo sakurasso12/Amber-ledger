@@ -3,22 +3,25 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import Svg from 'react-native-svg';
 import { Easing, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { Text } from '@/components/ui/Text';
-import { Button, CustomizableCard, PressableScale, TextField } from '@/components/ui';
+import { Button, CustomizableCard, DateField, PressableScale, TextField } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { accountBalance, accountName, MAIN_ACCOUNT_ID } from '@/lib/accounts';
-import { todayKey } from '@/lib/dateRanges';
+import { accountName, primaryId } from '@/lib/accounts';
+import { balanceOf, spentFrom } from '@/lib/ledger';
+import { projectSavings } from '@/lib/savings';
+import { toDateKey, todayKey } from '@/lib/dateRanges';
+import { startOfMonth } from 'date-fns';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 import { Account, AccountKind } from '@/types';
 import { AccountPicker, NO_ACCOUNT_ID, useAccountOptions } from './AccountPicker';
 import { MoneyDialog } from './MoneyDialog';
-import { BAR_HEIGHT, FILL, Wave } from './PlanBar';
+import { BAR_HEIGHT, FILL, Wave } from './Wave';
 
 const parseAmount = (text: string) => parseFloat(text.replace(',', '.'));
 
-const ICONS: Record<AccountKind, string> = { card: '💳', cash: '💵', stash: '🫙', goal: '🎯' };
+const ICONS: Record<AccountKind, string> = { card: '💳', cash: '💵', stash: '🫙', goal: '🎯', savings: '🏦' };
 
 /**
  * A card, cash wallet, stash or goal on the Finance board. Tap → change the amount, transfer (or
@@ -29,22 +32,33 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
   const tr = useTranslation();
   const expenses = useFinanceStore((s) => s.expenses);
   const transfers = useFinanceStore((s) => s.transfers);
+  const incomes = useFinanceStore((s) => s.incomes);
+  const adjustments = useFinanceStore((s) => s.adjustments);
+  const accounts = useFinanceStore((s) => s.accounts);
+  const makePrimary = useFinanceStore((s) => s.makePrimary);
   const setAccountBalance = useFinanceStore((s) => s.setAccountBalance);
   const updateAccount = useFinanceStore((s) => s.updateAccount);
   const removeAccount = useFinanceStore((s) => s.removeAccount);
   const removeTransfer = useFinanceStore((s) => s.removeTransfer);
-  const settings = useSettingsStore((s) => s.settings);
   const options = useAccountOptions();
   const today = todayKey();
-  const { balance, spentSinceSet } = useMemo(
-    () => accountBalance(account, expenses, transfers, settings, today),
-    [account, expenses, transfers, settings, today]
+  const pid = primaryId(accounts);
+  const balance = useMemo(
+    () => balanceOf(account.id, { expenses, incomes, adjustments, transfers }, pid, today),
+    [account.id, expenses, incomes, adjustments, transfers, pid, today]
   );
+  const spentSinceSet = useMemo(
+    () => spentFrom(account.id, expenses, pid, toDateKey(startOfMonth(new Date())), today),
+    [account.id, expenses, pid, today]
+  );
+  const corrections = adjustments.filter((a) => a.accountId === account.id && a.kind === 'correction').slice(0, 10);
+  const isSavings = account.kind === 'savings';
+  const projection = isSavings && account.openedAt && account.ratePercent ? projectSavings(balance, account.ratePercent, account.openedAt) : null;
   const [step, setStep] = useState<null | 'menu' | 'balance' | 'target' | 'edit' | 'transfer'>(null);
   const [draft, setDraft] = useState('');
 
   const isGoal = account.kind === 'goal';
-  const isStash = account.kind === 'stash';
+  const isStash = account.kind === 'stash' || isSavings;
   const name = accountName(account, tr.accounts);
   const own = transfers.filter((t) => t.fromId === account.id || t.toId === account.id).slice(0, 20);
   const labelOf = (id: string) => (id === NO_ACCOUNT_ID ? tr.accounts.noSource : options.find((o) => o.id === id)?.label ?? '—');
@@ -65,6 +79,10 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
   }
 
   function confirmRemove() {
+    if (account.isPrimary) {
+      Alert.alert(tr.money.primaryCantRemove);
+      return;
+    }
     Alert.alert(tr.accounts.removeTitle, tr.accounts.removeText, [
       { text: tr.accounts.cancel, style: 'cancel' },
       {
@@ -80,7 +98,9 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
 
   const balanceTitle = isGoal
     ? tr.accounts.goalSaved(account.currency)
-    : isStash
+    : isSavings
+      ? tr.accounts.savingsBalanceTitle(account.currency)
+      : isStash
       ? tr.accounts.stashBalanceTitle(account.currency)
       : account.kind === 'cash'
         ? tr.accounts.cashBalanceTitle(account.currency)
@@ -109,7 +129,13 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
             </Text>
             {spentSinceSet > 0 ? (
               <Text style={[styles.subline, { color: theme.colors.textMuted }]}>
-                {tr.accounts.spent}: {spentSinceSet.toFixed(0)}
+                {tr.money.spentMonth}: {spentSinceSet.toFixed(0)}
+              </Text>
+            ) : null}
+            {projection ? (
+              <Text style={[styles.subline, { color: theme.colors.textMuted }]} numberOfLines={2}>
+                {tr.savings.yearEnds(projection.yearEnds.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' }))}:{' '}
+                {tr.savings.projection(money(projection.projected), money(projection.interest))}
               </Text>
             ) : null}
           </CustomizableCard>
@@ -127,6 +153,31 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
         {isGoal ? <Button title={tr.accounts.changeTarget} variant="secondary" onPress={() => openNumber('target', account.target ?? 0)} /> : null}
         {isGoal || isStash ? null : <Button title={tr.accounts.transfer} variant="secondary" onPress={() => setStep('transfer')} />}
         <Button title={tr.accounts.edit} variant="secondary" onPress={() => setStep('edit')} />
+        {account.kind === 'card' && !account.isPrimary ? (
+          <Button
+            title={tr.money.makePrimary}
+            variant="secondary"
+            onPress={() => {
+              close();
+              makePrimary(account.id);
+            }}
+          />
+        ) : null}
+        {corrections.length > 0 ? (
+          <>
+            <Text style={[styles.section, { color: theme.colors.textMuted }]}>{tr.money.correction}</Text>
+            {corrections.map((c) => (
+              <View key={c.id} style={[styles.transferRow, { borderColor: theme.colors.border }]}>
+                <Text style={[styles.transferText, { color: theme.colors.text }]} numberOfLines={1}>
+                  {new Date(`${c.date}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' })} ·{' '}
+                  {c.amount >= 0 ? '+' : '−'}
+                  {money(Math.abs(c.amount))}
+                  {c.note ? ` · ${c.note}` : ''}
+                </Text>
+              </View>
+            ))}
+          </>
+        ) : null}
         {isStash ? null : (
           <>
             <Text style={[styles.section, { color: theme.colors.textMuted }]}>{tr.accounts.history}</Text>
@@ -153,7 +204,7 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
         visible={step === 'balance'}
         onClose={close}
         title={balanceTitle}
-        hint={isStash || isGoal ? undefined : tr.accounts.balanceHint}
+        hint={isStash || isGoal ? undefined : tr.money.correctionHint}
       >
         <TextField value={draft} onChangeText={setDraft} keyboardType="decimal-pad" autoFocus />
         <View style={styles.buttons}>
@@ -176,8 +227,8 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
           visible={step === 'transfer'}
           onClose={close}
           // Cash and goals are usually filled from the main card; a card usually sends to it.
-          initialFrom={account.kind === 'card' ? account.id : MAIN_ACCOUNT_ID}
-          initialTo={account.kind === 'card' ? MAIN_ACCOUNT_ID : account.id}
+          initialFrom={account.kind === 'card' ? account.id : pid}
+          initialTo={account.kind === 'card' ? pid : account.id}
           fixedTo={isGoal ? account : undefined}
         />
       )}
@@ -261,6 +312,8 @@ export function AccountFormDialog({
   const [currency, setCurrency] = useState(account?.currency ?? appCurrency);
   const [balance, setBalance] = useState('');
   const [target, setTarget] = useState('');
+  const [rate, setRate] = useState(account?.ratePercent ? String(account.ratePercent) : '');
+  const [openedAt, setOpenedAt] = useState(account?.openedAt ?? todayKey());
 
   // Fresh fields every time it opens.
   const [wasVisible, setWasVisible] = useState(visible);
@@ -271,18 +324,22 @@ export function AccountFormDialog({
       setCurrency(account?.currency ?? appCurrency);
       setBalance('');
       setTarget('');
+      setRate(account?.ratePercent ? String(account.ratePercent) : '');
+      setOpenedAt(account?.openedAt ?? todayKey());
     }
   }
 
   const cur = currency.trim() || appCurrency;
   async function save() {
+    const r = parseAmount(rate);
+    const savings = kind === 'savings' ? { ratePercent: Number.isFinite(r) && r > 0 ? r : null, openedAt } : {};
     if (account) {
-      await updateAccount({ ...account, name: name.trim(), currency: cur });
+      await updateAccount({ ...account, name: name.trim(), currency: cur, ...savings });
     } else {
       const n = parseAmount(balance);
       const t = parseAmount(target);
       if (kind === 'goal' && !(t > 0)) return;
-      await addAccount({ kind, name, currency: cur, balance: Number.isFinite(n) ? n : 0, target: kind === 'goal' ? t : null });
+      await addAccount({ kind, name, currency: cur, balance: Number.isFinite(n) ? n : 0, target: kind === 'goal' ? t : null, ...savings });
     }
     haptics.success();
     onClose();
@@ -293,6 +350,7 @@ export function AccountFormDialog({
     cash: { title: tr.accounts.addCash, name: tr.accounts.cashName, placeholder: tr.accounts.cashNamePlaceholder, balance: tr.accounts.cashBalanceTitle(cur) },
     stash: { title: tr.accounts.addStash, name: tr.accounts.cashName, placeholder: tr.accounts.stashNamePlaceholder, balance: tr.accounts.stashBalanceTitle(cur) },
     goal: { title: tr.accounts.addGoal, name: tr.accounts.goalName, placeholder: tr.accounts.goalNamePlaceholder, balance: tr.accounts.goalSaved(cur) },
+    savings: { title: tr.accounts.addSavings, name: tr.accounts.bankName, placeholder: tr.accounts.bankNamePlaceholder, balance: tr.accounts.savingsBalanceTitle(cur) },
   };
   const l = labels[kind];
   return (
@@ -303,6 +361,12 @@ export function AccountFormDialog({
         <TextField label={tr.accounts.goalTarget(cur)} value={target} onChangeText={setTarget} keyboardType="decimal-pad" placeholder="0" />
       ) : null}
       {account ? null : <TextField label={l.balance} value={balance} onChangeText={setBalance} keyboardType="decimal-pad" placeholder="0" />}
+      {kind === 'savings' ? (
+        <>
+          <TextField label={tr.money.savingsRate} value={rate} onChangeText={setRate} keyboardType="decimal-pad" placeholder="5" />
+          <DateField label={tr.money.savingsOpened} value={openedAt} onChange={setOpenedAt} />
+        </>
+      ) : null}
       <View style={styles.buttons}>
         <Button title={tr.accounts.cancel} variant="secondary" onPress={onClose} style={styles.flex} />
         <Button title={account ? tr.accounts.save : tr.accounts.create} onPress={save} style={styles.flex} />

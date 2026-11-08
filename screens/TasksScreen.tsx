@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
 import { EditLayoutButton, EmptyState, Fab, HiddenModulesButton, LayoutScreen, QuickAddBar } from '@/components/ui';
+import { LayoutScrollContext } from '@/components/ui/LayoutEditing';
 import { TaskBoard } from '@/components/task/TaskBoard';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { FocusTaskCard } from '@/components/task/FocusTaskCard';
@@ -21,6 +23,7 @@ export function TasksScreen() {
   const tr = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const tasks = useTaskStore((s) => s.tasks);
   const setStatus = useTaskStore((s) => s.setStatus);
   const addTask = useTaskStore((s) => s.addTask);
@@ -119,7 +122,8 @@ export function TasksScreen() {
   }
 
   const list = (
-    <ScrollView contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
+    <LayoutScrollContext.Provider value={scrollRef}>
+    <Animated.ScrollView ref={scrollRef} contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
       {selectionMode ? null : (
         <View style={styles.habitsHeader}>
           <TaskModules
@@ -130,7 +134,8 @@ export function TasksScreen() {
         </View>
       )}
       {body}
-    </ScrollView>
+    </Animated.ScrollView>
+    </LayoutScrollContext.Provider>
   );
 
   const selectionBar = selectionMode ? (

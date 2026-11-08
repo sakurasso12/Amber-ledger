@@ -1,5 +1,5 @@
 import { Notifications } from './expoNotifications';
-import { setHours, startOfDay } from 'date-fns';
+import { addDays, setHours, startOfDay } from 'date-fns';
 import { AppSettings } from '@/types';
 import { PayrollState } from '@/lib/earnings';
 import { formatRangeLabel } from '@/lib/dateRanges';
@@ -9,6 +9,8 @@ import { hasNotificationPermission } from './permissions';
 const SALARY_REMINDER_ID = 'salary-prompt';
 /** Hour of the day the payday reminder fires on (the snooze reminder fires exactly 24h later). */
 const PAYDAY_REMINDER_HOUR = 10;
+/** An unanswered salary question is repeated this often. */
+const REMIND_EVERY_DAYS = 2;
 
 /**
  * Keeps one "did your salary arrive?" reminder scheduled: at the end of a snooze if the prompt is
@@ -25,7 +27,16 @@ export async function syncSalaryReminder(payroll: PayrollState, settings: AppSet
   let target: Date | null = null;
   let subject = payroll.due;
   if (payroll.due) {
-    if (snoozedUntil && snoozedUntil > now) target = snoozedUntil;
+    // Not answered yet: a reminder every 2 days from payday morning (finance v2), never more often
+    // — the card on Finance keeps asking in between. "Not yet" moves it to tomorrow morning.
+    const paydayMorning = setHours(startOfDay(payroll.due.payday), PAYDAY_REMINDER_HOUR);
+    let next = paydayMorning;
+    while (next <= now) next = addDays(next, REMIND_EVERY_DAYS);
+    if (snoozedUntil && snoozedUntil > now) {
+      const morningAfter = setHours(startOfDay(snoozedUntil), PAYDAY_REMINDER_HOUR);
+      next = morningAfter > now ? morningAfter : next;
+    }
+    target = next;
   } else {
     subject = payroll.awaiting[0] ?? null;
     if (subject) {

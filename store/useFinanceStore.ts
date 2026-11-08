@@ -1,161 +1,177 @@
 import { create } from 'zustand';
+import { useMemo } from 'react';
 import * as financeRepo from '@/db/financeRepo';
 import { todayKey } from '@/lib/dateRanges';
 import { nextOccurrenceDateKey } from '@/lib/recurrence';
 import { checkBudgetAlerts } from '@/notifications';
-import { useMemo } from 'react';
-import { startOfMonth } from 'date-fns';
-import { overspendOf, spendingExpenses, spentInPeriod } from '@/lib/plans';
-import { toDateKey } from '@/lib/dateRanges';
 import { generateId } from '@/lib/id';
 import { useSettingsStore } from './useSettingsStore';
-import { accountIdOf, inAppCurrency, MAIN_ACCOUNT_ID } from '@/lib/accounts';
-import { chargedAt, isDue } from '@/lib/expenses';
+import { inAppCurrency, primaryId, rateForAccount, rateFromTransfer } from '@/lib/accounts';
+import { absorbInCheck, balanceOf, correctionFor, expenseAccountId, lastCheck, round2 } from '@/lib/ledger';
+import { migrateFinance } from '@/lib/financeMigration';
+import { checkDay, snoozeUntilTomorrow } from '@/lib/pending';
 import { isPaidOff, monthlyPayment } from '@/lib/loans';
 import {
   Account,
   AccountKind,
+  Adjustment,
   Category,
   Expense,
-  Loan,
   ExpenseDraft,
-  PlannedExpenseDraft,
-  PlannedExpense,
-  PlanSpend,
-  RecurringExpense,
-  SpendPlan,
-  RecurringExpenseDraft,
+  Income,
+  Loan,
   Transfer,
+  Upcoming,
+  UpcomingDraft,
   WorkDay,
 } from '@/types';
 
+/**
+ * Finance v2 (docs/finance-v2.md): every balance is the sum of its records — expenses, incomes,
+ * transfers and adjustments (lib/ledger.ts). Typing in a real balance adds a correction; nothing is
+ * reset or recomputed backwards, so nothing can be counted twice.
+ *
+ * Records dated on or before an account's last balance check may already be inside the balance
+ * typed in then. Screens ask the user (lib/ledger checkCovering) and pass the answer as
+ * `alreadyCounted`: true → the check's adjustment absorbs the change and the balance stays put.
+ */
 interface FinanceState {
   expenses: Expense[];
   categories: Category[];
   workDays: WorkDay[];
-  plannedExpenses: PlannedExpense[];
-  recurringExpenses: RecurringExpense[];
-  spendPlans: SpendPlan[];
-  planSpends: PlanSpend[];
-  /** Cards besides the main one, and cash wallets (see lib/accounts). */
+  /** Every account; exactly one has isPrimary (the main card). */
   accounts: Account[];
   transfers: Transfer[];
   loans: Loan[];
+  adjustments: Adjustment[];
+  incomes: Income[];
+  upcoming: Upcoming[];
   isLoaded: boolean;
 
   load: () => Promise<void>;
 
-  addExpense: (draft: ExpenseDraft) => Promise<void>;
-  editExpense: (expense: Expense) => Promise<void>;
-  removeExpense: (id: string) => Promise<void>;
+  addExpense: (draft: ExpenseDraft, opts?: { alreadyCounted?: boolean }) => Promise<void>;
+  editExpense: (expense: Expense, opts?: { alreadyCounted?: boolean }) => Promise<void>;
+  /** `alreadyCounted`: it wasn't really spent / the typed-in balance never had it — keep the balance. */
+  removeExpense: (id: string, opts?: { alreadyCounted?: boolean }) => Promise<void>;
 
   addCategory: (name: string, color: string) => Promise<void>;
   editCategory: (category: Category) => Promise<void>;
   removeCategory: (id: string) => Promise<{ ok: boolean; expenseCount: number }>;
+  /** Category budget for a month (null = none). */
+  setCategoryBudget: (categoryId: string, limit: number | null) => Promise<void>;
 
-  setWorkDay: (
-    date: string,
-    isWorked: boolean,
-    hoursOverride?: number | null,
-    hourlyRateOverride?: number | null
-  ) => Promise<void>;
+  setWorkDay: (date: string, isWorked: boolean, hoursOverride?: number | null, hourlyRateOverride?: number | null) => Promise<void>;
   toggleWorkedToday: () => Promise<void>;
   clearWorkDay: (date: string) => Promise<void>;
 
-  addPlannedExpense: (draft: PlannedExpenseDraft) => Promise<void>;
-  removePlannedExpense: (id: string) => Promise<void>;
+  addUpcoming: (draft: UpcomingDraft) => Promise<void>;
+  updateUpcoming: (item: Upcoming) => Promise<void>;
+  removeUpcoming: (id: string) => Promise<void>;
+  /** Its day came: `amount` null = it didn't happen; otherwise it becomes an expense. A repeating
+   * one moves on to its next date either way. */
+  answerUpcoming: (id: string, amount: number | null) => Promise<void>;
 
-  addRecurringExpense: (draft: RecurringExpenseDraft) => Promise<void>;
-  removeRecurringExpense: (id: string) => Promise<void>;
-  /** Logs any recurring expenses whose next occurrence has arrived as real expenses, advancing
-   * their schedule. Call once at app startup. Caps catch-up at 24 occurrences per definition so a
-   * long-untouched recurrence can't flood history if the app wasn't opened for a long time. */
-  syncRecurringExpenses: () => Promise<void>;
+  /** "The salary came": an income on `accountId`, and the period stops waiting. */
+  confirmSalary: (periodKey: string, amount: number, accountId: string) => Promise<void>;
+  /** A loan payment's day came: `amount` null = not yet (asks again tomorrow). */
+  answerLoan: (loanId: string, amount: number | null, accountId?: string) => Promise<void>;
+  /** Weekly check: `real` null = "yes, it's right"; a number = the real balance (a correction). */
+  answerCheck: (accountId: string, real: number | null) => Promise<void>;
+  /** "Not yet" on any awaiting item: hidden until tomorrow. */
+  snoozePending: (key: string) => void;
 
-  /** New plan: the whole limit comes off the bank at once as its 'reserve' expense. */
-  createSpendPlan: (draft: { name: string; categoryId: string; limit: number; date: string }) => Promise<void>;
-  /** A purchase against the plan; past the limit the extra is logged as an 'overspend' expense. */
-  addPlanSpend: (planId: string, amount: number) => Promise<void>;
-  removePlanSpend: (spendId: string) => Promise<void>;
-  /** Rename and/or change the limit of the current period (the reserve follows the limit). */
-  updateSpendPlan: (planId: string, patch: { name?: string; limit?: number }) => Promise<void>;
-  /** New period: the (new) limit comes off the bank again and the bar starts from 0 %. The old
-   * period's limit stays spent in full. */
-  resetSpendPlan: (planId: string, newLimit?: number, startKey?: string) => Promise<void>;
-  /** On a new month every plan starts over by itself (with the limit picked for it, if any). */
-  rollOverSpendPlans: () => Promise<void>;
-  /** Undoes the plan completely: its expenses (every period's limit and overspend) are deleted, so
-   * all of that money goes back to the bank. Purchases logged inside it go with it. */
-  deleteSpendPlan: (planId: string) => Promise<void>;
-
-  addAccount: (draft: { kind: AccountKind; name: string; currency: string; balance: number; target?: number | null }) => Promise<void>;
-  /** Rename / change the currency. */
+  addAccount: (draft: {
+    kind: AccountKind;
+    name: string;
+    currency: string;
+    balance: number;
+    target?: number | null;
+    ratePercent?: number | null;
+    openedAt?: string | null;
+  }) => Promise<void>;
+  /** Rename / currency / target / savings rate. */
   updateAccount: (account: Account) => Promise<void>;
-  /** The balance typed in by hand: from now on expenses and transfers move it from there. */
-  setAccountBalance: (id: string, balance: number) => Promise<void>;
-  /** The other accounts keep their balances; this one's expenses stay in the history. */
+  /** The real balance typed in by hand: the difference is saved as a correction. */
+  setAccountBalance: (id: string, real: number, note?: string | null) => Promise<void>;
+  makePrimary: (id: string) => Promise<void>;
+  /** The primary account can't be removed. Its expenses and transfers stay in the history. */
   removeAccount: (id: string) => Promise<void>;
   addTransfer: (draft: { fromId: string; toId: string; amount: number; amountTo: number; date: string }) => Promise<void>;
-  /** Undoes the transfer: the money goes back where it came from. */
   removeTransfer: (id: string) => Promise<void>;
 
-  /** `paidCount`: payments already made before it was added (no expenses are logged for them). */
   addLoan: (draft: Omit<Loan, 'id' | 'createdAt'>) => Promise<void>;
   updateLoan: (loan: Loan) => Promise<void>;
   removeLoan: (id: string) => Promise<void>;
-  /** "Paid": the monthly payment is logged as an expense of `accountId` and counted as made. */
-  payLoan: (id: string, accountId: string) => Promise<void>;
+  /** "Paid": the monthly payment (or `amount`) is logged as an expense of `accountId`. */
+  payLoan: (id: string, accountId: string, amount?: number) => Promise<void>;
 }
+
+const nowIso = () => new Date().toISOString();
 
 export const useFinanceStore = create<FinanceState>()((set, get) => ({
   expenses: [],
   categories: [],
   workDays: [],
-  plannedExpenses: [],
-  recurringExpenses: [],
-  spendPlans: [],
-  planSpends: [],
   accounts: [],
   transfers: [],
   loans: [],
+  adjustments: [],
+  incomes: [],
+  upcoming: [],
   isLoaded: false,
 
   load: async () => {
-    const [expenses, categories, workDays, plannedExpenses, recurringExpenses, spendPlans, planSpends, accounts, transfers, loans] = await Promise.all([
+    await settingsReady();
+    if (useSettingsStore.getState().settings.financeModel !== 2) await runFinanceMigration();
+    const [expenses, categories, workDays, accounts, transfers, loans, adjustments, incomes, upcoming] = await Promise.all([
       financeRepo.listExpenses(),
       financeRepo.listCategories(),
       financeRepo.listWorkDays(),
-      financeRepo.listPlannedExpenses(),
-      financeRepo.listRecurringExpenses(),
-      financeRepo.listSpendPlans(),
-      financeRepo.listPlanSpends(),
       financeRepo.listAccounts(),
       financeRepo.listTransfers(),
       financeRepo.listLoans(),
+      financeRepo.listAdjustments(),
+      financeRepo.listIncomes(),
+      financeRepo.listUpcoming(),
     ]);
-    set({ expenses, categories, workDays, plannedExpenses, recurringExpenses, spendPlans, planSpends, accounts, transfers, loans, isLoaded: true });
+    set({ expenses, categories, workDays, accounts, transfers, loans, adjustments, incomes, upcoming, isLoaded: true });
   },
 
-  addExpense: async (draft) => {
-    const expense = await financeRepo.createExpense(draft);
+  addExpense: async (draft, opts) => {
+    const { accounts } = get();
+    const { settings } = useSettingsStore.getState();
+    const accountId = draft.accountId ?? primaryId(accounts);
+    const expense = await financeRepo.createExpense({
+      ...draft,
+      accountId,
+      rate: draft.rate ?? rateForAccount(accountId, accounts, settings.currency, settings.currencyRates),
+    });
     set((state) => ({ expenses: [expense, ...state.expenses] }));
+    if (opts?.alreadyCounted) await absorb(accountId, expense.date, -expense.amount);
     checkAlerts();
   },
 
-  editExpense: async (expense) => {
+  editExpense: async (expense, opts) => {
     const before = get().expenses.find((e) => e.id === expense.id);
-    if (before) await keepBalancesInStep([before], -1);
-    await keepBalancesInStep([expense], +1);
     await financeRepo.updateExpense(expense);
     set((state) => ({ expenses: state.expenses.map((e) => (e.id === expense.id ? expense : e)) }));
+    if (opts?.alreadyCounted && before) {
+      const pid = primaryId(get().accounts);
+      // The old version leaves (+amount), the new one comes in (−amount); the checks keep both out.
+      await absorb(expenseAccountId(before, pid), before.date, +before.amount);
+      await absorb(expenseAccountId(expense, pid), expense.date, -expense.amount);
+    }
     checkAlerts();
   },
 
-  removeExpense: async (id) => {
+  removeExpense: async (id, opts) => {
     const expense = get().expenses.find((e) => e.id === id);
-    if (expense) await keepBalancesInStep([expense], -1);
     await financeRepo.deleteExpense(id);
     set((state) => ({ expenses: state.expenses.filter((e) => e.id !== id) }));
+    if (expense && opts?.alreadyCounted) {
+      await absorb(expenseAccountId(expense, primaryId(get().accounts)), expense.date, +expense.amount);
+    }
   },
 
   addCategory: async (name, color) => {
@@ -170,19 +186,23 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
 
   removeCategory: async (id) => {
     const expenseCount = await financeRepo.countExpensesInCategory(id);
-    if (expenseCount > 0) return { ok: false, expenseCount };
-
+    const inUpcoming = get().upcoming.filter((u) => u.categoryId === id).length;
+    if (expenseCount + inUpcoming > 0) return { ok: false, expenseCount: expenseCount + inUpcoming };
     await financeRepo.deleteCategory(id);
     set((state) => ({ categories: state.categories.filter((c) => c.id !== id) }));
     return { ok: true, expenseCount: 0 };
   },
 
+  setCategoryBudget: async (categoryId, limit) => {
+    const category = get().categories.find((c) => c.id === categoryId);
+    if (!category) return;
+    await get().editCategory({ ...category, limitMonth: limit && limit > 0 ? limit : null });
+  },
+
   setWorkDay: async (date, isWorked, hoursOverride = null, hourlyRateOverride = null) => {
     const workDay = await financeRepo.upsertWorkDay(date, isWorked, hoursOverride, hourlyRateOverride);
     set((state) => ({
-      workDays: [...state.workDays.filter((w) => w.date !== date), workDay].sort((a, b) =>
-        a.date.localeCompare(b.date)
-      ),
+      workDays: [...state.workDays.filter((w) => w.date !== date), workDay].sort((a, b) => a.date.localeCompare(b.date)),
     }));
   },
 
@@ -197,180 +217,94 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     set((state) => ({ workDays: state.workDays.filter((w) => w.date !== date) }));
   },
 
-  addPlannedExpense: async (draft) => {
-    const item = await financeRepo.createPlannedExpense(draft);
-    set((state) => ({ plannedExpenses: [item, ...state.plannedExpenses] }));
+  addUpcoming: async (draft) => {
+    const item: Upcoming = { ...draft, id: generateId(), createdAt: nowIso() };
+    await financeRepo.saveUpcoming(item);
+    set((state) => ({ upcoming: [...state.upcoming, item] }));
   },
 
-  removePlannedExpense: async (id) => {
-    await financeRepo.deletePlannedExpense(id);
-    set((state) => ({ plannedExpenses: state.plannedExpenses.filter((p) => p.id !== id) }));
+  updateUpcoming: async (item) => {
+    await financeRepo.saveUpcoming(item);
+    set((state) => ({ upcoming: state.upcoming.map((u) => (u.id === item.id ? item : u)) }));
   },
 
-  addRecurringExpense: async (draft) => {
-    const item = await financeRepo.createRecurringExpense(draft);
-    set((state) => ({ recurringExpenses: [...state.recurringExpenses, item] }));
+  removeUpcoming: async (id) => {
+    await financeRepo.deleteUpcoming(id);
+    set((state) => ({ upcoming: state.upcoming.filter((u) => u.id !== id) }));
   },
 
-  removeRecurringExpense: async (id) => {
-    await financeRepo.deleteRecurringExpense(id);
-    set((state) => ({ recurringExpenses: state.recurringExpenses.filter((r) => r.id !== id) }));
-  },
-
-  syncRecurringExpenses: async () => {
-    const today = todayKey();
-    const newExpenses: Expense[] = [];
-
-    for (const recurring of get().recurringExpenses) {
-      let dueDate = recurring.nextDueDate;
-      let iterations = 0;
-
-      while (dueDate <= today && iterations < 24) {
-        const expense = await financeRepo.createExpense({
-          amount: recurring.amount,
-          categoryId: recurring.categoryId,
-          date: dueDate,
-          comment: recurring.comment,
-        });
-        newExpenses.push(expense);
-
-        dueDate = nextOccurrenceDateKey(recurring.freq, recurring.interval, recurring.weekdays, dueDate);
-        iterations += 1;
-      }
-
-      if (dueDate !== recurring.nextDueDate) {
-        await financeRepo.updateRecurringExpenseNextDue(recurring.id, dueDate);
-        set((state) => ({
-          recurringExpenses: state.recurringExpenses.map((r) => (r.id === recurring.id ? { ...r, nextDueDate: dueDate } : r)),
-        }));
-      }
+  answerUpcoming: async (id, amount) => {
+    const item = get().upcoming.find((u) => u.id === id);
+    if (!item) return;
+    if (amount !== null && amount > 0) {
+      // A "this month" payment has no day of its own: it's logged today.
+      const date = item.mode === 'month' ? todayKey() : item.date;
+      await get().addExpense({ amount, categoryId: item.categoryId, date, comment: item.comment, accountId: item.accountId });
     }
-
-    if (newExpenses.length > 0) {
-      set((state) => ({ expenses: [...newExpenses, ...state.expenses] }));
-      checkAlerts();
+    if (item.mode === 'repeat' && item.freq) {
+      await get().updateUpcoming({ ...item, date: nextOccurrenceDateKey(item.freq, item.interval, item.weekdays, item.date) });
+    } else {
+      await get().removeUpcoming(id);
     }
   },
 
-  createSpendPlan: async ({ name, categoryId, limit, date }) => {
-    const planId = generateId();
-    const reserve = await financeRepo.createExpense({ amount: limit, categoryId, date, comment: name, planId, planRole: 'reserve' });
-    const plan: SpendPlan = {
-      id: planId,
-      name,
-      categoryId,
-      limit,
-      period: 0,
-      periodStart: todayKey(),
-      reserveExpenseId: reserve.id,
-      overspendExpenseId: null,
-      createdAt: new Date().toISOString(),
-    };
-    await financeRepo.saveSpendPlan(plan);
-    set((state) => ({ expenses: [reserve, ...state.expenses], spendPlans: [...state.spendPlans, plan] }));
-  },
-
-  rollOverSpendPlans: async () => {
-    const monthStart = toDateKey(startOfMonth(new Date()));
+  confirmSalary: async (periodKey, amount, accountId) => {
     const { settings, updateSettings } = useSettingsStore.getState();
-    const planNextLimits = settings.planNextLimits;
-    let used = false;
-    for (const plan of get().spendPlans) {
-      if (plan.periodStart >= monthStart) continue;
-      await get().resetSpendPlan(plan.id, planNextLimits[plan.id], monthStart);
-      used = used || plan.id in planNextLimits;
-    }
-    if (used) updateSettings({ planNextLimits: {} });
-  },
-
-  addPlanSpend: async (planId, amount) => {
-    const plan = get().spendPlans.find((p) => p.id === planId);
-    if (!plan) return;
-    const spend = await financeRepo.createPlanSpend(planId, plan.period, amount, todayKey());
-    set((state) => ({ planSpends: [spend, ...state.planSpends] }));
-    await syncOverspend(planId);
-    checkAlerts();
-  },
-
-  removePlanSpend: async (spendId) => {
-    const spend = get().planSpends.find((s) => s.id === spendId);
-    if (!spend) return;
-    await financeRepo.deletePlanSpend(spendId);
-    set((state) => ({ planSpends: state.planSpends.filter((s) => s.id !== spendId) }));
-    await syncOverspend(spend.planId);
-  },
-
-  updateSpendPlan: async (planId, patch) => {
-    const plan = get().spendPlans.find((p) => p.id === planId);
-    if (!plan) return;
-    const updated: SpendPlan = { ...plan, name: patch.name ?? plan.name, limit: patch.limit ?? plan.limit };
-    await financeRepo.saveSpendPlan(updated);
-    set((state) => ({ spendPlans: state.spendPlans.map((p) => (p.id === planId ? updated : p)) }));
-    // The reserve is the limit taken off the bank, so it follows the new limit and name.
-    const reserve = get().expenses.find((e) => e.id === updated.reserveExpenseId);
-    if (reserve) await get().editExpense({ ...reserve, amount: updated.limit, comment: updated.name });
-    await syncOverspend(planId);
-  },
-
-  resetSpendPlan: async (planId, newLimit, startKey) => {
-    const plan = get().spendPlans.find((p) => p.id === planId);
-    if (!plan) return;
-    const limit = newLimit ?? plan.limit;
-    const start = startKey ?? todayKey();
-    const reserve = await financeRepo.createExpense({
-      amount: limit,
-      categoryId: plan.categoryId,
-      date: start,
-      comment: plan.name,
-      planId,
-      planRole: 'reserve',
+    const at = nowIso();
+    const income: Income = { id: generateId(), accountId, amount, date: todayKey(), periodKey, createdAt: at };
+    await financeRepo.saveIncome(income);
+    set((state) => ({ incomes: [income, ...state.incomes] }));
+    updateSettings({
+      salaryConfirmations: { ...settings.salaryConfirmations, [periodKey]: { amount, confirmedAt: at, accountId } },
+      salaryPromptSnoozedUntil: null,
     });
-    const updated: SpendPlan = {
-      ...plan,
-      limit,
-      period: plan.period + 1,
-      periodStart: start,
-      reserveExpenseId: reserve.id,
-      overspendExpenseId: null,
-    };
-    await financeRepo.saveSpendPlan(updated);
-    set((state) => ({
-      expenses: [reserve, ...state.expenses],
-      spendPlans: state.spendPlans.map((p) => (p.id === planId ? updated : p)),
-    }));
   },
 
-  deleteSpendPlan: async (planId) => {
-    const plan = get().spendPlans.find((p) => p.id === planId);
-    if (!plan) return;
-    const planExpenses = get().expenses.filter((e) => e.planId === planId);
-    await keepBalancesInStep(planExpenses, -1);
-    for (const expense of planExpenses) {
-      await financeRepo.deleteExpense(expense.id);
+  answerLoan: async (loanId, amount, accountId) => {
+    const loan = get().loans.find((l) => l.id === loanId);
+    if (!loan) return;
+    if (amount === null) {
+      get().snoozePending(`loan-${loan.id}-${loan.paidCount}`);
+      return;
     }
-    await financeRepo.deleteSpendPlan(planId);
-    set((state) => ({
-      expenses: state.expenses.filter((e) => e.planId !== planId),
-      spendPlans: state.spendPlans.filter((p) => p.id !== planId),
-      planSpends: state.planSpends.filter((s) => s.planId !== planId),
-    }));
+    await get().payLoan(loanId, accountId ?? primaryId(get().accounts), amount);
   },
 
-  addAccount: async ({ kind, name, currency, balance, target = null }) => {
-    const now = new Date().toISOString();
+  answerCheck: async (accountId, real) => {
+    if (real !== null) await get().setAccountBalance(accountId, real);
+    const { settings, updateSettings } = useSettingsStore.getState();
+    const day = checkDay(settings.reconcileWeekday ?? 0);
+    updateSettings({ reconciledWeeks: { ...settings.reconciledWeeks, [accountId]: day } });
+  },
+
+  snoozePending: (key) => {
+    const { settings, updateSettings } = useSettingsStore.getState();
+    // Old snoozes are dropped on the way so the map doesn't grow forever.
+    const now = nowIso();
+    const kept = Object.fromEntries(Object.entries(settings.pendingSnoozed).filter(([, until]) => until > now));
+    updateSettings({ pendingSnoozed: { ...kept, [key]: snoozeUntilTomorrow() } });
+  },
+
+  addAccount: async ({ kind, name, currency, balance, target = null, ratePercent = null, openedAt = null }) => {
+    const at = nowIso();
     const account: Account = {
       id: generateId(),
       kind,
       name: name.trim(),
       currency: currency.trim(),
-      base: balance,
-      setAt: now,
+      base: 0,
+      setAt: null,
       target,
       sortOrder: get().accounts.length,
-      createdAt: now,
+      createdAt: at,
+      isPrimary: false,
+      ratePercent,
+      openedAt,
     };
     await financeRepo.saveAccount(account);
-    set((state) => ({ accounts: [...state.accounts, account] }));
+    const opening: Adjustment = { id: generateId(), accountId: account.id, amount: round2(balance), date: todayKey(), kind: 'opening', note: null, createdAt: at };
+    await financeRepo.saveAdjustment(opening);
+    set((state) => ({ accounts: [...state.accounts, account], adjustments: [opening, ...state.adjustments] }));
   },
 
   updateAccount: async (account) => {
@@ -378,47 +312,53 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     set((state) => ({ accounts: state.accounts.map((a) => (a.id === account.id ? account : a)) }));
   },
 
-  setAccountBalance: async (id, balance) => {
-    const account = get().accounts.find((a) => a.id === id);
-    if (!account) return;
-    await get().updateAccount({ ...account, base: balance, setAt: new Date().toISOString() });
+  setAccountBalance: async (id, real, note = null) => {
+    const state = get();
+    const current = balanceOf(id, state, primaryId(state.accounts));
+    const amount = correctionFor(real, current);
+    const correction: Adjustment = { id: generateId(), accountId: id, amount, date: todayKey(), kind: 'correction', note, createdAt: nowIso() };
+    // Even a zero correction is kept: it marks "checked on this day" for the questions above.
+    await financeRepo.saveAdjustment(correction);
+    set((s) => ({ adjustments: [correction, ...s.adjustments] }));
+  },
+
+  makePrimary: async (id) => {
+    const updated = get().accounts.map((a) => ({ ...a, isPrimary: a.id === id }));
+    for (const a of updated) await financeRepo.saveAccount(a);
+    set({ accounts: updated });
   },
 
   removeAccount: async (id) => {
-    const gone = get().transfers.filter((t) => t.fromId === id || t.toId === id);
-    // The other side of each transfer keeps the money it has now.
-    for (const t of gone) {
-      const otherId = t.fromId === id ? t.toId : t.fromId;
-      const effect = t.toId === otherId ? t.amountTo : -t.amount;
-      if (isCounted(otherId, t.createdAt)) await adjustBase(otherId, effect);
-    }
+    const account = get().accounts.find((a) => a.id === id);
+    if (!account || account.isPrimary) return;
     await financeRepo.deleteAccount(id);
+    await financeRepo.deleteAdjustmentsOf(id);
     set((state) => ({
       accounts: state.accounts.filter((a) => a.id !== id),
-      transfers: state.transfers.filter((t) => t.fromId !== id && t.toId !== id),
+      adjustments: state.adjustments.filter((a) => a.accountId !== id),
     }));
     const { settings, updateSettings } = useSettingsStore.getState();
-    if (settings.salaryAccountId === id) updateSettings({ salaryAccountId: MAIN_ACCOUNT_ID });
+    if (settings.salaryAccountId === id) updateSettings({ salaryAccountId: primaryId(get().accounts) });
   },
 
   addTransfer: async (draft) => {
     const transfer = await financeRepo.createTransfer(draft);
     set((state) => ({ transfers: [transfer, ...state.transfers] }));
+    // A transfer between złoty and another currency tells the current rate.
+    const { accounts } = get();
+    const { settings, updateSettings } = useSettingsStore.getState();
+    const cur = (accountId: string) => accounts.find((a) => a.id === accountId)?.currency ?? settings.currency;
+    const rate = rateFromTransfer(cur(draft.fromId), cur(draft.toId), draft.amount, draft.amountTo, settings.currency);
+    if (rate) updateSettings({ currencyRates: { ...settings.currencyRates, [rate[0]]: rate[1] } });
   },
 
   removeTransfer: async (id) => {
-    const t = get().transfers.find((x) => x.id === id);
-    if (!t) return;
-    // Like an expense: if a side's balance was typed in after the transfer, it isn't part of that
-    // balance any more — undoing it has to go through the typed-in amount.
-    if (!isCounted(t.fromId, t.createdAt)) await adjustBase(t.fromId, t.amount);
-    if (!isCounted(t.toId, t.createdAt)) await adjustBase(t.toId, -t.amountTo);
     await financeRepo.deleteTransfer(id);
     set((state) => ({ transfers: state.transfers.filter((x) => x.id !== id) }));
   },
 
   addLoan: async (draft) => {
-    const loan: Loan = { ...draft, id: generateId(), createdAt: new Date().toISOString() };
+    const loan: Loan = { ...draft, id: generateId(), createdAt: nowIso() };
     await financeRepo.saveLoan(loan);
     set((state) => ({ loans: [...state.loans, loan] }));
   },
@@ -433,129 +373,102 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     set((state) => ({ loans: state.loans.filter((l) => l.id !== id) }));
   },
 
-  payLoan: async (id, accountId) => {
+  payLoan: async (id, accountId, amount) => {
     const loan = get().loans.find((l) => l.id === id);
     if (!loan || isPaidOff(loan)) return;
     const { categories } = get();
     const categoryId = (categories.find((c) => c.id === 'cat-other') ?? categories[0])?.id;
     if (categoryId) {
       await get().addExpense({
-        amount: Math.round(monthlyPayment(loan) * 100) / 100,
+        amount: round2(amount ?? monthlyPayment(loan)),
         categoryId,
         date: todayKey(),
         comment: loan.name,
-        accountId: accountId === MAIN_ACCOUNT_ID ? null : accountId,
+        accountId,
       });
     }
     await get().updateLoan({ ...loan, paidCount: loan.paidCount + 1 });
   },
 }));
 
-/** When the account's balance was last typed in (null = never). */
-function setAtOf(accountId: string): string | null {
-  if (accountId === MAIN_ACCOUNT_ID) return useSettingsStore.getState().settings.bankBalanceSetAt;
-  return useFinanceStore.getState().accounts.find((a) => a.id === accountId)?.setAt ?? null;
+/** The "was it already in the balance you typed?" → yes path: the account's latest check absorbs
+ * the change, so the balance stays where it was. */
+async function absorb(accountId: string, _date: string, balanceDelta: number): Promise<void> {
+  const check = lastCheck(accountId, useFinanceStore.getState().adjustments);
+  if (!check) return;
+  const updated = absorbInCheck(check, balanceDelta);
+  await financeRepo.saveAdjustment(updated);
+  useFinanceStore.setState((state) => ({ adjustments: state.adjustments.map((a) => (a.id === updated.id ? updated : a)) }));
 }
 
-/** Is something created at `createdAt` part of the account's balance (logged after it was set)? */
-function isCounted(accountId: string, createdAt: string): boolean {
-  const setAt = setAtOf(accountId);
-  return !setAt || createdAt > setAt;
-}
-
-/** Moves the typed-in amount of an account by `delta`. */
-async function adjustBase(accountId: string, delta: number): Promise<void> {
-  if (delta === 0) return;
-  if (accountId === MAIN_ACCOUNT_ID) {
-    const { settings, updateSettings } = useSettingsStore.getState();
-    updateSettings({ bankBalanceBase: settings.bankBalanceBase + delta });
-    return;
-  }
-  const account = useFinanceStore.getState().accounts.find((a) => a.id === accountId);
-  if (!account) return;
-  const updated = { ...account, base: account.base + delta };
-  await financeRepo.saveAccount(updated);
-  useFinanceStore.setState((state) => ({ accounts: state.accounts.map((a) => (a.id === accountId ? updated : a)) }));
-}
-
-/**
- * Keeps the plan's red "over the limit" expense equal to what was spent past the limit in this
- * period: created the first time it goes over, updated after, removed when it's back under.
- */
-async function syncOverspend(planId: string): Promise<void> {
-  const store = useFinanceStore.getState();
-  const plan = store.spendPlans.find((p) => p.id === planId);
-  if (!plan) return;
-  const over = overspendOf(plan, spentInPeriod(plan, store.planSpends));
-  const existing = store.expenses.find((e) => e.id === plan.overspendExpenseId);
-
-  if (over > 0 && existing) {
-    if (existing.amount !== over) await store.editExpense({ ...existing, amount: over, date: todayKey() });
-    return;
-  }
-  if (over > 0) {
-    const expense = await financeRepo.createExpense({
-      amount: over,
-      categoryId: plan.categoryId,
-      date: todayKey(),
-      comment: plan.name,
-      planId,
-      planRole: 'overspend',
+/** Settings live in their own persisted store; the migration needs them loaded first. */
+function settingsReady(): Promise<void> {
+  const persist = (useSettingsStore as unknown as { persist?: { hasHydrated: () => boolean; onFinishHydration: (cb: () => void) => () => void } }).persist;
+  if (!persist || persist.hasHydrated()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const unsubscribe = persist.onFinishHydration(() => {
+      unsubscribe();
+      resolve();
     });
-    const updated = { ...plan, overspendExpenseId: expense.id };
-    await financeRepo.saveSpendPlan(updated);
-    useFinanceStore.setState((state) => ({
-      expenses: [expense, ...state.expenses],
-      spendPlans: state.spendPlans.map((p) => (p.id === planId ? updated : p)),
-    }));
+  });
+}
+
+/** Finance v1 → v2, once (see lib/financeMigration.ts). */
+async function runFinanceMigration(): Promise<void> {
+  const { settings, updateSettings } = useSettingsStore.getState();
+  const [accounts, expenses, transfers, spendPlans, planSpends, plannedExpenses, recurringExpenses, categories, workDays] =
+    await Promise.all([
+      financeRepo.listAccounts(),
+      financeRepo.listExpenses(),
+      financeRepo.listTransfers(),
+      financeRepo.listSpendPlans(),
+      financeRepo.listPlanSpends(),
+      financeRepo.listPlannedExpenses(),
+      financeRepo.listRecurringExpenses(),
+      financeRepo.listCategories(),
+      financeRepo.listWorkDays(),
+    ]);
+  // Already has a primary account (e.g. a v2 backup restored with an old settings blob): nothing to move.
+  if (accounts.some((a) => a.isPrimary)) {
+    updateSettings({ financeModel: 2 });
     return;
   }
-  if (existing) await store.removeExpense(existing.id);
-  if (plan.overspendExpenseId) {
-    const updated = { ...plan, overspendExpenseId: null };
-    await financeRepo.saveSpendPlan(updated);
-    useFinanceStore.setState((state) => ({ spendPlans: state.spendPlans.map((p) => (p.id === planId ? updated : p)) }));
-  }
+  const out = migrateFinance({
+    settings,
+    accounts,
+    expenses,
+    transfers,
+    spendPlans,
+    planSpends,
+    plannedExpenses,
+    recurringExpenses,
+    categories,
+    workDays,
+    now: new Date(),
+    newId: generateId,
+  });
+  await financeRepo.applyFinanceMigration(out);
+  updateSettings(out.settingsPatch);
 }
 
-/**
- * A balance = the amount set by hand − expenses logged after it was set. Expenses logged before that
- * moment aren't part of the sum, so deleting or changing one of them wouldn't move the balance at all.
- * Deleting an expense must always give its money back (and changing it, the difference) — so for
- * those older expenses the change goes into the hand-set amount of the card or cash they were paid
- * from instead.
- * `sign` −1: these expenses are going away; +1: they're coming in (the new version of an edited one).
- */
-async function keepBalancesInStep(expenses: Expense[], sign: 1 | -1): Promise<void> {
-  const byAccount = new Map<string, number>();
-  for (const e of expenses) {
-    const id = accountIdOf(e);
-    // Dated in the future: it hasn't left the card yet, and won't once it's gone — nothing to fix.
-    // Charged after the balance was typed in: the balance follows it by itself.
-    if (!isDue(e) || isCounted(id, chargedAt(e))) continue;
-    byAccount.set(id, (byAccount.get(id) ?? 0) + e.amount);
-  }
-  // Removing −X from the balance = +X; adding = −X.
-  for (const [id, amount] of byAccount) await adjustBase(id, -sign * amount);
-}
-
-/** Budget alerts look at what was actually bought (plan purchases, not whole plan limits). */
+/** Budget alerts look at spending in the app currency. */
 function checkAlerts(): void {
-  const { expenses, spendPlans, planSpends, categories, accounts } = useFinanceStore.getState();
+  const { expenses, categories, accounts } = useFinanceStore.getState();
   const settings = useSettingsStore.getState().settings;
-  checkBudgetAlerts(inAppCurrency(spendingExpenses(expenses, spendPlans, planSpends), accounts, settings.currency), settings, categories);
+  checkBudgetAlerts(inAppCurrency(expenses, accounts, settings.currency, settings.currencyRates), settings, categories);
 }
 
-/** Expenses as spending — see spendingExpenses: plan purchases instead of whole plan limits. Only
- * the ones in the app currency (see inAppCurrency). */
+/** Expenses in the app currency (others converted with their rate, see inAppCurrency) — for totals,
+ * statistics and budgets. */
 export function useSpendingExpenses() {
   const expenses = useFinanceStore((s) => s.expenses);
-  const plans = useFinanceStore((s) => s.spendPlans);
-  const spends = useFinanceStore((s) => s.planSpends);
   const accounts = useFinanceStore((s) => s.accounts);
   const currency = useSettingsStore((s) => s.settings.currency);
-  return useMemo(
-    () => inAppCurrency(spendingExpenses(expenses, plans, spends), accounts, currency),
-    [expenses, plans, spends, accounts, currency]
-  );
+  const rates = useSettingsStore((s) => s.settings.currencyRates);
+  return useMemo(() => inAppCurrency(expenses, accounts, currency, rates), [expenses, accounts, currency, rates]);
+}
+
+/** The primary account (the main card) — undefined only until the first load finishes. */
+export function usePrimaryAccount(): Account | undefined {
+  return useFinanceStore((s) => s.accounts.find((a) => a.isPrimary));
 }

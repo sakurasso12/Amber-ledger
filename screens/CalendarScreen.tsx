@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
+import { LAYOUT_SCROLL_SPEED } from '@/components/ui/LayoutEditing';
 import Sortable from 'react-native-sortables';
 import { Text } from '@/components/ui/Text';
 import { addMonths } from 'date-fns';
@@ -101,6 +103,7 @@ export function CalendarScreen() {
 
   // Only the expenses can be rearranged here (pencil); nothing to do while finances are locked.
   const [editing, setEditing] = useState(false);
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const [jellies] = useState(createJellyRegistry);
   const { showHint, markSeen } = useLayoutHint('calendar-expenses');
   useEffect(() => {
@@ -139,7 +142,7 @@ export function CalendarScreen() {
         </CustomizableCard>
       </View>
 
-      <ScrollView contentContainerStyle={styles.listContent}>
+      <Animated.ScrollView ref={scrollRef} contentContainerStyle={styles.listContent}>
         {theme.layout.tasks === 'focus' ? (
           // Vertical: the selected day as a big date heading above its items.
           <View style={styles.dayHero}>
@@ -168,6 +171,8 @@ export function CalendarScreen() {
             flexDirection="column"
             rowGap={8}
             sortEnabled={editing}
+            scrollableRef={scrollRef}
+            autoScrollMaxVelocity={LAYOUT_SCROLL_SPEED}
             dragActivationDelay={150}
             activeItemScale={0.95}
             activeItemShadowOpacity={0.25}
@@ -198,7 +203,7 @@ export function CalendarScreen() {
             ))}
           </Sortable.Flex>
         ) : null}
-      </ScrollView>
+      </Animated.ScrollView>
     </LayoutScreen>
   );
 }

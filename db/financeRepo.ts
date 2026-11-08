@@ -3,6 +3,10 @@ import { generateId } from '@/lib/id';
 import {
   Account,
   AccountKind,
+  Adjustment,
+  Income,
+  Upcoming,
+  UpcomingMode,
   Loan,
   Category,
   Expense,
@@ -39,6 +43,7 @@ interface ExpenseRow {
   plan_role: string | null;
   task_id: string | null;
   account_id: string | null;
+  rate?: number | null;
 }
 
 interface WorkDayRow {
@@ -72,6 +77,7 @@ function rowToExpense(row: ExpenseRow): Expense {
     planRole: (row.plan_role as PlanRole | null) ?? null,
     taskId: row.task_id ?? null,
     accountId: row.account_id ?? null,
+    rate: row.rate ?? null,
   };
 }
 
@@ -158,9 +164,17 @@ export async function createExpense(draft: ExpenseDraft): Promise<Expense> {
     planRole: draft.planRole ?? null,
     taskId: draft.taskId ?? null,
     accountId: draft.accountId ?? null,
+    rate: draft.rate ?? null,
   };
+  await insertExpense(expense);
+  return expense;
+}
+
+/** Inserts the expense as it is (id and created time included), or rewrites an existing one. */
+export async function insertExpense(expense: Expense): Promise<void> {
+  const db = await getDb();
   await db.runAsync(
-    'INSERT INTO expenses (id, amount, category_id, date, comment, created_at, plan_id, plan_role, task_id, account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO expenses (id, amount, category_id, date, comment, created_at, plan_id, plan_role, task_id, account_id, rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       expense.id,
       expense.amount,
@@ -172,16 +186,16 @@ export async function createExpense(draft: ExpenseDraft): Promise<Expense> {
       expense.planRole,
       expense.taskId,
       expense.accountId,
+      expense.rate ?? null,
     ]
   );
-  return expense;
 }
 
 export async function updateExpense(expense: Expense): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    'UPDATE expenses SET amount = ?, category_id = ?, date = ?, comment = ?, plan_id = ?, plan_role = ?, account_id = ? WHERE id = ?',
-    [expense.amount, expense.categoryId, expense.date, expense.comment, expense.planId, expense.planRole, expense.accountId, expense.id]
+    'UPDATE expenses SET amount = ?, category_id = ?, date = ?, comment = ?, plan_id = ?, plan_role = ?, account_id = ?, rate = ? WHERE id = ?',
+    [expense.amount, expense.categoryId, expense.date, expense.comment, expense.planId, expense.planRole, expense.accountId, expense.rate ?? null, expense.id]
   );
 }
 
@@ -457,6 +471,9 @@ interface AccountRow {
   target: number | null;
   sort_order: number;
   created_at: string;
+  is_primary?: number | null;
+  rate_percent?: number | null;
+  opened_at?: string | null;
 }
 
 function rowToAccount(row: AccountRow): Account {
@@ -470,6 +487,9 @@ function rowToAccount(row: AccountRow): Account {
     target: row.target ?? null,
     sortOrder: row.sort_order,
     createdAt: row.created_at,
+    isPrimary: row.is_primary === 1,
+    ratePercent: row.rate_percent ?? null,
+    openedAt: row.opened_at ?? null,
   };
 }
 
@@ -483,7 +503,7 @@ export async function listAccounts(): Promise<Account[]> {
 export async function saveAccount(account: Account): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    'INSERT OR REPLACE INTO accounts (id, kind, name, currency, base, set_at, target, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO accounts (id, kind, name, currency, base, set_at, target, sort_order, created_at, is_primary, rate_percent, opened_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       account.id,
       account.kind,
@@ -494,14 +514,17 @@ export async function saveAccount(account: Account): Promise<void> {
       account.target,
       account.sortOrder,
       account.createdAt,
+      account.isPrimary ? 1 : 0,
+      account.ratePercent ?? null,
+      account.openedAt ?? null,
     ]
   );
 }
 
-/** Removes the account and the transfers to and from it. Its expenses stay in the history. */
+/** Removes the account. Its expenses and transfers stay in the history (so the other side of a
+ * transfer keeps its money — finance v2 balances are sums of records). */
 export async function deleteAccount(id: string): Promise<void> {
   const db = await getDb();
-  await db.runAsync('DELETE FROM transfers WHERE from_id = ? OR to_id = ?', [id, id]);
   await db.runAsync('DELETE FROM accounts WHERE id = ?', [id]);
 }
 
@@ -536,13 +559,18 @@ export async function listTransfers(): Promise<Transfer[]> {
 }
 
 export async function createTransfer(draft: Omit<Transfer, 'id' | 'createdAt'>): Promise<Transfer> {
-  const db = await getDb();
   const transfer: Transfer = { ...draft, id: generateId(), createdAt: new Date().toISOString() };
+  await saveTransfer(transfer);
+  return transfer;
+}
+
+/** Inserts the transfer as it is, or rewrites an existing one. */
+export async function saveTransfer(transfer: Transfer): Promise<void> {
+  const db = await getDb();
   await db.runAsync(
-    'INSERT INTO transfers (id, from_id, to_id, amount, amount_to, date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO transfers (id, from_id, to_id, amount, amount_to, date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
     [transfer.id, transfer.fromId, transfer.toId, transfer.amount, transfer.amountTo, transfer.date, transfer.createdAt]
   );
-  return transfer;
 }
 
 export async function deleteTransfer(id: string): Promise<void> {
@@ -598,4 +626,148 @@ export async function saveLoan(loan: Loan): Promise<void> {
 export async function deleteLoan(id: string): Promise<void> {
   const db = await getDb();
   await db.runAsync('DELETE FROM loans WHERE id = ?', [id]);
+}
+
+// ---- Finance v2: adjustments, incomes, upcoming payments ----
+
+interface AdjustmentRow {
+  id: string;
+  account_id: string;
+  amount: number;
+  date: string;
+  kind: string;
+  note: string | null;
+  created_at: string;
+}
+
+export async function listAdjustments(): Promise<Adjustment[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<AdjustmentRow>('SELECT * FROM adjustments ORDER BY date DESC, created_at DESC');
+  return rows.map((r) => ({
+    id: r.id,
+    accountId: r.account_id,
+    amount: r.amount,
+    date: r.date,
+    kind: r.kind === 'opening' ? 'opening' : 'correction',
+    note: r.note,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function saveAdjustment(a: Adjustment): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO adjustments (id, account_id, amount, date, kind, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [a.id, a.accountId, a.amount, a.date, a.kind, a.note, a.createdAt]
+  );
+}
+
+export async function deleteAdjustmentsOf(accountId: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM adjustments WHERE account_id = ?', [accountId]);
+}
+
+interface IncomeRow {
+  id: string;
+  account_id: string;
+  amount: number;
+  date: string;
+  period_key: string | null;
+  created_at: string;
+}
+
+export async function listIncomes(): Promise<Income[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<IncomeRow>('SELECT * FROM incomes ORDER BY date DESC, created_at DESC');
+  return rows.map((r) => ({
+    id: r.id,
+    accountId: r.account_id,
+    amount: r.amount,
+    date: r.date,
+    periodKey: r.period_key,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function saveIncome(i: Income): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO incomes (id, account_id, amount, date, period_key, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+    [i.id, i.accountId, i.amount, i.date, i.periodKey, i.createdAt]
+  );
+}
+
+export async function deleteIncome(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM incomes WHERE id = ?', [id]);
+}
+
+interface UpcomingRow {
+  id: string;
+  amount: number;
+  category_id: string;
+  account_id: string | null;
+  comment: string | null;
+  mode: string;
+  date: string;
+  freq: string | null;
+  interval: number;
+  weekdays: string | null;
+  created_at: string;
+}
+
+export async function listUpcoming(): Promise<Upcoming[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<UpcomingRow>('SELECT * FROM upcoming ORDER BY date ASC, created_at ASC');
+  return rows.map((r) => ({
+    id: r.id,
+    amount: r.amount,
+    categoryId: r.category_id,
+    accountId: r.account_id,
+    comment: r.comment,
+    mode: r.mode as UpcomingMode,
+    date: r.date,
+    freq: (r.freq as RecurrenceFreq | null) ?? null,
+    interval: r.interval,
+    weekdays: r.weekdays ? (JSON.parse(r.weekdays) as number[]) : null,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function saveUpcoming(u: Upcoming): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO upcoming (id, amount, category_id, account_id, comment, mode, date, freq, interval, weekdays, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [u.id, u.amount, u.categoryId, u.accountId, u.comment, u.mode, u.date, u.freq, u.interval, u.weekdays ? JSON.stringify(u.weekdays) : null, u.createdAt]
+  );
+}
+
+export async function deleteUpcoming(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM upcoming WHERE id = ?', [id]);
+}
+
+/** Finance v2 migration: everything written in one transaction (see lib/financeMigration.ts). */
+export async function applyFinanceMigration(out: {
+  accounts: Account[];
+  expensesUpsert: Expense[];
+  expensesDelete: string[];
+  transfers: Transfer[];
+  adjustments: Adjustment[];
+  incomes: Income[];
+  upcoming: Upcoming[];
+  categories: Category[];
+}): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    for (const a of out.accounts) await saveAccount(a);
+    for (const id of out.expensesDelete) await db.runAsync('DELETE FROM expenses WHERE id = ?', [id]);
+    for (const e of out.expensesUpsert) await insertExpense(e);
+    for (const t of out.transfers) await saveTransfer(t);
+    for (const a of out.adjustments) await saveAdjustment(a);
+    for (const i of out.incomes) await saveIncome(i);
+    for (const u of out.upcoming) await saveUpcoming(u);
+    for (const c of out.categories) await updateCategory(c);
+    await db.execAsync('DELETE FROM plan_spends; DELETE FROM spend_plans; DELETE FROM planned_expenses; DELETE FROM recurring_expenses;');
+  });
 }

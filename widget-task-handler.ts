@@ -19,7 +19,6 @@ import { DayOffWidget } from './widget/DayOffWidget';
 import { NextTaskWidget } from './widget/NextTaskWidget';
 import { StreakWidget } from './widget/StreakWidget';
 import { buildHabits, habitCardId } from '@/lib/streaks';
-import { spendingExpenses } from '@/lib/plans';
 import { inAppCurrency } from '@/lib/accounts';
 
 export const WIDGET_NAME = 'AmberLedgerToday';
@@ -30,6 +29,8 @@ export const ALL_WIDGET_NAMES = [WIDGET_NAME, DAY_OFF_WIDGET_NAME, NEXT_TASK_WID
 
 interface WidgetSettings {
   currency: string;
+  /** Exchange rates (finance v2) — spending in other currencies is converted with them. */
+  currencyRates: Record<string, number>;
   /** Background photo per widget name. */
   backgrounds: Record<string, string | null>;
   designId: DesignId;
@@ -44,12 +45,13 @@ interface WidgetSettings {
 }
 
 async function readWidgetSettings(): Promise<WidgetSettings> {
-  const fallback: WidgetSettings = { currency: 'zł', backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'en', moneyHidden: false, streakWidgets: {}, cardPhotos: {} };
+  const fallback: WidgetSettings = { currency: 'zł', currencyRates: {}, backgrounds: {}, designId: 'amber', layoutId: 'standard', language: 'en', moneyHidden: false, streakWidgets: {}, cardPhotos: {} };
   try {
     const raw = await getSetting('app-settings');
     const settings = raw ? JSON.parse(raw)?.state?.settings : null;
     return {
       currency: settings?.currency ?? fallback.currency,
+      currencyRates: settings?.currencyRates ?? {},
       backgrounds: { ...(settings?.homeWidgetBackgrounds ?? {}), [WIDGET_NAME]: settings?.homeWidgetBackgroundUri ?? null },
       layoutId: settings?.layoutId && LAYOUTS[settings.layoutId as LayoutId] ? settings.layoutId : fallback.layoutId,
       designId: settings?.designId && DESIGNS[settings.designId as DesignId] ? settings.designId : fallback.designId,
@@ -118,17 +120,15 @@ async function upcomingTasks(): Promise<WidgetTask[]> {
 }
 
 export async function buildTodayWidget(widgetInfo: WidgetInfo) {
-  const [tasks, expenses, plans, planSpends, accounts, settings] = await Promise.all([
+  const [tasks, expenses, accounts, settings] = await Promise.all([
     upcomingTasks(),
     financeRepo.listExpenses(),
-    financeRepo.listSpendPlans(),
-    financeRepo.listPlanSpends(),
     financeRepo.listAccounts(),
     readWidgetSettings(),
   ]);
   const today = todayKey();
-  // What was bought today — plan purchases count, not a plan's whole limit (same as in the app).
-  const spentToday = inAppCurrency(spendingExpenses(expenses, plans, planSpends), accounts, settings.currency)
+  // What was bought today, in the app currency (same as in the app).
+  const spentToday = inAppCurrency(expenses, accounts, settings.currency, settings.currencyRates)
     .filter((e) => e.date === today)
     .reduce((sum, e) => sum + e.amount, 0);
 

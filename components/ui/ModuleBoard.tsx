@@ -7,7 +7,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from './LayoutEditItem';
-import { LayoutEditingContext } from './LayoutEditing';
+import { LAYOUT_SCROLL_SPEED, LayoutEditingContext, useLayoutScroll } from './LayoutEditing';
 import { HiddenModuleItem, RemoveModuleButton, useHiddenModules } from './HiddenModules';
 import { Text } from './Text';
 
@@ -46,6 +46,7 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
   const [width, setWidth] = useState(0);
   const [jellies] = useState(createJellyRegistry);
   const { hidden, hide } = useHiddenModules(boardId);
+  const scrollableRef = useLayoutScroll();
 
   const list = useMemo(
     () => ordered(modules.filter((m) => !hidden.includes(m.key)), saved?.order ?? []),
@@ -81,6 +82,8 @@ export function ModuleBoard({ boardId, modules, editing }: { boardId: string; mo
             rowGap={GAP}
             columnGap={GAP}
             sortEnabled={editing}
+            scrollableRef={scrollableRef}
+            autoScrollMaxVelocity={LAYOUT_SCROLL_SPEED}
             dragActivationDelay={150}
             activeItemScale={0.92}
             activeItemShadowOpacity={0.25}

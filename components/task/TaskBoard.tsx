@@ -10,6 +10,7 @@ import { taskKey } from '@/lib/taskFilters';
 import { haptics } from '@/lib/haptics';
 import { SegmentedControl, Text } from '@/components/ui';
 import { createJellyRegistry, droppedKey, LayoutEditItem, useLayoutHint } from '@/components/ui/LayoutEditItem';
+import { LAYOUT_SCROLL_SPEED, useLayoutScroll } from '@/components/ui/LayoutEditing';
 import { useTranslation } from '@/i18n';
 import { Task, TaskStatus } from '@/types';
 import { TaskListItem } from './TaskListItem';
@@ -40,6 +41,7 @@ interface TaskBoardProps {
 export function TaskBoard({ tasks, editing, selection, onCycleStatus }: TaskBoardProps) {
   const theme = useTheme();
   const tr = useTranslation();
+  const scrollableRef = useLayoutScroll();
   const sizes = useSettingsStore((s) => s.settings.taskCardSizes);
   const orderMode = useSettingsStore((s) => s.settings.taskOrderMode);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
@@ -102,6 +104,8 @@ export function TaskBoard({ tasks, editing, selection, onCycleStatus }: TaskBoar
             rowGap={8}
             columnGap={GAP}
             sortEnabled={editing}
+            scrollableRef={scrollableRef}
+            autoScrollMaxVelocity={LAYOUT_SCROLL_SPEED}
             dragActivationDelay={150}
             activeItemScale={0.92}
             activeItemShadowOpacity={0.25}

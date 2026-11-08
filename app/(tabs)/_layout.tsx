@@ -53,10 +53,14 @@ export default function TabsLayout() {
       // without this, its home-indicator pill overlaps the tab icons/labels.
       height: 54 + insets.bottom,
       paddingBottom: insets.bottom,
+      // Landscape: the navigation buttons / camera cut-out sit on a side.
+      paddingLeft: insets.left,
+      paddingRight: insets.right,
     },
     floating: {
       backgroundColor: colors.surface,
-      marginHorizontal: 16,
+      marginLeft: 16 + insets.left,
+      marginRight: 16 + insets.right,
       marginBottom: insets.bottom + 10,
       height: 62,
       borderRadius: 31,
@@ -78,6 +82,8 @@ export default function TabsLayout() {
       shadowOpacity: 0,
       height: 50 + insets.bottom,
       paddingBottom: insets.bottom,
+      paddingLeft: insets.left,
+      paddingRight: insets.right,
     },
   };
   const indicatorByStyle: Record<typeof design.tabBar, object> = {
