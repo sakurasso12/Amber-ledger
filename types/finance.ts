@@ -27,8 +27,13 @@ export interface Expense {
   /** Logged by completing this task ("log an expense when done") — un-doing or deleting the task
    * takes the expense back. */
   taskId: string | null;
-  /** Card or cash it was paid from (see Account); null = the main card. */
+  /** Card or cash it was paid from (see Account). null only in data saved before finance v2 —
+   * the v2 migration fills it with the primary account. */
   accountId: string | null;
+  /** App-currency value of one unit of the account's currency when it was logged (1 € = 4.3 zł →
+   * 4.3); null when the account is in the app currency. Kept per expense so changing the rate later
+   * doesn't rewrite old statistics. */
+  rate?: number | null;
 }
 
 export interface ExpenseDraft {
@@ -40,16 +45,16 @@ export interface ExpenseDraft {
   planRole?: PlanRole | null;
   taskId?: string | null;
   accountId?: string | null;
+  rate?: number | null;
 }
 
 /**
- * Where money is kept besides the main card: another bank card or cash in any currency (you can pay
- * with these), a stash — just an amount to keep in mind, e.g. € put aside, nothing is paid from it —
- * or a goal: money put aside for something, filling a bar towards `target`. The main
- * card is not a row here — it's the old "Bank" figure in settings (bankBalanceBase/SetAt), with
- * MAIN_ACCOUNT_ID standing for it (see lib/accounts.ts).
+ * Where money is kept: a bank card or cash in any currency (you can pay with these), a stash — just
+ * an amount to keep in mind, e.g. € put aside, nothing is paid from it — a goal: money put aside for
+ * something, filling a bar towards `target` — or savings with a yearly rate. Since finance v2 the
+ * main card is a row too, marked `isPrimary`.
  */
-export type AccountKind = 'card' | 'cash' | 'stash' | 'goal';
+export type AccountKind = 'card' | 'cash' | 'stash' | 'goal' | 'savings';
 
 export interface Account {
   id: string;
@@ -58,9 +63,16 @@ export interface Account {
   name: string;
   /** Shown after amounts: "zł", "€", "$" ... */
   currency: string;
-  /** Balance typed by hand at `setAt`; expenses and transfers after that move it. */
+  /** Legacy (before finance v2): balance typed by hand at `setAt`. Read only by the v2 migration,
+   * which turns it into an 'opening' adjustment. */
   base: number;
   setAt: string | null;
+  /** The account quick-add, salary and new records use by default. Exactly one card has it. */
+  isPrimary: boolean;
+  /** Savings: yearly interest in percent (null = none / other kinds). */
+  ratePercent: number | null;
+  /** Savings: yyyy-MM-dd the account or the current deposit term was opened. */
+  openedAt: string | null;
   /** Goal: the amount to save up (null for the other kinds). */
   target: number | null;
   sortOrder: number;
@@ -182,3 +194,58 @@ export interface RecurringExpenseDraft {
   weekdays: number[] | null;
   nextDueDate: string;
 }
+
+/**
+ * Finance v2: a balance is the sum of its records. An adjustment is the record left when the user
+ * types in the real balance ('correction': real − what the app had) or when v2 replaced the old
+ * "typed-in base" model ('opening'). Nothing is ever recomputed backwards from it.
+ */
+export interface Adjustment {
+  id: string;
+  accountId: string;
+  amount: number;
+  /** yyyy-MM-dd */
+  date: string;
+  kind: 'opening' | 'correction';
+  note: string | null;
+  createdAt: string;
+}
+
+/** Money in. For now only a confirmed salary (there's no manual "+ income" by design). */
+export interface Income {
+  id: string;
+  accountId: string;
+  amount: number;
+  date: string;
+  /** Pay period key (salaryConfirmations) it was confirmed for. */
+  periodKey: string | null;
+  createdAt: string;
+}
+
+/**
+ * Upcoming payment — replaces planned + recurring expenses (and future-dated ones typed in from
+ * now on):
+ *  - 'date': one payment on `date`;
+ *  - 'month': once some time in the month starting `date` (yyyy-MM-01), no exact day;
+ *  - 'repeat': on `date`, then by freq/interval/weekdays (date = the next one still to come).
+ * When its day comes it waits in "Awaiting answer" (paid / other amount / didn't happen); only then
+ * it becomes an expense.
+ */
+export type UpcomingMode = 'date' | 'month' | 'repeat';
+
+export interface Upcoming {
+  id: string;
+  amount: number;
+  categoryId: string;
+  /** null = the primary account. */
+  accountId: string | null;
+  comment: string | null;
+  mode: UpcomingMode;
+  date: string;
+  freq: RecurrenceFreq | null;
+  interval: number;
+  weekdays: number[] | null;
+  createdAt: string;
+}
+
+export type UpcomingDraft = Omit<Upcoming, 'id' | 'createdAt'>;

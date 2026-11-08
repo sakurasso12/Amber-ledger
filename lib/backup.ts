@@ -32,6 +32,9 @@ const TABLES = [
   'accounts',
   'transfers',
   'loans',
+  'adjustments',
+  'incomes',
+  'upcoming',
 ] as const;
 
 /** Settings that belong to this phone, not to the data: kept as they are on import. (The profile
@@ -142,6 +145,8 @@ export async function restoreBackup(payload: BackupPayload): Promise<void> {
     financeLockEnabled: hasPassword && !!imported.financeLockEnabled,
     financeUnlockedUntil: null,
     onboardingDone: true,
+    // A backup from before finance v2 has no financeModel: its data is moved over on the load below.
+    financeModel: imported.financeModel ?? 1,
     // Coming from another phone during the first launch: nothing "new" to show on top.
     lastSeenVersion: settings.lastSeenVersion ?? Constants.expoConfig?.version ?? null,
   });

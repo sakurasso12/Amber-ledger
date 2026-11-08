@@ -1,3 +1,3 @@
-import { PlannedExpensesScreen } from '@/screens/PlannedExpensesScreen';
+import { UpcomingScreen } from '@/screens/UpcomingScreen';
 
-export default PlannedExpensesScreen;
+export default UpcomingScreen;

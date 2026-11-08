@@ -2,9 +2,9 @@
   "expo": {
     "name": "Amber Ledger",
     "slug": "amber-ledger",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "scheme": "amberledger",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {

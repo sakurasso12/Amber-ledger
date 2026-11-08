@@ -117,10 +117,17 @@ export interface PayrollState {
 /**
  * Where every worked day's money currently is. A closed period waits in "Должно прийти" until the
  * user confirms its salary arrived (the prompt starts on payday); the confirmed amount then goes
- * into Bank. Periods paid before the last manual Bank update are treated as already included in it.
+ * as an income into the chosen account (finance v2).
  */
-export function payrollState(workDays: WorkDay[], settings: AppSettings, now: Date = new Date()): PayrollState {
-  const setAt = settings.bankBalanceSetAt ? new Date(settings.bankBalanceSetAt) : null;
+export function payrollState(
+  workDays: WorkDay[],
+  settings: AppSettings,
+  now: Date = new Date(),
+  /** Before finance v2 a manual Bank update meant "salaries paid before it are already in it".
+   * Only the v2 migration still uses that rule; since v2 a period is done once it's answered. */
+  opts: { legacyAnchor?: boolean } = {}
+): PayrollState {
+  const setAt = opts.legacyAnchor && settings.bankBalanceSetAt ? new Date(settings.bankBalanceSetAt) : null;
   const currentPeriod = payoutRange(now, settings);
 
   const byPeriod = new Map<string, { period: DateRange; amount: number }>();
@@ -150,7 +157,7 @@ export function payrollState(workDays: WorkDay[], settings: AppSettings, now: Da
   }
   awaiting.sort((a, b) => a.period.start.getTime() - b.period.start.getTime());
 
-  // Only what went to the main card — salary paid into another card counts there (lib/accounts).
+  // LEGACY (migration only): what went to the main card since Bank was last typed in.
   const creditedSinceSet = Object.values(settings.salaryConfirmations)
     .filter((c) => (c.accountId ?? 'main') === 'main' && (!setAt || new Date(c.confirmedAt) > setAt))
     .reduce((sum, c) => sum + c.amount, 0);

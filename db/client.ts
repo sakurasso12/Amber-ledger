@@ -95,6 +95,21 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     if (!columns.some((c) => c.name === 'target')) await db.execAsync('ALTER TABLE accounts ADD COLUMN target REAL');
   }
 
+  // 10: a development build added start/end dates to planned expenses — harmless if present.
+  if (currentVersion < 11) {
+    // Finance v2 (see lib/financeMigration.ts): the main card becomes an accounts row, savings get a
+    // rate, expenses keep the exchange rate they were logged at. New tables are created above; the
+    // data itself is moved by the store once settings are loaded (settings.financeModel).
+    const add = async (table: string, column: string, type: string) => {
+      const cols = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
+      if (!cols.some((c) => c.name === column)) await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    };
+    await add('accounts', 'is_primary', 'INTEGER NOT NULL DEFAULT 0');
+    await add('accounts', 'rate_percent', 'REAL');
+    await add('accounts', 'opened_at', 'TEXT');
+    await add('expenses', 'rate', 'REAL');
+  }
+
   if (currentVersion < SCHEMA_VERSION) {
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }

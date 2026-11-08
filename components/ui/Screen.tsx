@@ -1,5 +1,6 @@
 import React from 'react';
-import { ImageBackground, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { ImageBackground, StyleProp, StyleSheet, useWindowDimensions, View, ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useKeyboardHeight } from './useKeyboardHeight';
@@ -15,7 +16,16 @@ export function Screen({ children, style }: { children: React.ReactNode; style?:
   // An inner wrapper (not padding on the root) so absolutely positioned children — the + button,
   // the quick-add bar — move up with the keyboard too.
   const keyboardHeight = useKeyboardHeight();
-  const content = <View style={[styles.flex, { marginBottom: keyboardHeight }]}>{children}</View>;
+  // Landscape: keep clear of the side the camera cut-out / navigation buttons moved to, and hold the
+  // content to a readable column instead of stretching cards across the whole width.
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const wide = width - insets.left - insets.right > MAX_CONTENT_WIDTH;
+  const content = (
+    <View style={[styles.flex, { marginBottom: keyboardHeight, paddingLeft: insets.left, paddingRight: insets.right }]}>
+      <View style={[styles.flex, wide && styles.column]}>{children}</View>
+    </View>
+  );
 
   if (backgroundImageUri) {
     return (
@@ -28,6 +38,10 @@ export function Screen({ children, style }: { children: React.ReactNode; style?:
   return <View style={[styles.flex, { backgroundColor: theme.colors.background }, style]}>{content}</View>;
 }
 
+/** Widest the content gets (phones in landscape, tablets); the background still fills the screen. */
+export const MAX_CONTENT_WIDTH = 860;
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  column: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center' },
 });

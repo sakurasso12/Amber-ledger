@@ -97,6 +97,20 @@ export interface AppSettings {
   savingsOpenedAt: string | null;
   /** The welcome cards were shown (first launch). */
   onboardingDone: boolean;
+  /** 2 once the finance v2 migration (lib/financeMigration.ts) ran on this device's data. */
+  financeModel: 1 | 2;
+  /** Exchange rates: currency → how much one unit is in the app currency ("€" → 4.3). Set from
+   * transfers between currencies, editable in Settings → Currencies. */
+  currencyRates: Record<string, number>;
+  /** Weekly balance check: weekday (0 = Sunday … 6) it asks "is it still X?", null = off. */
+  reconcileWeekday: number | null;
+  /** Account id → yyyy-MM-dd (week start) of the last answered weekly check. */
+  reconciledWeeks: Record<string, string>;
+  /** "Awaiting answer" items put off with "not yet": item key → ISO time until which it's hidden. */
+  pendingSnoozed: Record<string, string>;
+  /** Category budgets: category id → month (yyyy-MM-01) the "keep or change for next month?"
+   * question was answered for. */
+  budgetMonthChoice: Record<string, string>;
   /** Home screen streak widgets: widget id → habit series id it shows (picked by tapping it). */
   streakWidgets: Record<string, string>;
   /** Level-up sound when the task ring fills. */
@@ -174,6 +188,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   financeLockMinutes: 4,
   financeUnlockedUntil: null,
   savingsCard: 'ask',
+  financeModel: 1,
+  currencyRates: {},
+  reconcileWeekday: 0,
+  reconciledWeeks: {},
+  pendingSnoozed: {},
+  budgetMonthChoice: {},
   savingsBalance: 0,
   savingsRatePercent: 0,
   savingsOpenedAt: null,

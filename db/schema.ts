@@ -1,7 +1,7 @@
 export const DB_NAME = 'amber-ledger.db';
 
 /** Current schema version. Bump this and append a migration when the schema changes. */
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 11;
 
 export const CREATE_TABLES_SQL = `
 PRAGMA journal_mode = WAL;
@@ -63,7 +63,8 @@ CREATE TABLE IF NOT EXISTS expenses (
   plan_id TEXT,
   plan_role TEXT,
   task_id TEXT,
-  account_id TEXT
+  account_id TEXT,
+  rate REAL
 );
 
 CREATE TABLE IF NOT EXISTS accounts (
@@ -75,7 +76,10 @@ CREATE TABLE IF NOT EXISTS accounts (
   set_at TEXT,
   target REAL,
   sort_order INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  is_primary INTEGER NOT NULL DEFAULT 0,
+  rate_percent REAL,
+  opened_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS loans (
@@ -138,6 +142,39 @@ CREATE TABLE IF NOT EXISTS recurring_expenses (
   interval INTEGER NOT NULL DEFAULT 1,
   weekdays TEXT,
   next_due_date TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS adjustments (
+  id TEXT PRIMARY KEY NOT NULL,
+  account_id TEXT NOT NULL,
+  amount REAL NOT NULL,
+  date TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  note TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS incomes (
+  id TEXT PRIMARY KEY NOT NULL,
+  account_id TEXT NOT NULL,
+  amount REAL NOT NULL,
+  date TEXT NOT NULL,
+  period_key TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS upcoming (
+  id TEXT PRIMARY KEY NOT NULL,
+  amount REAL NOT NULL,
+  category_id TEXT NOT NULL REFERENCES categories(id),
+  account_id TEXT,
+  comment TEXT,
+  mode TEXT NOT NULL,
+  date TEXT NOT NULL,
+  freq TEXT,
+  interval INTEGER NOT NULL DEFAULT 1,
+  weekdays TEXT,
   created_at TEXT NOT NULL
 );
 

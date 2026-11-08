@@ -1,219 +1,219 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
-import { CustomizableCard, Button, TextField, useKeyboardHeight } from '@/components/ui';
+import { CustomizableCard, Button, TextField } from '@/components/ui';
 import { useTranslation } from '@/i18n';
+import { CommittedItem, sumItems } from '@/lib/ledger';
+import { categoryLabel } from '@/lib/categoryLabel';
+import { Category } from '@/types';
+import { MoneyDialog } from './MoneyDialog';
 
 interface BalanceCardProps {
-  /** Cash on hand: manual base − expenses + salaries credited since (see FinanceScreen). Spending
-   * plans' limits are already taken off this — it's what's free to spend. */
-  bank: number;
-  /** The part of plan limits not spent yet: still in the account, but promised to the plans. */
-  inPlans: number;
-  spentSinceSet: number;
-  /** Salary added to Bank automatically on paydays since it was last set by hand. */
-  creditedSinceSet: number;
-  /** The typed-in amount (null = left as it was, only the name changed) and the bank's name. */
-  onEditBank: (newBase: number | null, bankName: string) => void;
   /** Bank name of the main card ("" = not named). */
-  bankName: string;
+  name: string;
+  /** What's on the main card now — the sum of its records (lib/ledger balanceOf). */
+  balance: number;
+  /** Spent from it since the 1st. */
+  spentMonth: number;
+  /** Money already spoken for until the next payday (lib/ledger committedUntil). */
+  committed: CommittedItem[];
+  /** The next payday, formatted ("10 Nov"). */
+  paydayLabel: string;
+  /** The real balance typed in (null = only renamed) and the name. */
+  onEdit: (real: number | null, name: string) => void;
   /** Closed pay periods waiting for their salary to be confirmed. */
   awaiting: number;
-  /** Date range of the awaiting periods, or null when nothing is waiting. */
   awaitingLabel: string | null;
-  /** Earnings of the current (still open) period — shown greyed out, not editable. */
+  /** Earnings of the current (still open) period — greyed out. */
   accruing: number;
   accruingLabel: string;
-  /** Known future expenses not yet paid — subtracted from the projected total. */
-  plannedTotal: number;
   currency: string;
+  categories: Category[];
 }
 
+/**
+ * The main card on Finance (finance v2): the big figure is what's on the card NOW; under it, in
+ * grey, what's left after everything already spoken for until payday, and a bar of free vs spoken
+ * for. Tapping the grey line lists what it's made of. Next to it: salary still to come.
+ */
 export function BalanceCard({
-  bank: free,
-  inPlans,
-  spentSinceSet,
-  creditedSinceSet,
-  onEditBank,
+  name,
+  balance,
+  spentMonth,
+  committed,
+  paydayLabel,
+  onEdit,
   awaiting,
   awaitingLabel,
   accruing,
   accruingLabel,
-  plannedTotal,
   currency,
-  bankName,
+  categories,
 }: BalanceCardProps) {
   const theme = useTheme();
-  const keyboardHeight = useKeyboardHeight();
   const tr = useTranslation();
-  // The big figure is what's in the account (matches your bank app); "free" leaves the plans out.
-  const bank = free + inPlans;
-  const bankColor = bank >= 0 ? theme.colors.success : theme.colors.danger;
-  // What will be on the card once the salary for the closed period arrives. The still-accruing
-  // current period is left out — that money isn't earned yet.
-  const total = free + awaiting - plannedTotal;
+  const committedTotal = sumItems(committed);
+  const afterAll = balance - committedTotal;
+  const total = afterAll + awaiting;
 
   const [editing, setEditing] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [nameDraft, setNameDraft] = useState('');
-  const bankLabel = bankName.trim() || tr.financeScreen.bank;
+  const label = name.trim() || tr.financeScreen.bank;
 
   function openEditor() {
-    setDraft(bank.toFixed(0));
-    setNameDraft(bankName);
+    setDraft(balance.toFixed(2).replace(/\.00$/, ''));
+    setNameDraft(name);
     setEditing(true);
   }
 
   function save() {
     const n = parseFloat(draft.replace(',', '.'));
-    // Just renaming must not reset the balance (and its "spent" count).
-    if (draft.trim() === bank.toFixed(0)) onEditBank(null, nameDraft.trim());
-    else if (Number.isFinite(n)) onEditBank(n, nameDraft.trim());
+    const same = Number.isFinite(n) && Math.abs(n - balance) < 0.005;
+    // Just renaming adds no correction.
+    onEdit(same || !Number.isFinite(n) ? null : n, nameDraft.trim());
     setEditing(false);
   }
 
   const muted = theme.colors.textMuted;
-  const totalColor = total >= 0 ? theme.colors.success : theme.colors.danger;
-  const signed = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(0)} ${currency}`;
   const money = (n: number) => `${n.toFixed(0)} ${currency}`;
+  const signed = (n: number) => `${n >= 0 ? '' : '−'}${Math.abs(n).toFixed(0)} ${currency}`;
+  const balanceColor = balance >= 0 ? theme.colors.success : theme.colors.danger;
 
-  const bankDetails = (
-    <>
-      <Text style={[styles.subline, { color: muted }]}>
-        {tr.financeScreen.spent.toLowerCase()}: {spentSinceSet.toFixed(0)}
-      </Text>
-      {inPlans > 0 ? (
-        <Text style={[styles.subline, { color: muted }]}>
-          {tr.financeScreen.inPlans}: {inPlans.toFixed(0)} · {tr.financeScreen.free}: {free.toFixed(0)}
-        </Text>
-      ) : null}
-      {creditedSinceSet > 0 ? (
-        <Text style={[styles.subline, { color: muted }]}>
-          {tr.financeScreen.salaryCredited}: +{creditedSinceSet.toFixed(0)}
-        </Text>
-      ) : null}
-    </>
+  // Free vs spoken for: the bar is the card's money; the spoken-for part sits on the right.
+  const freeRatio = balance > 0 ? Math.max(0, Math.min(1, afterAll / balance)) : 0;
+  const bar = (
+    <View style={[styles.bar, { backgroundColor: theme.dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }]}>
+      <View style={{ flex: freeRatio, backgroundColor: afterAll >= 0 ? theme.colors.success : theme.colors.danger, borderRadius: 3 }} />
+      <View style={{ flex: 1 - freeRatio }} />
+    </View>
   );
-  const accruingLine = `${accruingLabel} · ${tr.financeScreen.accruing}`;
-  const plannedNote =
-    plannedTotal > 0 ? (
-      <Text style={[styles.plannedNote, { color: muted }]}>
-        {tr.financeScreen.plannedIncluded}: -{plannedTotal.toFixed(0)}
+
+  const main = (big: boolean) => (
+    <Pressable onPress={openEditor} style={styles.mainCol}>
+      <Text style={[styles.header, { color: muted }]}>
+        {label} <Text style={{ color: theme.colors.accent }}>✏️</Text>
       </Text>
-    ) : null;
+      <Text numberOfLines={1} adjustsFontSizeToFit style={[big ? styles.heroAmount : styles.amount, { color: balanceColor }]}>
+        {signed(balance)}
+      </Text>
+      <Pressable onPress={() => setListOpen(true)} hitSlop={6}>
+        <Text style={[styles.after, { color: muted }]} numberOfLines={1}>
+          ▸ {tr.money.untilPayday(paydayLabel)}: <Text style={{ color: muted, fontWeight: '800' }}>{signed(afterAll)}</Text>
+        </Text>
+      </Pressable>
+      {bar}
+      {spentMonth > 0 ? (
+        <Text style={[styles.subline, { color: muted }]}>
+          {tr.money.spentMonth}: {spentMonth.toFixed(0)}
+        </Text>
+      ) : null}
+    </Pressable>
+  );
+
+  const incoming = (
+    <View style={styles.column}>
+      <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.incoming}</Text>
+      {awaitingLabel ? (
+        <>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
+          <Text style={[styles.subline, { color: muted }]}>{awaitingLabel}</Text>
+        </>
+      ) : null}
+      <Text numberOfLines={1} adjustsFontSizeToFit style={[awaitingLabel ? styles.accruingAmount : styles.amount, { color: muted }]}>
+        {awaitingLabel ? '+ ' : ''}
+        {money(accruing)}
+      </Text>
+      <Text style={[styles.subline, { color: muted }]}>{`${accruingLabel} · ${tr.financeScreen.accruing}`}</Text>
+    </View>
+  );
 
   let body: React.ReactNode;
-  switch (theme.layout.balance) {
-    // Neon: the projected total is the hero, bank and incoming sit underneath as two pills.
-    case 'hero':
-      body = (
-        <View style={styles.heroWrap}>
-          <Text style={[styles.header, { color: muted, textAlign: 'center' }]}>{tr.financeScreen.total}</Text>
-          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.heroAmount, { color: totalColor }]}>{signed(total)}</Text>
-          {plannedNote}
-          <View style={styles.heroPills}>
-            <Pressable onPress={openEditor} style={[styles.heroPill, { backgroundColor: theme.colors.surfaceAlt }]}>
-              <Text style={[styles.header, { color: muted }]}>{bankLabel} ✏️</Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: bankColor }]}>{signed(bank)}</Text>
-              {bankDetails}
-            </Pressable>
-            <View style={[styles.heroPill, { backgroundColor: theme.colors.surfaceAlt }]}>
-              <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.incoming}</Text>
-              {awaitingLabel ? (
-                <>
-                  <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.pillAmount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
-                  <Text style={[styles.subline, { color: muted }]}>{awaitingLabel}</Text>
-                </>
-              ) : null}
-              <Text style={[awaitingLabel ? styles.accruingAmount : styles.pillAmount, { color: muted }]}>
-                {awaitingLabel ? '+ ' : ''}
-                {money(accruing)}
-              </Text>
-              <Text style={[styles.subline, { color: muted }]}>{accruingLine}</Text>
-            </View>
-          </View>
+  if (theme.layout.balance === 'hero') {
+    // Neon: the card's money is the hero; salary to come sits underneath as a pill.
+    body = (
+      <View style={styles.heroWrap}>
+        {main(true)}
+        <View style={[styles.heroPill, { backgroundColor: theme.colors.surfaceAlt }]}>{incoming}</View>
+      </View>
+    );
+  } else {
+    body = (
+      <>
+        <View style={styles.columns}>
+          {main(false)}
+          <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+          {incoming}
         </View>
-      );
-      break;
-
-    // Amber (classic): bank | incoming columns, total underneath.
-    case 'columns':
-    default:
-      body = (
-        <>
-          <View style={styles.columns}>
-            <Pressable style={styles.column} onPress={openEditor}>
-              <Text style={[styles.header, { color: muted }]}>
-                {bankLabel} <Text style={{ color: theme.colors.accent }}>✏️</Text>
-              </Text>
-              <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: bankColor }]}>{signed(bank)}</Text>
-              {bankDetails}
-            </Pressable>
-
-            <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-
-            <View style={styles.column}>
-              <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.incoming}</Text>
-              {awaitingLabel ? (
-                <>
-                  <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
-                  <Text style={[styles.subline, { color: muted }]}>{awaitingLabel}</Text>
-                </>
-              ) : null}
-              <Text numberOfLines={1} adjustsFontSizeToFit style={[awaitingLabel ? styles.accruingAmount : styles.amount, { color: muted }]}>
-                {awaitingLabel ? '+ ' : ''}
-                {money(accruing)}
-              </Text>
-              <Text style={[styles.subline, { color: muted }]}>{accruingLine}</Text>
-            </View>
-          </View>
-
-          <View style={[styles.totalRow, { borderTopColor: theme.colors.border }]}>
-            <Text style={[styles.totalLabel, { color: muted }]}>{tr.financeScreen.total}</Text>
-            <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.totalAmount, { color: totalColor }]}>{signed(total)}</Text>
-          </View>
-          {plannedNote}
-        </>
-      );
+        <View style={[styles.totalRow, { borderTopColor: theme.colors.border }]}>
+          <Text style={[styles.totalLabel, { color: muted }]}>{tr.financeScreen.total}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.totalAmount, { color: total >= 0 ? theme.colors.success : theme.colors.danger }]}>
+            {signed(total)}
+          </Text>
+        </View>
+      </>
+    );
   }
+
+  const kindLabel: Record<CommittedItem['kind'], string> = {
+    expense: tr.money.kindExpense,
+    upcoming: tr.money.kindUpcoming,
+    loan: tr.money.kindLoan,
+    budget: tr.money.kindBudget,
+  };
+  const categoryById = new Map(categories.map((c) => [c.id, c]));
 
   return (
     <CustomizableCard widgetId="finance-balance">
       {body}
 
-      <Modal visible={editing} transparent animationType="fade" onRequestClose={() => setEditing(false)}>
-        <Pressable style={[styles.backdrop, { paddingBottom: keyboardHeight }]} onPress={() => setEditing(false)}>
-          <Pressable
-            style={[styles.dialog, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <Text style={[styles.dialogTitle, { color: theme.colors.text }]}>{tr.financeScreen.editBankTitle(currency)}</Text>
-            <Text style={[styles.dialogHint, { color: theme.colors.textMuted }]}>{tr.financeScreen.editBankHint}</Text>
-            <TextField
-              label={tr.accounts.bankName}
-              value={nameDraft}
-              onChangeText={setNameDraft}
-              placeholder={tr.accounts.bankNamePlaceholder}
-            />
-            <TextField value={draft} onChangeText={setDraft} keyboardType="decimal-pad" autoFocus />
-            <View style={styles.dialogActions}>
-              <Button title={tr.taskEditor.cancel} variant="secondary" onPress={() => setEditing(false)} style={styles.dialogButton} />
-              <Button title={tr.taskEditor.save} onPress={save} style={styles.dialogButton} />
+      <MoneyDialog visible={editing} onClose={() => setEditing(false)} title={tr.financeScreen.editBankTitle(currency)} hint={tr.money.correctionHint}>
+        <TextField label={tr.accounts.bankName} value={nameDraft} onChangeText={setNameDraft} placeholder={tr.accounts.bankNamePlaceholder} />
+        <TextField value={draft} onChangeText={setDraft} keyboardType="decimal-pad" autoFocus />
+        <View style={styles.dialogActions}>
+          <Button title={tr.money.cancel} variant="secondary" onPress={() => setEditing(false)} style={styles.dialogButton} />
+          <Button title={tr.money.save} onPress={save} style={styles.dialogButton} />
+        </View>
+      </MoneyDialog>
+
+      <MoneyDialog visible={listOpen} onClose={() => setListOpen(false)} title={tr.money.committedTitle(paydayLabel)}>
+        {committed.length === 0 ? <Text style={{ color: muted, fontSize: 13 }}>{tr.money.committedEmpty}</Text> : null}
+        {committed.map((item) => (
+          <View key={item.key} style={[styles.row, { borderColor: theme.colors.border }]}>
+            <View style={styles.rowText}>
+              <Text style={{ color: theme.colors.text, fontSize: 14, fontWeight: '600' }} numberOfLines={1}>
+                {item.label || categoryLabel(categoryById.get(item.categoryId ?? ''), tr) || kindLabel[item.kind]}
+              </Text>
+              <Text style={{ color: muted, fontSize: 12 }}>
+                {kindLabel[item.kind]}
+                {item.date ? ` · ${new Date(`${item.date}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' })}` : ''}
+              </Text>
             </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+            <Text style={{ color: theme.colors.text, fontSize: 14, fontWeight: '700' }}>−{money(item.amount)}</Text>
+          </View>
+        ))}
+        {committed.length > 0 ? (
+          <View style={styles.row}>
+            <Text style={{ color: muted, fontSize: 13, fontWeight: '700', flex: 1 }}>{tr.financeScreen.total}</Text>
+            <Text style={{ color: theme.colors.text, fontSize: 14, fontWeight: '800' }}>−{money(committedTotal)}</Text>
+          </View>
+        ) : null}
+      </MoneyDialog>
     </CustomizableCard>
   );
 }
 
 const styles = StyleSheet.create({
   columns: { flexDirection: 'row', alignItems: 'stretch' },
+  mainCol: { flex: 1.3, gap: 4 },
   column: { flex: 1, gap: 4 },
   divider: { width: 1, marginHorizontal: 14 },
   header: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
-  amount: { fontSize: 22, fontWeight: '700' },
+  amount: { fontSize: 24, fontWeight: '800' },
+  after: { fontSize: 12, fontWeight: '600' },
+  bar: { height: 6, borderRadius: 3, flexDirection: 'row', overflow: 'hidden', marginTop: 2 },
   subline: { fontSize: 11 },
   accruingAmount: { fontSize: 15, fontWeight: '700', marginTop: 6 },
   totalRow: {
@@ -226,17 +226,11 @@ const styles = StyleSheet.create({
   },
   totalLabel: { fontSize: 12, fontWeight: '600', flexShrink: 1, marginRight: 10 },
   totalAmount: { fontSize: 19, fontWeight: '800', flexShrink: 1, textAlign: 'right' },
-  plannedNote: { fontSize: 11, textAlign: 'right', marginTop: 2 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
-  dialog: { width: 280, borderRadius: 18, borderWidth: 1, padding: 18, gap: 12 },
-  dialogTitle: { fontSize: 16, fontWeight: '700' },
-  dialogHint: { fontSize: 12, lineHeight: 17, marginTop: -8 },
   dialogActions: { flexDirection: 'row', gap: 10 },
   dialogButton: { flex: 1 },
-
-  heroWrap: { gap: 4 },
-  heroAmount: { fontSize: 40, fontWeight: '700', textAlign: 'center' },
-  heroPills: { flexDirection: 'row', gap: 10, marginTop: 14 },
-  heroPill: { flex: 1, borderRadius: 18, padding: 12, gap: 3 },
-  pillAmount: { fontSize: 19, fontWeight: '700' },
+  heroWrap: { gap: 14 },
+  heroAmount: { fontSize: 40, fontWeight: '800' },
+  heroPill: { borderRadius: 18, padding: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: 'transparent' },
+  rowText: { flex: 1, gap: 2 },
 });

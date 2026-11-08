@@ -6,7 +6,6 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useTranslation } from '@/i18n';
-import { useFinanceStore } from '@/store/useFinanceStore';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -19,28 +18,25 @@ interface MenuItem {
 
 function useMenuItems(): MenuItem[] {
   const tr = useTranslation();
-  // The old "Planned" list (future expenses taken off the forecast) is replaced by spending plans
-  // with their bars; it stays reachable only while something is still in it.
-  const hasOldPlanned = useFinanceStore((s) => s.plannedExpenses.length > 0);
-
-  const items: MenuItem[] = [
+  return [
     {
-      key: 'recurring',
-      icon: 'repeat',
-      title: tr.financeScreen.recurringLink,
-      route: '/expense/recurring',
-    },
-    {
-      key: 'planned',
+      // Finance v2: planned + recurring + dated payments in one list.
+      key: 'upcoming',
       icon: 'calendar-outline',
-      title: tr.financeScreen.plannedLink,
-      route: '/expense/planned',
+      title: tr.money.upcomingLink,
+      route: '/expense/upcoming',
     },
     {
       key: 'categories',
       icon: 'pricetags-outline',
       title: tr.financeScreen.categoriesLink,
       route: '/category/manage',
+    },
+    {
+      key: 'currencies',
+      icon: 'swap-horizontal-outline',
+      title: tr.money.currenciesTitle,
+      route: '/settings/money',
     },
     {
       // The whole Earnings screen (rate, hours per shift, currency, pay period, payday) — moved here from Settings.
@@ -50,7 +46,6 @@ function useMenuItems(): MenuItem[] {
       route: '/settings/earnings',
     },
   ];
-  return hasOldPlanned ? items : items.filter((item) => item.key !== 'planned');
 }
 
 /**

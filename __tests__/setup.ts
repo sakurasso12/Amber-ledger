@@ -35,10 +35,17 @@ jest.mock('@/db/financeRepo', () => {
     })),
     updateExpense: jest.fn(async () => {}),
     deleteExpense: jest.fn(async () => {}),
-    saveSpendPlan: jest.fn(async () => {}),
-    deleteSpendPlan: jest.fn(async () => {}),
-    createPlanSpend: jest.fn(async (planId, period, amount, date) => ({ id: id(), planId, period, amount, date, createdAt: new Date().toISOString() })),
-    deletePlanSpend: jest.fn(async () => {}),
+    saveAdjustment: jest.fn(async () => {}),
+    saveIncome: jest.fn(async () => {}),
+    saveUpcoming: jest.fn(async () => {}),
+    deleteUpcoming: jest.fn(async () => {}),
+    saveAccount: jest.fn(async () => {}),
+    deleteAccount: jest.fn(async () => {}),
+    deleteAdjustmentsOf: jest.fn(async () => {}),
+    createTransfer: jest.fn(async (draft) => ({ id: id(), createdAt: new Date().toISOString(), ...draft })),
+    deleteTransfer: jest.fn(async () => {}),
+    saveLoan: jest.fn(async () => {}),
+    deleteLoan: jest.fn(async () => {}),
   };
 });
 jest.mock('@/db/tasksRepo', () => ({

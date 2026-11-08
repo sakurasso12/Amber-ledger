@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import Stack, { TransitionPresets } from 'expo-router/js-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
@@ -34,6 +34,8 @@ function RootStack() {
   const theme = useTheme();
   useFinanceLockLifecycle();
   useEffect(() => preloadSounds(), []);
+  // Follows rotation: a quarter of the current width (portrait or landscape).
+  const { width: windowWidth } = useWindowDimensions();
   return (
     <>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
@@ -46,7 +48,7 @@ function RootStack() {
           gestureDirection: 'horizontal',
           // Swipe back starts from the left quarter of the screen. Full width stole vertical scrolls:
           // the stack's pan activates after just 5 px sideways, which most scrolls drift by.
-          gestureResponseDistance: Math.round(Dimensions.get('window').width * 0.25),
+          gestureResponseDistance: Math.round(windowWidth * 0.25),
         }}
       >
         <Stack.Screen name="(tabs)" />
@@ -56,6 +58,7 @@ function RootStack() {
         <Stack.Screen name="expense/[id]" options={MODAL} />
         <Stack.Screen name="expense/planned" options={MODAL} />
         <Stack.Screen name="expense/recurring" options={MODAL} />
+        <Stack.Screen name="expense/upcoming" options={MODAL} />
         <Stack.Screen name="category/manage" options={MODAL} />
         <Stack.Screen name="habit-widget" />
       </Stack>
@@ -73,7 +76,6 @@ function AppGate({ children }: { children: React.ReactNode }) {
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const loadTasks = useTaskStore((s) => s.load);
   const loadFinance = useFinanceStore((s) => s.load);
-  const syncRecurringExpenses = useFinanceStore((s) => s.syncRecurringExpenses);
   const resyncAllReminders = useTaskStore((s) => s.resyncAllReminders);
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -88,9 +90,6 @@ function AppGate({ children }: { children: React.ReactNode }) {
 
     Promise.all([loadTasks(), loadFinance()]).then(async () => {
       setDataLoaded(true);
-      await syncRecurringExpenses();
-      // A new month since last time: spending plans start over.
-      await useFinanceStore.getState().rollOverSpendPlans();
       // Security & storage → auto clean-up (off unless chosen; once a day).
       await runAutoCleanup().catch((error) => console.warn('[cleanup] failed:', error));
 

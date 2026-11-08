@@ -8,8 +8,8 @@ import { lockFinances } from '@/store/useFinanceLock';
 import { cancelTaskReminder, clearStickyNotification } from '@/notifications';
 import { DEFAULT_SETTINGS } from '@/types';
 import { buildHabits } from './streaks';
-import { isMainExpense } from './accounts';
-import { countsInBalance } from './expenses';
+import { primaryId } from './accounts';
+import { absorbInCheck, expenseAccountId, lastCheck } from './ledger';
 import { clearProfilePassword } from './password';
 import { deleteAllPersistedImages, deletePersistedImage } from './imagePicker';
 import { refreshHomeWidget } from './widgetRefresh';
@@ -46,6 +46,9 @@ export async function eraseFinance(): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {
     await db.execAsync(`
+      DELETE FROM adjustments;
+      DELETE FROM incomes;
+      DELETE FROM upcoming;
       DELETE FROM plan_spends;
       DELETE FROM spend_plans;
       DELETE FROM transfers;
@@ -76,6 +79,12 @@ export async function eraseFinance(): Promise<void> {
     savingsRatePercent: 0,
     savingsOpenedAt: null,
     expenseDayOrder: {},
+    currencyRates: {},
+    reconciledWeeks: {},
+    pendingSnoozed: {},
+    budgetMonthChoice: {},
+    // Back to "nothing moved yet": the load below creates a fresh main card at 0.
+    financeModel: 1,
   });
   await useFinanceStore.getState().load();
   refreshHomeWidget();
@@ -109,13 +118,12 @@ export async function eraseEverything(): Promise<void> {
 
 /**
  * Auto clean-up: deletes done tasks and expenses older than `months`. Kept: habits (their streak
- * is their history), current spending plans' records, and the bank balance — removed expenses
- * that counted against it are folded into its base so the figure doesn't jump.
+ * is their history) and every balance — the removed expenses are folded into each account's latest
+ * balance check (finance v2) so no figure jumps.
  * Runs at most once a day (call at app start).
  */
 export async function runAutoCleanup(): Promise<void> {
-  const { autoCleanupMonths, lastAutoCleanup, bankBalanceBase, bankBalanceSetAt, purgedDoneCount } =
-    useSettingsStore.getState().settings;
+  const { autoCleanupMonths, lastAutoCleanup, purgedDoneCount } = useSettingsStore.getState().settings;
   const today = todayKey();
   if (autoCleanupMonths <= 0 || lastAutoCleanup === today) return;
 
@@ -123,19 +131,21 @@ export async function runAutoCleanup(): Promise<void> {
   const cutoffKey = toDateKey(cutoff);
   const cutoffIso = cutoff.toISOString();
   const { tasks } = useTaskStore.getState();
-  const { expenses, spendPlans, accounts } = useFinanceStore.getState();
+  const { expenses, accounts, adjustments } = useFinanceStore.getState();
 
   const habitSeries = new Set(buildHabits(tasks).map((h) => h.seriesId));
   const oldTasks = tasks.filter(
     (t) => t.status === 'done' && t.completedAt && t.completedAt < cutoffIso && !habitSeries.has(t.seriesId ?? t.id)
   );
-  const keepExpenses = new Set(spendPlans.flatMap((p) => [p.reserveExpenseId, p.overspendExpenseId]).filter(Boolean) as string[]);
-  const oldExpenses = expenses.filter((e) => e.date < cutoffKey && !keepExpenses.has(e.id));
-  // A balance = base − expenses logged after it was set; take the removed ones out of the base
-  // instead (the main card's, and each other card's or cash wallet's).
-  const countedIn = (accountSetAt: string | null, list: typeof oldExpenses) =>
-    list.filter((e) => countsInBalance(e, accountSetAt)).reduce((sum, e) => sum + e.amount, 0);
-  const countedInBank = countedIn(bankBalanceSetAt, oldExpenses.filter(isMainExpense));
+  const oldExpenses = expenses.filter((e) => e.date < cutoffKey);
+  // A balance is the sum of its records: what the removed expenses took off goes into the
+  // account's latest check instead, so every balance stays exactly where it was.
+  const pid = primaryId(accounts);
+  const removedPer = new Map<string, number>();
+  for (const e of oldExpenses) {
+    const id = expenseAccountId(e, pid);
+    removedPer.set(id, (removedPer.get(id) ?? 0) + e.amount);
+  }
 
   const db = await getDb();
   await db.withTransactionAsync(async () => {
@@ -150,15 +160,14 @@ export async function runAutoCleanup(): Promise<void> {
     if (task.imageUri) await deletePersistedImage(task.imageUri);
   }
 
-  for (const account of accounts) {
-    const counted = countedIn(account.setAt, oldExpenses.filter((e) => e.accountId === account.id));
-    if (counted !== 0) await financeRepo.saveAccount({ ...account, base: account.base - counted });
+  for (const [accountId, removed] of removedPer) {
+    const check = lastCheck(accountId, adjustments);
+    if (check) await financeRepo.saveAdjustment(absorbInCheck(check, +removed));
   }
 
   useSettingsStore.getState().updateSettings({
     lastAutoCleanup: today,
     purgedDoneCount: purgedDoneCount + oldTasks.length,
-    bankBalanceBase: bankBalanceBase - countedInBank,
   });
   if (oldTasks.length > 0) await useTaskStore.getState().load();
   if (oldExpenses.length > 0) await useFinanceStore.getState().load();

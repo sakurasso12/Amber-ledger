@@ -212,6 +212,9 @@ export interface Translation {
     salary: string,
     stash: string,
     goal: string,
+    savings: string,
+    addSavings: string,
+    savingsBalanceTitle: (currency: string) => string,
     addStash: string,
     addGoal: string,
     addLoan: string,
@@ -536,6 +539,85 @@ export interface Translation {
     prompt: string;
     cancel: string;
   };
+  money: {
+    now: string;
+    untilPayday: (date: string) => string;
+    spentMonth: string;
+    committedTitle: (date: string) => string;
+    committedEmpty: string;
+    kindExpense: string;
+    kindUpcoming: string;
+    kindLoan: string;
+    kindBudget: string;
+    correctionHint: string;
+    correction: string;
+    opening: string;
+    includedTitle: string;
+    includedAdd: (date: string) => string;
+    includedYes: string;
+    includedNo: string;
+    deleteTitle: string;
+    deleteText: (date: string) => string;
+    keepBalance: string;
+    giveBack: string;
+    pendingTitle: string;
+    paid: string;
+    otherAmount: string;
+    didntHappen: string;
+    notYet: string;
+    stopRepeating: string;
+    upcomingDue: (name: string, amount: string) => string;
+    monthDue: (name: string, amount: string) => string;
+    loanDue: (name: string, amount: string) => string;
+    checkTitle: (account: string) => string;
+    checkBody: (amount: string) => string;
+    checkYes: string;
+    checkOther: string;
+    amountLabel: (currency: string) => string;
+    save: string;
+    cancel: string;
+    upcomingTitle: string;
+    upcomingLink: string;
+    upcomingHint: string;
+    modeDate: string;
+    modeMonth: string;
+    modeRepeat: string;
+    on: (date: string) => string;
+    thisMonth: string;
+    repeatsFrom: (rule: string, date: string) => string;
+    upcomingEmpty: string;
+    add: string;
+    remove: string;
+    commentLabel: string;
+    firstDate: string;
+    payFrom: string;
+    budgetsTitle: string;
+    budgetLeft: (amount: string) => string;
+    budgetOver: (amount: string) => string;
+    budgetMonthQuestion: (amount: string) => string;
+    keep: string;
+    change: string;
+    newBudget: string;
+    budgetLimit: (currency: string) => string;
+    removeBudget: string;
+    budgetsEmpty: string;
+    monthTitle: (month: string) => string;
+    currenciesTitle: string;
+    currenciesLink: string;
+    currenciesHint: (app: string) => string;
+    rateLabel: (cur: string, app: string) => string;
+    noForeign: string;
+    checkSettingsTitle: string;
+    checkSettingsHint: string;
+    checkOff: string;
+    makePrimary: string;
+    primary: string;
+    primaryCantRemove: string;
+    savingsRate: string;
+    savingsOpened: string;
+    checkNotifTitle: string;
+    checkNotifBody: string;
+  };
   savings: {
     title: string;
     askTitle: string;
@@ -618,6 +700,16 @@ const ru: Translation = {
         { title: 'Кредиты 🏦', text: 'До 3 кредитов: ежемесячный платёж, остаток и переплата считаются сами. Напомним за 5 дней до платежа.' },
         { title: 'Аванс', text: 'Деньги приходят дважды в месяц? Включи аванс в «Заработке».' },
         { title: 'Будущие траты', text: 'Трата на будущую дату теперь снимается с баланса именно в этот день. А пароль можно показать глазом 👁.' },
+      ],
+      '1.5.0': [
+        { title: 'Что нового в 1.5.0', text: 'Финансы переделаны с нуля: баланс больше не сбивается. Полистай.' },
+        { title: 'Честный баланс 💳', text: 'Наверху — сколько на карте сейчас. Ввёл реальную сумму — разница сохранится «коррекцией», ничего не вычтется дважды.' },
+        { title: 'До зарплаты', text: 'Под балансом серым — сколько останется после всех трат до зарплаты. Нажми, чтобы увидеть, из чего это.' },
+        { title: 'Ждёт ответа', text: 'Зарплата, кредит, подписка: в свой день спросим «Оплачено / Другая сумма / Ещё нет». Без ответа баланс не трогаем.' },
+        { title: 'Будущие платежи', text: 'Запланированные и повторяющиеся траты теперь в одном списке: на дату, в этом месяце или по расписанию.' },
+        { title: 'Бюджеты 🌊', text: 'Планы стали бюджетами на категорию: та же волна, но деньги заранее не списываются.' },
+        { title: 'Валюты и сверка', text: 'Курс берётся из переводов и правится вручную. Раз в неделю спросим, совпадает ли баланс с банком.' },
+        { title: 'Можно боком', text: 'Приложение работает и в горизонтальном положении.' },
       ],
     },
   },
@@ -831,6 +923,9 @@ const ru: Translation = {
     salary: 'зарплата',
     stash: 'Заначка',
     goal: 'Цель',
+    savings: 'Сбережения',
+    addSavings: '🏦 Сбережения',
+    savingsBalanceTitle: (currency) => `На сберегательном счёте (${currency})`,
     addStash: '🫙 Заначка',
     addGoal: '🎯 Цель',
     addLoan: '🏦 Кредит',
@@ -1191,6 +1286,85 @@ const ru: Translation = {
     prompt: 'Разблокировать финансы',
     cancel: 'Отмена',
   },
+  money: {
+    now: 'Сейчас',
+    untilPayday: (date) => `до зарплаты ${date}`,
+    spentMonth: 'потрачено за месяц',
+    committedTitle: (date) => `Уже расписано до ${date}`,
+    committedEmpty: 'До зарплаты ничего не запланировано.',
+    kindExpense: 'Трата на дату',
+    kindUpcoming: 'Будущий платёж',
+    kindLoan: 'Кредит',
+    kindBudget: 'Остаток бюджета',
+    correctionHint: 'Введи сумму из приложения банка. Разница сохранится отдельной строкой — «коррекция».',
+    correction: 'Коррекция',
+    opening: 'Стартовый баланс',
+    includedTitle: 'Уже в балансе?',
+    includedAdd: (date) => `Трата датирована ${date} или раньше — тогда ты вводил реальный баланс. Она уже была в нём учтена?`,
+    includedYes: 'Да, была',
+    includedNo: 'Нет, вычесть',
+    deleteTitle: 'Оставить баланс?',
+    deleteText: (date) => `Эта трата со дня сверки баланса (${date}) или раньше. Оставить баланс как есть или вернуть деньги?`,
+    keepBalance: 'Оставить как есть',
+    giveBack: 'Вернуть деньги',
+    pendingTitle: 'Ждёт ответа',
+    paid: 'Оплачено',
+    otherAmount: 'Другая сумма',
+    didntHappen: 'Не было',
+    notYet: 'Ещё нет',
+    stopRepeating: 'Больше не повторять',
+    upcomingDue: (name, amount) => `${name}: ${amount} — списалось?`,
+    monthDue: (name, amount) => `${name}: ${amount} в этом месяце — оплачено?`,
+    loanDue: (name, amount) => `Платёж «${name}»: ${amount} — оплачено?`,
+    checkTitle: (account) => `Сверка: ${account}`,
+    checkBody: (amount) => `Должно быть ${amount}. Так?`,
+    checkYes: 'Да',
+    checkOther: 'Другая сумма',
+    amountLabel: (currency) => `Сумма (${currency})`,
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    upcomingTitle: 'Будущие платежи',
+    upcomingLink: 'Будущие',
+    upcomingHint: 'Аренда, подписки, покупка в этом месяце. Когда наступит день — спрошу, списалось ли, и только тогда вычту.',
+    modeDate: 'На дату',
+    modeMonth: 'В этом месяце',
+    modeRepeat: 'Повторяется',
+    on: (date) => `на ${date}`,
+    thisMonth: 'в этом месяце',
+    repeatsFrom: (rule, date) => `${rule} · следующий ${date}`,
+    upcomingEmpty: 'Пока ничего не запланировано.',
+    add: 'Добавить',
+    remove: 'Удалить',
+    commentLabel: 'Название',
+    firstDate: 'Дата',
+    payFrom: 'С какого счёта',
+    budgetsTitle: 'Бюджеты',
+    budgetLeft: (amount) => `осталось ${amount}`,
+    budgetOver: (amount) => `сверх лимита ${amount}`,
+    budgetMonthQuestion: (amount) => `Новый месяц: оставить ${amount}?`,
+    keep: 'Оставить',
+    change: 'Изменить',
+    newBudget: 'Бюджет на категорию',
+    budgetLimit: (currency) => `Лимит на месяц (${currency})`,
+    removeBudget: 'Убрать бюджет',
+    budgetsEmpty: 'Поставь лимит на категорию — полоска покажет, сколько осталось.',
+    monthTitle: (month) => month,
+    currenciesTitle: 'Валюты',
+    currenciesLink: 'Валюты и курс',
+    currenciesHint: (app) => `Сколько ${app} стоит единица валюты. Обновляется сама при переводе между валютами; здесь можно поправить.`,
+    rateLabel: (cur, app) => `1 ${cur} = … ${app}`,
+    noForeign: 'Счетов в других валютах нет.',
+    checkSettingsTitle: 'Сверка баланса раз в неделю',
+    checkSettingsHint: 'В этот день спрошу: «На карте должно быть X. Так?» — один тап, и баланс не расходится с банком.',
+    checkOff: 'Выкл.',
+    makePrimary: 'Сделать основной',
+    primary: 'Основная',
+    primaryCantRemove: 'Основную карту нельзя удалить — сначала сделай основной другую.',
+    savingsRate: 'Процент в год, %',
+    savingsOpened: 'Дата открытия',
+    checkNotifTitle: 'Сверка баланса',
+    checkNotifBody: 'Загляни в Финансы: один тап — и баланс совпадает с банком.',
+  },
   savings: {
     title: 'Подушка безопасности',
     askTitle: 'Добавить карточку для подушки?',
@@ -1273,6 +1447,16 @@ const uk: Translation = {
         { title: 'Кредити 🏦', text: 'До 3 кредитів: щомісячний платіж, залишок і переплата рахуються самі. Нагадаємо за 5 днів до платежу.' },
         { title: 'Аванс', text: 'Гроші приходять двічі на місяць? Увімкни аванс у «Заробітку».' },
         { title: 'Майбутні витрати', text: 'Витрата на майбутню дату тепер знімається з балансу саме в цей день. А пароль можна показати оком 👁.' },
+      ],
+      '1.5.0': [
+        { title: 'Що нового в 1.5.0', text: 'Фінанси перероблені з нуля: баланс більше не збивається. Погортай.' },
+        { title: 'Чесний баланс 💳', text: 'Зверху — скільки на картці зараз. Ввів реальну суму — різниця збережеться «корекцією», нічого не відніметься двічі.' },
+        { title: 'До зарплати', text: 'Під балансом сірим — скільки лишиться після всіх трат до зарплати. Натисни, щоб побачити, з чого це.' },
+        { title: 'Чекає відповіді', text: 'Зарплата, кредит, підписка: у свій день спитаємо «Сплачено / Інша сума / Ще ні». Без відповіді баланс не чіпаємо.' },
+        { title: 'Майбутні платежі', text: 'Заплановані й регулярні витрати тепер в одному списку: на дату, цього місяця або за розкладом.' },
+        { title: 'Бюджети 🌊', text: 'Плани стали бюджетами на категорію: та сама хвиля, але гроші наперед не списуються.' },
+        { title: 'Валюти і звірка', text: 'Курс береться з переказів і правиться вручну. Раз на тиждень спитаємо, чи збігається баланс із банком.' },
+        { title: 'Можна боком', text: 'Застосунок працює і в горизонтальному положенні.' },
       ],
     },
   },
@@ -1486,6 +1670,9 @@ const uk: Translation = {
     salary: 'зарплата',
     stash: 'Заначка',
     goal: 'Ціль',
+    savings: 'Заощадження',
+    addSavings: '🏦 Заощадження',
+    savingsBalanceTitle: (currency) => `На ощадному рахунку (${currency})`,
     addStash: '🫙 Заначка',
     addGoal: '🎯 Ціль',
     addLoan: '🏦 Кредит',
@@ -1844,6 +2031,85 @@ const uk: Translation = {
     prompt: 'Розблокувати фінанси',
     cancel: 'Скасувати',
   },
+  money: {
+    now: 'Зараз',
+    untilPayday: (date) => `до зарплати ${date}`,
+    spentMonth: 'витрачено за місяць',
+    committedTitle: (date) => `Уже розписано до ${date}`,
+    committedEmpty: 'До зарплати нічого не заплановано.',
+    kindExpense: 'Витрата на дату',
+    kindUpcoming: 'Майбутній платіж',
+    kindLoan: 'Кредит',
+    kindBudget: 'Залишок бюджету',
+    correctionHint: 'Введи суму, яку показує застосунок банку. Різниця збережеться окремим рядком — «корекція».',
+    correction: 'Корекція',
+    opening: 'Стартовий баланс',
+    includedTitle: 'Вже в балансі?',
+    includedAdd: (date) => `Витрата датована ${date} або раніше — тоді ти вводив реальний баланс. Вона вже була врахована в ньому?`,
+    includedYes: 'Так, була',
+    includedNo: 'Ні, відняти',
+    deleteTitle: 'Баланс лишити?',
+    deleteText: (date) => `Ця витрата з дня звірки балансу (${date}) або раніше. Лишити баланс як є чи повернути гроші?`,
+    keepBalance: 'Лишити як є',
+    giveBack: 'Повернути гроші',
+    pendingTitle: 'Чекає відповіді',
+    paid: 'Сплачено',
+    otherAmount: 'Інша сума',
+    didntHappen: 'Не було',
+    notYet: 'Ще ні',
+    stopRepeating: 'Більше не повторювати',
+    upcomingDue: (name, amount) => `${name}: ${amount} — списалось?`,
+    monthDue: (name, amount) => `${name}: ${amount} цього місяця — сплачено?`,
+    loanDue: (name, amount) => `Платіж «${name}»: ${amount} — сплачено?`,
+    checkTitle: (account) => `Звірка: ${account}`,
+    checkBody: (amount) => `Має бути ${amount}. Так?`,
+    checkYes: 'Так',
+    checkOther: 'Інша сума',
+    amountLabel: (currency) => `Сума (${currency})`,
+    save: 'Зберегти',
+    cancel: 'Скасувати',
+    upcomingTitle: 'Майбутні платежі',
+    upcomingLink: 'Майбутні',
+    upcomingHint: 'Оренда, підписки, покупка цього місяця. Коли настане день — спитаю, чи списалось, і тільки тоді віднімаю.',
+    modeDate: 'На дату',
+    modeMonth: 'Цього місяця',
+    modeRepeat: 'Повторюється',
+    on: (date) => `на ${date}`,
+    thisMonth: 'цього місяця',
+    repeatsFrom: (rule, date) => `${rule} · наступний ${date}`,
+    upcomingEmpty: 'Поки нічого не заплановано.',
+    add: 'Додати',
+    remove: 'Видалити',
+    commentLabel: 'Назва',
+    firstDate: 'Дата',
+    payFrom: 'З якого рахунку',
+    budgetsTitle: 'Бюджети',
+    budgetLeft: (amount) => `лишилось ${amount}`,
+    budgetOver: (amount) => `понад ліміт ${amount}`,
+    budgetMonthQuestion: (amount) => `Новий місяць: лишити ${amount}?`,
+    keep: 'Лишити',
+    change: 'Змінити',
+    newBudget: 'Бюджет на категорію',
+    budgetLimit: (currency) => `Ліміт на місяць (${currency})`,
+    removeBudget: 'Прибрати бюджет',
+    budgetsEmpty: 'Постав ліміт на категорію — смужка покаже, скільки лишилось.',
+    monthTitle: (month) => month,
+    currenciesTitle: 'Валюти',
+    currenciesLink: 'Валюти й курс',
+    currenciesHint: (app) => `Скільки ${app} коштує одиниця валюти. Оновлюється сама, коли переказуєш між валютами; тут можна поправити.`,
+    rateLabel: (cur, app) => `1 ${cur} = … ${app}`,
+    noForeign: 'Рахунків в інших валютах немає.',
+    checkSettingsTitle: 'Звірка балансу раз на тиждень',
+    checkSettingsHint: 'Того дня спитаю: «На картці має бути X. Так?» — один тап, і баланс не розходиться з банком.',
+    checkOff: 'Вимк.',
+    makePrimary: 'Зробити основною',
+    primary: 'Основна',
+    primaryCantRemove: 'Основну картку не можна видалити — спершу зроби основною іншу.',
+    savingsRate: 'Відсоток на рік, %',
+    savingsOpened: 'Дата відкриття',
+    checkNotifTitle: 'Звірка балансу',
+    checkNotifBody: 'Зазирни у Фінанси: один тап — і баланс збігається з банком.',
+  },
   savings: {
     title: 'Подушка безпеки',
     askTitle: 'Додати картку для подушки?',
@@ -1926,6 +2192,16 @@ const en: Translation = {
         { title: 'Loans 🏦', text: 'Up to 3 loans: the monthly payment, what’s left and the interest are worked out for you. A reminder comes 5 days before each payment.' },
         { title: 'Advance', text: 'Paid twice a month? Turn on the advance in “Earnings”.' },
         { title: 'Future expenses', text: 'An expense dated in the future now leaves your balance on that day. And the eye 👁 shows your password.' },
+      ],
+      '1.5.0': [
+        { title: "What's new in 1.5.0", text: 'Finance rebuilt from scratch: the balance no longer drifts. Swipe through.' },
+        { title: 'An honest balance 💳', text: "On top — what's on the card now. Type the real amount and the difference is saved as a correction; nothing is taken off twice." },
+        { title: 'Until payday', text: "Under the balance, in grey — what's left after everything due before payday. Tap to see what it's made of." },
+        { title: 'Awaiting answer', text: "Salary, loan, subscription: on its day we ask “Paid / Other amount / Not yet”. No answer — the balance isn't touched." },
+        { title: 'Upcoming payments', text: 'Planned and recurring expenses are now one list: on a date, this month, or on a schedule.' },
+        { title: 'Budgets 🌊', text: 'Plans became category budgets: the same wave, but no money is taken off in advance.' },
+        { title: 'Currencies & checks', text: 'Rates come from your transfers and can be edited. Once a week we ask if the balance matches the bank.' },
+        { title: 'Sideways too', text: 'The app now works in landscape.' },
       ],
     },
   },
@@ -2139,6 +2415,9 @@ const en: Translation = {
     salary: 'salary',
     stash: 'Stash',
     goal: 'Goal',
+    savings: 'Savings',
+    addSavings: '🏦 Savings',
+    savingsBalanceTitle: (currency) => `On the savings account (${currency})`,
     addStash: '🫙 Stash',
     addGoal: '🎯 Goal',
     addLoan: '🏦 Loan',
@@ -2496,6 +2775,85 @@ const en: Translation = {
     wrongPassword: 'Wrong password',
     prompt: 'Unlock finance',
     cancel: 'Cancel',
+  },
+  money: {
+    now: 'Now',
+    untilPayday: (date) => `until payday ${date}`,
+    spentMonth: 'spent this month',
+    committedTitle: (date) => `Already spoken for until ${date}`,
+    committedEmpty: 'Nothing planned before payday.',
+    kindExpense: 'Dated expense',
+    kindUpcoming: 'Upcoming payment',
+    kindLoan: 'Loan',
+    kindBudget: 'Budget left',
+    correctionHint: 'Type what your bank app shows. The difference is saved as its own line — a correction.',
+    correction: 'Correction',
+    opening: 'Starting balance',
+    includedTitle: 'Already in the balance?',
+    includedAdd: (date) => `This expense is dated ${date} or earlier — when you entered the real balance. Was it already included?`,
+    includedYes: 'Yes, it was',
+    includedNo: 'No, take it off',
+    deleteTitle: 'Keep the balance?',
+    deleteText: (date) => `This expense is from the balance check (${date}) or earlier. Keep the balance as it is or return the money?`,
+    keepBalance: 'Keep as it is',
+    giveBack: 'Return the money',
+    pendingTitle: 'Awaiting answer',
+    paid: 'Paid',
+    otherAmount: 'Other amount',
+    didntHappen: "Didn't happen",
+    notYet: 'Not yet',
+    stopRepeating: 'Stop repeating',
+    upcomingDue: (name, amount) => `${name}: ${amount} — charged?`,
+    monthDue: (name, amount) => `${name}: ${amount} this month — paid?`,
+    loanDue: (name, amount) => `“${name}” payment: ${amount} — paid?`,
+    checkTitle: (account) => `Check: ${account}`,
+    checkBody: (amount) => `Should be ${amount}. Right?`,
+    checkYes: 'Yes',
+    checkOther: 'Other amount',
+    amountLabel: (currency) => `Amount (${currency})`,
+    save: 'Save',
+    cancel: 'Cancel',
+    upcomingTitle: 'Upcoming payments',
+    upcomingLink: 'Upcoming',
+    upcomingHint: "Rent, subscriptions, a purchase this month. When the day comes I'll ask if it went through — only then it's taken off.",
+    modeDate: 'On a date',
+    modeMonth: 'This month',
+    modeRepeat: 'Repeats',
+    on: (date) => `on ${date}`,
+    thisMonth: 'this month',
+    repeatsFrom: (rule, date) => `${rule} · next ${date}`,
+    upcomingEmpty: 'Nothing planned yet.',
+    add: 'Add',
+    remove: 'Remove',
+    commentLabel: 'Name',
+    firstDate: 'Date',
+    payFrom: 'Pay from',
+    budgetsTitle: 'Budgets',
+    budgetLeft: (amount) => `${amount} left`,
+    budgetOver: (amount) => `${amount} over`,
+    budgetMonthQuestion: (amount) => `New month: keep ${amount}?`,
+    keep: 'Keep',
+    change: 'Change',
+    newBudget: 'Category budget',
+    budgetLimit: (currency) => `Monthly limit (${currency})`,
+    removeBudget: 'Remove budget',
+    budgetsEmpty: 'Set a limit for a category — the bar shows what is left.',
+    monthTitle: (month) => month,
+    currenciesTitle: 'Currencies',
+    currenciesLink: 'Currencies & rates',
+    currenciesHint: (app) => `How much one unit costs in ${app}. Updated by itself when you transfer between currencies; fix it here if needed.`,
+    rateLabel: (cur, app) => `1 ${cur} = … ${app}`,
+    noForeign: 'No accounts in other currencies.',
+    checkSettingsTitle: 'Weekly balance check',
+    checkSettingsHint: 'On that day I ask: “Your card should have X. Right?” — one tap keeps the balance in step with the bank.',
+    checkOff: 'Off',
+    makePrimary: 'Make main',
+    primary: 'Main',
+    primaryCantRemove: "The main card can't be removed — make another one main first.",
+    savingsRate: 'Interest per year, %',
+    savingsOpened: 'Opened on',
+    checkNotifTitle: 'Balance check',
+    checkNotifBody: 'Open Finance: one tap keeps your balance in step with the bank.',
   },
   savings: {
     title: 'Savings cushion',

@@ -5,7 +5,7 @@ import { Chip } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { accountName, isSpendable, MAIN_ACCOUNT_ID, mainAccountName } from '@/lib/accounts';
+import { accountName, isSpendable } from '@/lib/accounts';
 import { useTranslation } from '@/i18n';
 
 export interface AccountOption {
@@ -17,20 +17,18 @@ export interface AccountOption {
 /** No account: a goal deposit that only counts (nothing is taken off a card). */
 export const NO_ACCOUNT_ID = 'none';
 
-/** The main card first, then the other cards and cash wallets in their order (stashes and goals
- * aren't paid from). */
+/** The main card first, then the other cards and cash wallets in their order (stashes, goals and
+ * savings aren't paid from). */
 export function useAccountOptions(): AccountOption[] {
   const tr = useTranslation();
   const accounts = useFinanceStore((s) => s.accounts);
-  const settings = useSettingsStore((s) => s.settings);
-  return [
-    { id: MAIN_ACCOUNT_ID, label: `💳 ${mainAccountName(settings, tr.accounts.card)}`, currency: settings.currency },
-    ...accounts.filter(isSpendable).map((a) => ({
-      id: a.id,
-      label: `${a.kind === 'cash' ? '💵' : '💳'} ${accountName(a, tr.accounts)} · ${a.currency}`,
-      currency: a.currency,
-    })),
-  ];
+  const appCurrency = useSettingsStore((s) => s.settings.currency);
+  const spendable = accounts.filter(isSpendable).sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+  return spendable.map((a) => ({
+    id: a.id,
+    label: `${a.kind === 'cash' ? '💵' : '💳'} ${accountName(a, tr.accounts)}${a.currency === appCurrency ? '' : ` · ${a.currency}`}`,
+    currency: a.currency,
+  }));
 }
 
 interface AccountPickerProps {
