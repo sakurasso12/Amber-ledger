@@ -5,6 +5,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { CustomizableCard, Button, TextField } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 import { CommittedItem, sumItems } from '@/lib/ledger';
+import { glowText } from '@/theme/theme';
 import { categoryLabel } from '@/lib/categoryLabel';
 import { Category } from '@/types';
 import { MoneyDialog } from './MoneyDialog';
@@ -96,7 +97,7 @@ export function BalanceCard({
       <Text style={[styles.header, { color: muted }]}>
         {label} <Text style={{ color: theme.colors.accent }}>✏️</Text>
       </Text>
-      <Text numberOfLines={1} adjustsFontSizeToFit style={[big ? styles.heroAmount : styles.amount, { color: balanceColor }]}>
+      <Text numberOfLines={1} adjustsFontSizeToFit style={[big ? styles.heroAmount : styles.amount, { color: balanceColor }, glowText(theme, balanceColor)]}>
         {signed(balance)}
       </Text>
       <Pressable onPress={() => setListOpen(true)} hitSlop={6}>
@@ -118,7 +119,7 @@ export function BalanceCard({
       <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.incoming}</Text>
       {awaitingLabel ? (
         <>
-          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: theme.colors.accent }, glowText(theme, theme.colors.accent)]}>{money(awaiting)}</Text>
           <Text style={[styles.subline, { color: muted }]}>{awaitingLabel}</Text>
         </>
       ) : null}

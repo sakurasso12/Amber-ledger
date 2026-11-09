@@ -75,12 +75,6 @@ export function SettingsScreen() {
       route: '/settings/notifications',
     },
     {
-      icon: '🖼️',
-      title: tr.settingsScreen.background,
-      value: settings.backgroundImageUri ? tr.settingsScreen.backgroundSet : tr.settingsScreen.notSet,
-      route: '/settings/background',
-    },
-    {
       icon: '📱',
       title: tr.homeWidgetSettings.title,
       value: settings.homeWidgetBackgroundUri ? tr.settingsScreen.backgroundSet : tr.settingsScreen.notSet,

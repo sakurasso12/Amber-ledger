@@ -129,7 +129,7 @@ export function TasksScreen() {
           <TaskModules
             habits={habitList}
             editing={editingLayout}
-            focus={showFocus ? <FocusTaskCard task={focusTask} editing={editingLayout} onDone={() => setStatus(focusTask.id, 'done')} /> : undefined}
+            focus={showFocus ? <FocusTaskCard task={focusTask} cardId="tasks-focus" editing={editingLayout} onDone={() => setStatus(focusTask.id, 'done')} /> : undefined}
           />
         </View>
       )}

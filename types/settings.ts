@@ -1,5 +1,5 @@
 import type { DesignId } from '@/theme/designs';
-import type { LayoutId } from '@/theme/layouts';
+import type { LayoutId, LayoutOverrides } from '@/theme/layouts';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -97,6 +97,15 @@ export interface AppSettings {
   savingsOpenedAt: string | null;
   /** The welcome cards were shown (first launch). */
   onboardingDone: boolean;
+  /** Settings → Тема → Кольори: 'matte' or 'glow' (vivid, glass cards, neon glow). */
+  colorFinish: 'matte' | 'glow';
+  /** Per-card background chosen from its "⋮" menu (absent = as the theme does; a photo is in
+   * widgetBackgrounds and wins over these). */
+  cardBackgrounds: Record<string, 'glass' | 'shadow' | 'none'>;
+  /** Per-card background opacity 0–1 from its "⋮" menu (absent = the theme's). */
+  cardOpacity: Record<string, number>;
+  /** Settings → Тема → Розташування: the user's own changes on top of the layout preset. */
+  layoutOverrides: LayoutOverrides;
   /** 2 once the finance v2 migration (lib/financeMigration.ts) ran on this device's data. */
   financeModel: 1 | 2;
   /** Exchange rates: currency → how much one unit is in the app currency ("€" → 4.3). Set from
@@ -189,6 +198,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   financeUnlockedUntil: null,
   savingsCard: 'ask',
   financeModel: 1,
+  colorFinish: 'matte',
+  cardBackgrounds: {},
+  cardOpacity: {},
+  layoutOverrides: {},
   currencyRates: {},
   reconcileWeekday: 0,
   reconciledWeeks: {},

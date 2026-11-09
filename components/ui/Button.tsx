@@ -4,6 +4,7 @@ import { PressableScale } from './PressableScale';
 import { Text } from './Text';
 import { useTheme } from '@/theme/ThemeProvider';
 import { controlSurface } from '@/theme/surfaces';
+import { glowShadow } from '@/theme/theme';
 
 interface ButtonProps {
   title: string;
@@ -29,7 +30,7 @@ export function Button({ title, onPress, variant = 'primary', disabled, style }:
       onPress={onPress}
       disabled={disabled}
       scaleTo={0.96}
-      style={[styles.base, controlSurface(theme), { backgroundColor, opacity: disabled ? 0.5 : 1 }, style]}
+      style={[styles.base, controlSurface(theme), { backgroundColor, opacity: disabled ? 0.5 : 1 }, variant !== 'secondary' && !disabled ? glowShadow(theme, backgroundColor) : null, style]}
     >
       <Text style={[styles.text, { color: textColor }]}>{title}</Text>
     </PressableScale>
