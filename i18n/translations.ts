@@ -278,7 +278,7 @@ export interface Translation {
   };
   workCalendar: { worked: string; off: string };
   widgetMenu: { pick: string; remove: string; shape: string };
-  cardShape: { title: string; theme: string; square: string; rounded: string; round: string; leaf: string };
+  cardShape: { title: string; theme: string; square: string; rounded: string; round: string; leaf: string; bgTitle: string; bgGlass: string; bgShadow: string; bgNone: string; bgPhoto: string; bgRemovePhoto: string; menu: string; opacityTitle: string };
   categoryPicker: { label: string };
   expenseEditor: {
     headerNew: string;
@@ -365,7 +365,7 @@ export interface Translation {
     advanceHint: string;
   };
   budgetSettings: { title: string; weekLimit: string; monthLimit: string; notSetPlaceholder: string };
-  themeSettings: { title: string; accentLabel: string };
+  themeSettings: { title: string; accentLabel: string; finishLabel: string; finishMatte: string; finishGlow: string; finishHint: string; backgroundHint: string; focusCard: string; focusCardHint: string };
   languageSettings: { title: string; note: string };
   notificationsSettings: { title: string; enabled: string; disabled: string; reminderLabel: string; note: string };
   backgroundSettings: { title: string; notSet: string; pick: string; replace: string; remove: string };
@@ -452,12 +452,16 @@ export interface Translation {
     v3: string;
   };
   designs: {
+    crimson: string;
+    crimsonDescription: string;
     amber: string;
     amberDescription: string;
     neon: string;
     neonDescription: string;
-    paper: string;
-    paperDescription: string;
+    sakura: string;
+    sakuraDescription: string;
+    tropic: string;
+    tropicDescription: string;
   };
   salaryPrompt: {
     title: string;
@@ -618,6 +622,27 @@ export interface Translation {
     checkNotifTitle: string;
     checkNotifBody: string;
   };
+  layoutCustom: {
+    title: string;
+    presets: string;
+    presetStandard: string;
+    presetVertical: string;
+    header: string; headerTop: string; headerSide: string;
+    menu: string; menuBubble: string; menuPill: string; menuClassic: string; menuUnderline: string;
+    plate: string; plateOn: string; plateOff: string;
+    corners: string; cornersTheme: string; cornersLeaf: string;
+    tasks: string; tasksFocus: string; tasksRows: string;
+    expenses: string; expensesRows: string; expensesBig: string;
+    stats: string; statsStandard: string; statsBig: string;
+    settings: string; settingsList: string; settingsBig: string;
+    fab: string; fabRound: string; fabBig: string;
+    balance: string; balanceColumns: string; balanceHero: string;
+    financeMenu: string; financeMenuClassic: string; financeMenuChips: string;
+    colorTitle: string; colorHint: string; colorApply: string;
+    sectionTitle: string; sectionHint: string;
+    headerHint: string; menuHint: string; plateHint: string; cornersHint: string; tasksHint: string;
+    expensesHint: string; balanceHint: string; financeMenuHint: string; statsHint: string; settingsHint: string; fabHint: string;
+  };
   savings: {
     title: string;
     askTitle: string;
@@ -710,6 +735,13 @@ const ru: Translation = {
         { title: 'Бюджеты 🌊', text: 'Планы стали бюджетами на категорию: та же волна, но деньги заранее не списываются.' },
         { title: 'Валюты и сверка', text: 'Курс берётся из переводов и правится вручную. Раз в неделю спросим, совпадает ли баланс с банком.' },
         { title: 'Можно боком', text: 'Приложение работает и в горизонтальном положении.' },
+      ],
+      '1.6.0': [
+        { title: 'Что нового в 1.6.0', text: 'Новые темы и яркий режим. Полистай.' },
+        { title: 'Яркие цвета ✨', text: 'Настройки → Тема → Цвета: «Яркие» — сочные цвета, стеклянные карточки, свечение и градиент на фоне.' },
+        { title: 'Новые темы', text: 'Красная ночь, Сакура и Тропик. Янтарь в светлой теме теперь фиолетовый, как в тёмной.' },
+        { title: 'Вид карточки', text: '«⋮» на карточке → «Вид карточки»: стекло, тень, без фона или своё фото — для каждой отдельно.' },
+        { title: 'Расположение под себя', text: 'Тема → внизу «Расположение под себя»: меню-пузырь или полоса, названия сбоку, крупная первая задача и свой цвет на цветовом круге.' },
       ],
     },
   },
@@ -988,8 +1020,8 @@ const ru: Translation = {
     addButton: 'Добавить повторяющуюся трату',
   },
   workCalendar: { worked: 'Рабочих', off: 'Выходных' },
-  widgetMenu: { pick: '🖼️ Выбрать картинку', remove: '✕ Удалить картинку', shape: '▢ Форма карточки' },
-  cardShape: { title: 'Форма карточки', theme: 'Как в теме', square: 'Квадратные', rounded: 'Скруглённые', round: 'Круглые', leaf: 'Лист' },
+  widgetMenu: { pick: '🖼️ Выбрать картинку', remove: '✕ Удалить картинку', shape: '🎨 Вид карточки' },
+  cardShape: { title: 'Форма', theme: 'Как в теме', square: 'Квадратные', rounded: 'Скруглённые', round: 'Круглые', leaf: 'Лист', bgTitle: 'Фон', bgGlass: 'Стекло', bgShadow: 'Тень', bgNone: 'Без фона', bgPhoto: 'Своё фото…', bgRemovePhoto: 'Убрать фото', menu: 'Вид карточки', opacityTitle: 'Непрозрачность фона' },
   categoryPicker: { label: 'Категория' },
   expenseEditor: {
     headerNew: 'Новая трата',
@@ -1084,7 +1116,7 @@ const ru: Translation = {
     monthLimit: 'Лимит на месяц',
     notSetPlaceholder: 'Не задан',
   },
-  themeSettings: { title: 'Тема', accentLabel: 'Акцентный цвет' },
+  themeSettings: { title: 'Тема', accentLabel: 'Акцентный цвет', finishLabel: 'Цвета', finishMatte: 'Матовые', finishGlow: 'Яркие ✨', finishHint: 'Яркие — сочные цвета, стеклянные карточки, свечение и градиент на фоне.', backgroundHint: 'Фото за всеми экранами — вместо градиента темы. Стеклянные карточки размывают его.', focusCard: 'Первая задача крупно', focusCardHint: 'Ближайшая задача — большой карточкой с отсчётом и кнопкой «Готово». Её вид меняется через «⋮».' },
   languageSettings: {
     title: 'Язык',
     note: 'Интерфейс переведён полностью — переключение применяется сразу.',
@@ -1198,12 +1230,16 @@ const ru: Translation = {
     v3: 'Вертикаль',
   },
   designs: {
+    crimson: 'Красная ночь',
+    crimsonDescription: 'Тёмное вино и алый: стеклянные карточки на красном свете.',
     amber: 'Янтарь',
-    amberDescription: 'Как было: тёплые цвета, системный шрифт, карточки с рамкой.',
+    amberDescription: 'Фиолетовый на чёрном или на светлой сирени, системный шрифт, карточки с рамкой.',
     neon: 'Неон',
     neonDescription: 'Ночной город: глубокий синий, светящиеся акценты, тонкие крупные заголовки, мягкие карточки на тени.',
-    paper: 'Бумага',
-    paperDescription: 'Блокнот: шрифт с засечками, светлая бумага, чернильные линии вместо коробок, красный и синий акценты.',
+    sakura: 'Сакура',
+    sakuraDescription: 'Розовый на тёмной сливе или на нежно-розовом, лавандовый акцент.',
+    tropic: 'Тропик',
+    tropicDescription: 'Мятная бирюза на глубоком лесном чёрном, акцент цвета летнего неба.',
   },
   salaryPrompt: {
     title: 'Зарплата уже пришла?',
@@ -1365,6 +1401,36 @@ const ru: Translation = {
     checkNotifTitle: 'Сверка баланса',
     checkNotifBody: 'Загляни в Финансы: один тап — и баланс совпадает с банком.',
   },
+  layoutCustom: {
+    title: 'Расположение',
+    presets: 'Готовые наборы',
+    presetStandard: 'Обычный',
+    presetVertical: 'Вертикаль',
+    header: 'Названия экранов', headerTop: 'Сверху', headerSide: 'Сбоку',
+    menu: 'Меню', menuBubble: 'Пузырь', menuPill: 'Капсула', menuClassic: 'Полоса', menuUnderline: 'Линия',
+    plate: 'Подложка под меню', plateOn: 'Есть', plateOff: 'Нет',
+    corners: 'Углы карточек', cornersTheme: 'Как в теме', cornersLeaf: 'Лист',
+    tasks: 'Первая задача', tasksFocus: 'Крупно', tasksRows: 'Как все',
+    expenses: 'Траты', expensesRows: 'Строками', expensesBig: 'Крупно',
+    stats: 'Статистика', statsStandard: 'Обычная', statsBig: 'Крупные цифры',
+    settings: 'Настройки', settingsList: 'Списком', settingsBig: 'Плитками',
+    fab: 'Кнопка «+»', fabRound: 'Круглая', fabBig: 'Большая',
+    balance: 'Баланс', balanceColumns: 'Колонками', balanceHero: 'Крупной суммой',
+    financeMenu: 'Меню финансов', financeMenuClassic: 'Ссылки', financeMenuChips: 'Кнопки',
+    sectionTitle: 'Расположение под себя', sectionHint: 'Где что стоит на экранах. Начни с готового набора, потом меняй отдельные пункты.',
+    headerHint: 'Название экрана обычной строкой сверху или крупными буквами вдоль левого края.',
+    menuHint: 'Нижнее меню: плавающий пузырь, капсула, раздвигающаяся под выбранную вкладку, полоса на всю ширину или тонкая линия.',
+    plateHint: 'Фон под меню. «Нет» — иконки лежат прямо на градиенте, без плашки.',
+    cornersHint: 'Углы карточек: как задумано темой или «лист» — два угла круглые, два острые.',
+    tasksHint: 'Ближайшая задача крупной карточкой с отсчётом и кнопкой «Готово» над списком.',
+    expensesHint: 'Список трат в Финансах: компактные строки или большие карточки.',
+    balanceHint: 'Карточка баланса: две колонки (карта и «должно прийти») или одна крупная сумма.',
+    financeMenuHint: 'Будущие, Категории, Валюты, Ставка в Финансах: строкой ссылок или кнопками с иконками.',
+    statsHint: 'Статистика: обычные карточки или крупные цифры.',
+    settingsHint: 'Этот экран настроек: список строк или большие плитки.',
+    fabHint: 'Кнопка «+» внизу справа: обычная круглая или большая с кольцом.',
+    colorTitle: 'Свой цвет', colorHint: 'Тыкай по кругу — оттенок и насыщенность, ползунок — яркость.', colorApply: 'Применить',
+  },
   savings: {
     title: 'Подушка безопасности',
     askTitle: 'Добавить карточку для подушки?',
@@ -1457,6 +1523,13 @@ const uk: Translation = {
         { title: 'Бюджети 🌊', text: 'Плани стали бюджетами на категорію: та сама хвиля, але гроші наперед не списуються.' },
         { title: 'Валюти і звірка', text: 'Курс береться з переказів і правиться вручну. Раз на тиждень спитаємо, чи збігається баланс із банком.' },
         { title: 'Можна боком', text: 'Застосунок працює і в горизонтальному положенні.' },
+      ],
+      '1.6.0': [
+        { title: 'Що нового в 1.6.0', text: 'Нові теми і яскравий режим. Погортай.' },
+        { title: 'Яскраві кольори ✨', text: 'Налаштування → Тема → Кольори: «Яскраві» — соковиті кольори, скляні картки, світіння й градієнт на фоні.' },
+        { title: 'Нові теми', text: 'Червона ніч, Сакура і Тропік. Бурштин у світлій темі тепер фіолетовий, як у темній.' },
+        { title: 'Вигляд картки', text: '«⋮» на картці → «Вигляд картки»: скло, тінь, без фону або своє фото — для кожної окремо.' },
+        { title: 'Розташування під себе', text: 'Тема → унизу «Розташування під себе»: меню-бульбашка чи смуга, назви збоку, велика перша задача і свій колір на колі кольорів.' },
       ],
     },
   },
@@ -1735,8 +1808,8 @@ const uk: Translation = {
     addButton: 'Додати повторювану витрату',
   },
   workCalendar: { worked: 'Робочих', off: 'Вихідних' },
-  widgetMenu: { pick: '🖼️ Вибрати картинку', remove: '✕ Видалити картинку', shape: '▢ Форма картки' },
-  cardShape: { title: 'Форма картки', theme: 'Як у темі', square: 'Квадратні', rounded: 'Заокруглені', round: 'Круглі', leaf: 'Листок' },
+  widgetMenu: { pick: '🖼️ Вибрати картинку', remove: '✕ Видалити картинку', shape: '🎨 Вигляд картки' },
+  cardShape: { title: 'Форма', theme: 'Як у темі', square: 'Квадратні', rounded: 'Заокруглені', round: 'Круглі', leaf: 'Листок', bgTitle: 'Фон', bgGlass: 'Скло', bgShadow: 'Тінь', bgNone: 'Без фону', bgPhoto: 'Своє фото…', bgRemovePhoto: 'Прибрати фото', menu: 'Вигляд картки', opacityTitle: 'Непрозорість фону' },
   categoryPicker: { label: 'Категорія' },
   expenseEditor: {
     headerNew: 'Нова витрата',
@@ -1829,7 +1902,7 @@ const uk: Translation = {
     monthLimit: 'Ліміт на місяць',
     notSetPlaceholder: 'Не задано',
   },
-  themeSettings: { title: 'Тема', accentLabel: 'Акцентний колір' },
+  themeSettings: { title: 'Тема', accentLabel: 'Акцентний колір', finishLabel: 'Кольори', finishMatte: 'Матові', finishGlow: 'Яскраві ✨', finishHint: 'Яскраві — соковиті кольори, скляні картки, світіння й градієнт на фоні.', backgroundHint: 'Фото за всіма екранами — замість градієнта теми. Скляні картки його розмивають.', focusCard: 'Перша задача великою', focusCardHint: 'Найближча задача — великою карткою з відліком і кнопкою «Готово». Її вигляд міняється через «⋮».' },
   languageSettings: {
     title: 'Мова',
     note: 'Інтерфейс перекладено повністю — перемикання застосовується одразу.',
@@ -1943,12 +2016,16 @@ const uk: Translation = {
     v3: 'Вертикаль',
   },
   designs: {
+    crimson: 'Червона ніч',
+    crimsonDescription: 'Темне вино й багряний: скляні картки на червоному світлі.',
     amber: 'Бурштин',
-    amberDescription: 'Як було: теплі кольори, системний шрифт, картки з рамкою.',
+    amberDescription: 'Фіолетовий на чорному або на світлому бузку, системний шрифт, картки з рамкою.',
     neon: 'Неон',
     neonDescription: 'Нічне місто: глибокий синій, світні акценти, тонкі великі заголовки, м’які картки на тіні.',
-    paper: 'Папір',
-    paperDescription: 'Блокнот: шрифт із засічками, світлий папір, чорнильні лінії замість коробок, червоний і синій акценти.',
+    sakura: 'Сакура',
+    sakuraDescription: 'Рожевий на темній сливі або на ніжно-рожевому, лавандовий акцент.',
+    tropic: 'Тропік',
+    tropicDescription: 'М’ятна бірюза на глибокому лісовому чорному, акцент кольору літнього неба.',
   },
   salaryPrompt: {
     title: 'Зарплата вже прийшла?',
@@ -2110,6 +2187,36 @@ const uk: Translation = {
     checkNotifTitle: 'Звірка балансу',
     checkNotifBody: 'Зазирни у Фінанси: один тап — і баланс збігається з банком.',
   },
+  layoutCustom: {
+    title: 'Розташування',
+    presets: 'Готові набори',
+    presetStandard: 'Звичайний',
+    presetVertical: 'Вертикаль',
+    header: 'Назви екранів', headerTop: 'Зверху', headerSide: 'Збоку',
+    menu: 'Меню', menuBubble: 'Бульбашка', menuPill: 'Капсула', menuClassic: 'Смуга', menuUnderline: 'Лінія',
+    plate: 'Підкладка під меню', plateOn: 'Є', plateOff: 'Немає',
+    corners: 'Кути карток', cornersTheme: 'Як у темі', cornersLeaf: 'Листок',
+    tasks: 'Перша задача', tasksFocus: 'Великою', tasksRows: 'Як усі',
+    expenses: 'Витрати', expensesRows: 'Рядками', expensesBig: 'Великі',
+    stats: 'Статистика', statsStandard: 'Звичайна', statsBig: 'Великі цифри',
+    settings: 'Налаштування', settingsList: 'Списком', settingsBig: 'Плитками',
+    fab: 'Кнопка «+»', fabRound: 'Кругла', fabBig: 'Велика',
+    balance: 'Баланс', balanceColumns: 'Колонками', balanceHero: 'Великою сумою',
+    financeMenu: 'Меню фінансів', financeMenuClassic: 'Посилання', financeMenuChips: 'Кнопки',
+    sectionTitle: 'Розташування під себе', sectionHint: 'Де що стоїть на екранах. Почни з готового набору, потім змінюй окремі пункти.',
+    headerHint: 'Назва екрана звичайним рядком зверху або великими літерами вздовж лівого краю.',
+    menuHint: 'Нижнє меню: плаваюча бульбашка, капсула, що розсувається під вибрану вкладку, смуга на всю ширину або тонка лінія.',
+    plateHint: 'Фон під меню. «Немає» — іконки лежать просто на градієнті, без плашки.',
+    cornersHint: 'Кути карток: як задумано темою або «листок» — два кути круглі, два гострі.',
+    tasksHint: 'Найближча задача великою карткою з відліком і кнопкою «Готово» над списком.',
+    expensesHint: 'Список витрат у Фінансах: компактні рядки або великі картки.',
+    balanceHint: 'Картка балансу: дві колонки (картка і «має прийти») або одна велика сума.',
+    financeMenuHint: 'Майбутні, Категорії, Валюти, Ставка в Фінансах: рядком посилань або кнопками з іконками.',
+    statsHint: 'Статистика: звичайні картки або великі цифри.',
+    settingsHint: 'Цей екран налаштувань: список рядків або великі плитки.',
+    fabHint: 'Кнопка «+» внизу справа: звичайна кругла або велика з кільцем.',
+    colorTitle: 'Свій колір', colorHint: 'Тицяй по колу — відтінок і насиченість, повзунок — яскравість.', colorApply: 'Застосувати',
+  },
   savings: {
     title: 'Подушка безпеки',
     askTitle: 'Додати картку для подушки?',
@@ -2202,6 +2309,13 @@ const en: Translation = {
         { title: 'Budgets 🌊', text: 'Plans became category budgets: the same wave, but no money is taken off in advance.' },
         { title: 'Currencies & checks', text: 'Rates come from your transfers and can be edited. Once a week we ask if the balance matches the bank.' },
         { title: 'Sideways too', text: 'The app now works in landscape.' },
+      ],
+      '1.6.0': [
+        { title: "What's new in 1.6.0", text: 'New themes and a vivid mode. Swipe through.' },
+        { title: 'Vivid colours ✨', text: 'Settings → Theme → Colours: “Vivid” — juicy colours, glass cards, glow and a gradient behind the screens.' },
+        { title: 'New themes', text: 'Red Night, Sakura and Tropic. Amber’s light theme is now purple, like its dark one.' },
+        { title: 'Card look', text: '“⋮” on a card → “Card look”: glass, shadow, no background or your own photo — for each card.' },
+        { title: 'Your own layout', text: 'Theme → at the bottom “Your own layout”: bubble or strip menu, side titles, a big first task and your own colour on a colour wheel.' },
       ],
     },
   },
@@ -2480,8 +2594,8 @@ const en: Translation = {
     addButton: 'Add recurring expense',
   },
   workCalendar: { worked: 'Worked', off: 'Off' },
-  widgetMenu: { pick: '🖼️ Choose picture', remove: '✕ Remove picture', shape: '▢ Card shape' },
-  cardShape: { title: 'Card shape', theme: 'Theme default', square: 'Square', rounded: 'Rounded', round: 'Round', leaf: 'Leaf' },
+  widgetMenu: { pick: '🖼️ Choose picture', remove: '✕ Remove picture', shape: '🎨 Card look' },
+  cardShape: { title: 'Shape', theme: 'Theme default', square: 'Square', rounded: 'Rounded', round: 'Round', leaf: 'Leaf', bgTitle: 'Background', bgGlass: 'Glass', bgShadow: 'Shadow', bgNone: 'None', bgPhoto: 'Own photo…', bgRemovePhoto: 'Remove photo', menu: 'Card look', opacityTitle: 'Background opacity' },
   categoryPicker: { label: 'Category' },
   expenseEditor: {
     headerNew: 'New Expense',
@@ -2574,7 +2688,7 @@ const en: Translation = {
     monthLimit: 'Monthly limit',
     notSetPlaceholder: 'Not set',
   },
-  themeSettings: { title: 'Theme', accentLabel: 'Accent color' },
+  themeSettings: { title: 'Theme', accentLabel: 'Accent color', finishLabel: 'Colours', finishMatte: 'Matte', finishGlow: 'Vivid ✨', finishHint: 'Vivid — juicy colours, glass cards, glow and a gradient behind the screens.', backgroundHint: 'A photo behind every screen — instead of the theme gradient. Glass cards blur it.', focusCard: 'First task big', focusCardHint: 'The nearest task as a big card with a countdown and a Done button. Change its look with “⋮”.' },
   languageSettings: {
     title: 'Language',
     note: 'The interface is fully translated — switching applies immediately.',
@@ -2688,12 +2802,16 @@ const en: Translation = {
     v3: 'Vertical',
   },
   designs: {
+    crimson: 'Red Night',
+    crimsonDescription: 'Dark wine and crimson: glass cards on red light.',
     amber: 'Amber',
-    amberDescription: 'As before: warm colours, system font, outlined cards.',
+    amberDescription: 'Purple on black or on soft lilac, system font, outlined cards.',
     neon: 'Neon',
     neonDescription: 'Night city: deep blue, glowing accents, thin big headings, soft cards on shadows.',
-    paper: 'Paper',
-    paperDescription: 'Notebook: serif type, bright paper, ink lines instead of boxes, red and blue accents.',
+    sakura: 'Sakura',
+    sakuraDescription: 'Pink on dark plum or on blush white, lavender accent.',
+    tropic: 'Tropic',
+    tropicDescription: 'Mint turquoise on deep forest black, a summer-sky accent.',
   },
   salaryPrompt: {
     title: 'Did you get your salary yet?',
@@ -2854,6 +2972,36 @@ const en: Translation = {
     savingsOpened: 'Opened on',
     checkNotifTitle: 'Balance check',
     checkNotifBody: 'Open Finance: one tap keeps your balance in step with the bank.',
+  },
+  layoutCustom: {
+    title: 'Layout',
+    presets: 'Presets',
+    presetStandard: 'Standard',
+    presetVertical: 'Vertical',
+    header: 'Screen titles', headerTop: 'On top', headerSide: 'On the side',
+    menu: 'Menu', menuBubble: 'Bubble', menuPill: 'Pill', menuClassic: 'Strip', menuUnderline: 'Line',
+    plate: 'Plate under the menu', plateOn: 'On', plateOff: 'Off',
+    corners: 'Card corners', cornersTheme: 'Theme', cornersLeaf: 'Leaf',
+    tasks: 'First task', tasksFocus: 'Big', tasksRows: 'Like the rest',
+    expenses: 'Expenses', expensesRows: 'Rows', expensesBig: 'Big',
+    stats: 'Stats', statsStandard: 'Standard', statsBig: 'Big numbers',
+    settings: 'Settings', settingsList: 'List', settingsBig: 'Tiles',
+    fab: '“+” button', fabRound: 'Round', fabBig: 'Big',
+    balance: 'Balance', balanceColumns: 'Columns', balanceHero: 'Big total',
+    financeMenu: 'Finance menu', financeMenuClassic: 'Links', financeMenuChips: 'Buttons',
+    sectionTitle: 'Your own layout', sectionHint: 'Where things sit on the screens. Start from a preset, then change single items.',
+    headerHint: 'The screen title as a plain line on top, or big letters down the left edge.',
+    menuHint: 'Bottom menu: a floating bubble, a pill that stretches under the chosen tab, a full-width strip or a thin line.',
+    plateHint: 'A background under the menu. “Off” — the icons sit right on the gradient, no plate.',
+    cornersHint: 'Card corners: as the theme has them, or “leaf” — two corners round, two sharp.',
+    tasksHint: 'The nearest task as a big card with a countdown and a Done button above the list.',
+    expensesHint: 'The expense list in Finance: compact rows or big cards.',
+    balanceHint: 'The balance card: two columns (card and “to come”) or one big total.',
+    financeMenuHint: 'Upcoming, Categories, Currencies, Rate in Finance: a line of links or buttons with icons.',
+    statsHint: 'Stats: ordinary cards or big numbers.',
+    settingsHint: 'This settings screen: a list of rows or big tiles.',
+    fabHint: 'The “+” button bottom right: a plain circle or a big one with a ring.',
+    colorTitle: 'Own colour', colorHint: 'Tap the wheel for hue and saturation, the slider for brightness.', colorApply: 'Apply',
   },
   savings: {
     title: 'Savings cushion',

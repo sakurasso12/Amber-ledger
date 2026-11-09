@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fabShape } from '@/theme/surfaces';
+import { glowShadow } from '@/theme/theme';
 import { PressableScale } from './PressableScale';
 
 interface FabProps {
@@ -28,6 +29,8 @@ export function Fab({ onPress, onLongPress, bottom }: FabProps) {
         big && { width: 68, height: 68, borderRadius: 34, borderWidth: 4, borderColor: `${colors.primary}55` },
         { backgroundColor: colors.primary, bottom },
         fabShape(theme),
+        // Vivid finish: the "+" glows in its own colour.
+        glowShadow(theme),
       ]}
     >
       <Ionicons name="add" size={big ? 34 : 28} color={colors.primaryText} />

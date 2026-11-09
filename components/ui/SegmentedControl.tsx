@@ -15,13 +15,15 @@ interface SegmentedControlProps<T extends string> {
   segments: Segment<T>[];
   value: T;
   onChange: (value: T) => void;
+  /** Smaller: for long lists of options. */
+  compact?: boolean;
 }
 
 const PAD = 3;
 const GAP = 3;
 
 /** iOS-style segmented control: the highlight slides between segments on a spring. */
-export function SegmentedControl<T extends string>({ segments, value, onChange }: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string>({ segments, value, onChange, compact = false }: SegmentedControlProps<T>) {
   const theme = useTheme();
   const activeIndex = Math.max(0, segments.findIndex((s) => s.value === value));
   const position = useRef(new Animated.Value(activeIndex)).current;
@@ -66,9 +68,9 @@ export function SegmentedControl<T extends string>({ segments, value, onChange }
               if (!isActive) haptics.tap();
               onChange(segment.value);
             }}
-            style={[styles.segment, { borderRadius: radius }]}
+            style={[styles.segment, compact && styles.segmentCompact, { borderRadius: radius }]}
           >
-            <Text style={[styles.label, { color: isActive ? theme.colors.primaryText : theme.colors.textMuted }]}>
+            <Text style={[styles.label, compact && styles.labelCompact, { color: isActive ? theme.colors.primaryText : theme.colors.textMuted }]}>
               {segment.label}
             </Text>
           </Pressable>
@@ -97,4 +99,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+  segmentCompact: { paddingVertical: 5 },
+  labelCompact: { fontSize: 12 },
 });

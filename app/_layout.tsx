@@ -3,6 +3,7 @@ import { useWindowDimensions, View } from 'react-native';
 import Stack, { TransitionPresets } from 'expo-router/js-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
+import { NavigationBar } from 'expo-navigation-bar';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { SkeletonScreen } from '@/components/ui';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -39,6 +40,9 @@ function RootStack() {
   return (
     <>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
+      {/* Android's ◁ ○ ||| buttons in the theme's contrast. With enforceContrast off (app.json) the
+          system no longer lays its dark scrim under them, so the gradient runs to the bottom edge. */}
+      <NavigationBar style={theme.dark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,

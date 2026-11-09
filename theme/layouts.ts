@@ -7,6 +7,9 @@ import type { BalanceLayout, FinanceMenuStyle } from './designs';
 
 export type LayoutId = 'standard' | 'v3';
 
+/** Bottom navigation: a floating bubble, the expanding pill, a full-width strip, or an underline. */
+export type MenuStyle = 'bubble' | 'pill' | 'classic' | 'underline';
+
 export interface Corners {
   tl: number;
   tr: number;
@@ -20,8 +23,11 @@ export interface AppLayout {
   header: 'classic' | 'vertical';
   /** Per-corner card radii; null keeps the theme's uniform radius. */
   corners: Corners | null;
-  /** null keeps the theme's tab bar; otherwise the layout's own navigation. */
+  /** null keeps the theme's tab bar; otherwise the layout's own navigation. (Derived from `menu`.) */
   tabBar: null | 'pill';
+  menu: MenuStyle;
+  /** A background under the menu (the bubble's fill / the strip's colour); off = icons right on the screen. */
+  menuPlate: boolean;
   tasks: 'rows' | 'focus';
   expenses: 'rows' | 'big';
   stats: 'standard' | 'big';
@@ -41,7 +47,9 @@ export const LAYOUTS: Record<LayoutId, AppLayout> = {
     header: 'classic',
     corners: null,
     tabBar: null,
-    tasks: 'rows',
+    menu: 'bubble',
+    menuPlate: true,
+    tasks: 'focus',
     expenses: 'rows',
     stats: 'standard',
     settings: 'list',
@@ -56,6 +64,8 @@ export const LAYOUTS: Record<LayoutId, AppLayout> = {
     header: 'vertical',
     corners: { tl: 40, tr: 6, br: 40, bl: 6 },
     tabBar: 'pill',
+    menu: 'pill',
+    menuPlate: true,
     tasks: 'focus',
     expenses: 'big',
     stats: 'big',
@@ -77,4 +87,22 @@ export function cornerStyle(c: Corners) {
     borderBottomRightRadius: c.br,
     borderBottomLeftRadius: c.bl,
   };
+}
+
+/** The leaf corners of the Vertical preset, for any layout that wants them. */
+export const LEAF_CORNERS: Corners = { tl: 40, tr: 6, br: 40, bl: 6 };
+
+/** What can be tuned on top of a preset (Settings → Тема → Розташування). */
+export type LayoutOverrides = Partial<
+  Pick<AppLayout, 'header' | 'menu' | 'menuPlate' | 'tasks' | 'expenses' | 'stats' | 'settings' | 'fab' | 'balance' | 'financeMenu'>
+> & { leafCorners?: boolean };
+
+/** A preset with the user's own changes on top. */
+export function resolveLayout(id: LayoutId, overrides: LayoutOverrides | undefined): AppLayout {
+  const base = LAYOUTS[id] ?? LAYOUTS.standard;
+  const { leafCorners, ...rest } = overrides ?? {};
+  const merged: AppLayout = { ...base, ...rest };
+  if (leafCorners !== undefined) merged.corners = leafCorners ? LEAF_CORNERS : null;
+  merged.tabBar = merged.menu === 'pill' ? 'pill' : null;
+  return merged;
 }

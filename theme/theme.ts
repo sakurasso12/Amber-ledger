@@ -1,4 +1,4 @@
-import type { Design } from './designs';
+import type { Backdrop, CardStyle, ColorFinish, ColorRef, Design } from './designs';
 import type { AppLayout } from './layouts';
 import { LAYOUTS } from './layouts';
 import { DESIGNS } from './designs';
@@ -30,7 +30,18 @@ export interface AppTheme {
   design: Design;
   /** Where things go on every screen — see layouts.ts ("Дизайн приложения" in settings). */
   layout: AppLayout;
+  /** Settings → Тема → Кольори. With 'glow' the design's glow finish is applied (see ThemeProvider). */
+  finish: ColorFinish;
+  /** Coloured glow strength, 0 = none (matte). */
+  glow: number;
+  /** Glass cards: surface opacity, blur intensity, edge highlight (used when a card is glass). */
+  glass: { opacity: number; blur: number; highlight: number };
+  /** The gradient behind the screens for this finish and mode (when no photo is set in Settings → Фон). */
+  backdrop: Backdrop;
 }
+
+const NO_BACKDROP: Backdrop = { mode: 'none', dim: 0, soft: 0, blobs: [], linear: { angle: 0, stops: [] } };
+const MATTE_EXTRAS = { finish: 'matte' as const, glow: 0, glass: { opacity: 0.5, blur: 40, highlight: 0.12 }, backdrop: NO_BACKDROP };
 
 export const lightTheme: AppTheme = {
   id: 'light',
@@ -38,6 +49,7 @@ export const lightTheme: AppTheme = {
   dark: false,
   design: DESIGNS.amber,
   layout: LAYOUTS.standard,
+  ...MATTE_EXTRAS,
   colors: {
     background: '#FBF7F1',
     surface: '#FFFFFF',
@@ -63,6 +75,7 @@ export const darkTheme: AppTheme = {
   dark: true,
   design: DESIGNS.amber,
   layout: LAYOUTS.standard,
+  ...MATTE_EXTRAS,
   colors: {
     background: '#000000',
     surface: '#120A1F',
@@ -125,3 +138,105 @@ export function applyAccent(theme: AppTheme, accent: string | null): AppTheme {
     },
   };
 }
+
+// ---- Glow finish helpers ------------------------------------------------------------------------
+
+function hexToHsl(hex: string): [number, number, number] {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16) / 255;
+  const g = parseInt(c.substring(2, 4), 16) / 255;
+  const b = parseInt(c.substring(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l * 100];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s * 100, l * 100];
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const sat = s / 100;
+  const lig = l / 100;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = sat * Math.min(lig, 1 - lig);
+  const f = (n: number) => lig - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const hex = (v: number) => Math.round(v * 255).toString(16).padStart(2, '0');
+  return `#${hex(f(0))}${hex(f(8))}${hex(f(4))}`.toUpperCase();
+}
+
+/** The "colour" tokens of a palette made more saturated (and a touch brighter on dark) — the glow
+ * finish of a design that has no vivid palettes of its own. Backgrounds and text stay as they are. */
+export function vivid(colors: ThemeColors, dark: boolean): ThemeColors {
+  const boost = (hex: string) => {
+    const [h, s, l] = hexToHsl(hex);
+    return hslToHex(h, Math.min(100, s + 22), dark ? Math.min(78, l + 4) : l);
+  };
+  return {
+    ...colors,
+    primary: boost(colors.primary),
+    accent: boost(colors.accent),
+    success: boost(colors.success),
+    warning: boost(colors.warning),
+    danger: boost(colors.danger),
+    priorityLow: boost(colors.priorityLow),
+    priorityMedium: boost(colors.priorityMedium),
+    priorityHigh: boost(colors.priorityHigh),
+  };
+}
+
+/** `#RRGGBB` + alpha 0–1 → `#RRGGBBAA`. */
+export function withAlpha(hex: string, alpha: number): string {
+  return `${hex.slice(0, 7)}${Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, '0')}`;
+}
+
+/** Glow around something in the main colour (buttons, "+", the active tab) — empty when matte. */
+export function glowShadow(theme: AppTheme, color: string = theme.colors.primary): { boxShadow?: string } {
+  if (theme.glow <= 0) return {};
+  return { boxShadow: `0 0 ${Math.round(28 * theme.glow)}px ${withAlpha(color, theme.dark ? 0.75 : 0.45)}` };
+}
+
+/** Glowing big numbers on dark backgrounds (sums, levels). */
+export function glowText(theme: AppTheme, color: string) {
+  if (theme.glow <= 0 || !theme.dark) return {};
+  return { textShadowColor: withAlpha(color, 0.7), textShadowRadius: Math.round(18 * theme.glow), textShadowOffset: { width: 0, height: 0 } };
+}
+
+export type { CardStyle };
+
+// ---- Screen background (same CSS as the theme constructor) -------------------------------------
+
+function rgbaOf(hex: string, a: number): string {
+  const c = hex.replace('#', '');
+  return `rgba(${parseInt(c.slice(0, 2), 16)}, ${parseInt(c.slice(2, 4), 16)}, ${parseInt(c.slice(4, 6), 16)}, ${a})`;
+}
+
+/** A palette token or a hex → hex. */
+export function resolveColor(theme: AppTheme, ref: ColorRef): string {
+  return ref.startsWith('#') ? ref : (theme.colors as unknown as Record<string, string>)[ref] ?? theme.colors.primary;
+}
+
+/**
+ * The backdrop as a CSS background-image string for experimental_backgroundImage (the base colour
+ * is the view's own backgroundColor), or null when there's none. Written exactly like the
+ * constructor's backdropCss(), so what's designed there is what the phone draws.
+ */
+export function backdropImage(theme: AppTheme): string | null {
+  const b = theme.backdrop;
+  if (b.mode === 'blobs' && b.blobs.length) {
+    return b.blobs
+      .map((bl) => {
+        const c = resolveColor(theme, bl.color);
+        const inner = Math.round(bl.size * (1 - b.soft));
+        return `radial-gradient(circle at ${bl.x}% ${bl.y}%, ${rgbaOf(c, bl.opacity)} ${inner}%, ${rgbaOf(c, 0)} ${bl.size}%)`;
+      })
+      .join(', ');
+  }
+  if (b.mode === 'linear' && b.linear.stops.length > 1) {
+    return `linear-gradient(${b.linear.angle}deg, ${b.linear.stops.map((s) => `${rgbaOf(resolveColor(theme, s.color), s.opacity)} ${s.pos}%`).join(', ')})`;
+  }
+  return null;
+}
+
+export { rgbaOf };

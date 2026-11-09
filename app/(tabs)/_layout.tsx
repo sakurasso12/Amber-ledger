@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TopTabs } from 'expo-router/js-top-tabs';
@@ -9,6 +9,7 @@ import { useTaskStore } from '@/store/useTaskStore';
 import { useTranslation } from '@/i18n';
 import { Badge } from '@/components/ui';
 import { PillTabBar } from '@/components/ui/PillTabBar';
+import { BackdropHost } from '@/components/ui/Screen';
 import { todayKey, toDateKey } from '@/lib/dateRanges';
 
 /** As of Expo Router's SDK 56 navigation rewrite, importing `@react-navigation/*` packages
@@ -39,14 +40,17 @@ export default function TabsLayout() {
   }, [tasks]);
 
   const { design, colors } = theme;
-  const labelStyle = { ...styles.label, ...designTextStyle({ fontSize: 11, fontWeight: '700' }, design) };
+  // Tab labels stay as written: the design's UPPERCASE small labels made "CALENDAR" / "SETTINGS" too
+  // wide for a fifth of the screen, so they wrapped and got cut off at the bottom.
+  const labelStyle = { ...styles.label, ...designTextStyle({ fontSize: 11, fontWeight: '700' }, design), textTransform: 'none' as const, letterSpacing: 0 };
 
-  // Each design brings its own tab bar: classic strip, floating pill or ink underline.
-  const barByStyle: Record<typeof design.tabBar, object> = {
+  // Settings → Тема → Розташування: menu shape and whether it has a plate under it. Without the plate
+  // the icons sit straight on the screen's background / gradient — no strip, no hairline.
+  const plate = theme.layout.menuPlate;
+  const barByStyle: Record<'classic' | 'floating' | 'underline', object> = {
     classic: {
-      backgroundColor: colors.surface,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
+      backgroundColor: plate ? colors.surface : 'transparent',
+      borderTopWidth: 0,
       elevation: 0,
       shadowOpacity: 0,
       // Android's edge-to-edge display draws the gesture nav bar over app content by default —
@@ -58,26 +62,25 @@ export default function TabsLayout() {
       paddingRight: insets.right,
     },
     floating: {
-      backgroundColor: colors.surface,
+      backgroundColor: plate ? colors.surface : 'transparent',
       marginLeft: 16 + insets.left,
       marginRight: 16 + insets.right,
       marginBottom: insets.bottom + 10,
       height: 62,
       borderRadius: 31,
       borderTopWidth: 0,
-      borderWidth: theme.dark ? 1 : 0,
+      borderWidth: plate && theme.dark ? 1 : 0,
       borderColor: `${colors.primary}40`,
-      elevation: theme.dark ? 0 : 10,
+      elevation: plate && !theme.dark ? 10 : 0,
+      shadowOpacity: plate ? 0.18 : 0,
       shadowColor: '#1B2350',
-      shadowOpacity: 0.18,
       shadowRadius: 20,
       shadowOffset: { width: 0, height: 8 },
       overflow: 'hidden',
     },
     underline: {
-      backgroundColor: colors.background,
-      borderTopWidth: design.borderWidth,
-      borderTopColor: colors.border,
+      backgroundColor: plate ? colors.background : 'transparent',
+      borderTopWidth: 0,
       elevation: 0,
       shadowOpacity: 0,
       height: 50 + insets.bottom,
@@ -86,19 +89,22 @@ export default function TabsLayout() {
       paddingRight: insets.right,
     },
   };
-  const indicatorByStyle: Record<typeof design.tabBar, object> = {
+  const indicatorByStyle: Record<'classic' | 'floating' | 'underline', object> = {
     classic: styles.hiddenIndicator,
     floating: styles.hiddenIndicator,
     underline: { height: 3, top: 0, backgroundColor: colors.text },
   };
   // The layout (Settings → App design) can replace the theme's tab bar with its own navigation.
   const layoutBar = theme.layout.tabBar;
-  const barStyle = design.tabBar;
+  const menu = theme.layout.menu;
+  const barStyle: 'classic' | 'floating' | 'underline' = menu === 'bubble' || menu === 'pill' ? 'floating' : menu;
 
   return (
+    // One background behind the screens AND the tab bar (gradient / photo); both are see-through.
+    <BackdropHost>
     <TopTabs
       tabBarPosition="bottom"
-      style={{ backgroundColor: colors.background }}
+      style={{ backgroundColor: 'transparent' }}
       tabBar={layoutBar === 'pill' ? (props: object) => <PillTabBar {...(props as React.ComponentProps<typeof PillTabBar>)} /> : undefined}
       screenOptions={{
         swipeEnabled: true,
@@ -108,8 +114,15 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.textMuted,
         tabBarIndicatorStyle: indicatorByStyle[barStyle],
         tabBarLabelStyle: labelStyle,
+        // One line, shrunk to fit: long Ukrainian/Russian labels ("Налаштування") used to wrap and get cut.
+        tabBarLabel: ({ color, children }: { color: string; children: string }) => (
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[labelStyle, { color }]}>
+            {children}
+          </Text>
+        ),
         tabBarItemStyle: barStyle === 'floating' ? styles.floatingItem : styles.item,
         tabBarStyle: barByStyle[barStyle],
+        sceneStyle: { backgroundColor: 'transparent' },
       }}
     >
       <TopTabs.Screen
@@ -159,6 +172,7 @@ export default function TabsLayout() {
         }}
       />
     </TopTabs>
+    </BackdropHost>
   );
 }
 
@@ -166,5 +180,6 @@ const styles = StyleSheet.create({
   hiddenIndicator: { height: 0 },
   label: { fontSize: 11, textTransform: 'none', marginTop: 0 },
   item: { paddingTop: 6 },
-  floatingItem: { justifyContent: 'center' },
+  // The floating bar is 62 high; the tab item's own padding (10) and min height (48) pushed the icons up.
+  floatingItem: { justifyContent: 'center', alignItems: 'center', height: 62, minHeight: 62, paddingVertical: 0 },
 });

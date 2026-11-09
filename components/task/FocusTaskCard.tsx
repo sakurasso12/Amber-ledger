@@ -4,7 +4,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
-import { cardSurface } from '@/theme/surfaces';
+import { CustomizableCard } from '@/components/ui/CustomizableCard';
 import { priorityColor } from '@/theme/theme';
 import { Task } from '@/types';
 import { useTranslation } from '@/i18n';
@@ -18,11 +18,13 @@ interface FocusTaskCardProps {
   kicker?: string;
   /** While the layout is being edited: no opening, no ticking off. */
   editing?: boolean;
+  /** Id for its look (background, opacity, shape — "⋮"); defaults to one per task series. */
+  cardId?: string;
 }
 
 /** One task as a big card with a countdown and a big Done button — the Vertical layout's "In
  * focus" card, and size L in the task list. */
-export function FocusTaskCard({ task, onDone, kicker, editing = false }: FocusTaskCardProps) {
+export function FocusTaskCard({ task, onDone, kicker, editing = false, cardId }: FocusTaskCardProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
@@ -39,11 +41,12 @@ export function FocusTaskCard({ task, onDone, kicker, editing = false }: FocusTa
   const mutedColor = photo ? 'rgba(255,255,255,0.8)' : theme.colors.textMuted;
 
   return (
+    // A customizable card: its own background (glass / shadow / none / photo), opacity and shape via "⋮".
+    <CustomizableCard widgetId={cardId ?? `task-big-${task.seriesId ?? task.id}`} padding={0} style={styles.clip}>
     <PressableScale
       disabled={editing}
       onPress={() => router.push(`/task/${task.id}`)}
-      // overflow: hidden clips the photo to the card's exact (leaf-shaped) corners.
-      style={[styles.card, cardSurface(theme), photo && styles.photoCard]}
+      style={[styles.card, photo && styles.photoCard]}
     >
       {photo ? (
         <>
@@ -78,11 +81,13 @@ export function FocusTaskCard({ task, onDone, kicker, editing = false }: FocusTa
         <Text style={[styles.doneText, { color: theme.colors.primaryText }]}>✓ {tr.layoutText.done}</Text>
       </Pressable>
     </PressableScale>
+    </CustomizableCard>
   );
 }
 
 const styles = StyleSheet.create({
   card: { padding: 22, gap: 10 },
+  clip: { overflow: 'hidden' },
   photoCard: { overflow: 'hidden', minHeight: 220, justifyContent: 'flex-end' },
   // Darker towards the bottom, where the title and button sit.
   photoFade: { experimental_backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.7))' },

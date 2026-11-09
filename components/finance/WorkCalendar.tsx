@@ -101,7 +101,7 @@ export function WorkCalendar() {
               : record
               ? record.isWorked
                 ? theme.colors.success
-                : theme.colors.danger
+                : theme.colors.priorityHigh
               : 'transparent';
             const textColor = isPast
               ? theme.colors.textMuted
@@ -124,7 +124,7 @@ export function WorkCalendar() {
 
       <View style={styles.summaryRow}>
         <Text style={[styles.summaryItem, { color: theme.colors.success }]}>{tr.workCalendar.worked}: {worked}</Text>
-        <Text style={[styles.summaryItem, { color: theme.colors.danger }]}>{tr.workCalendar.off}: {off}</Text>
+        <Text style={[styles.summaryItem, { color: theme.colors.priorityHigh }]}>{tr.workCalendar.off}: {off}</Text>
         <Text style={[styles.summaryItem, { color: theme.colors.text }]}>
           ≈ {earned.toFixed(0)} {settings.currency}
         </Text>

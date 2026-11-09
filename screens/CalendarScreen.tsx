@@ -143,7 +143,7 @@ export function CalendarScreen() {
       </View>
 
       <Animated.ScrollView ref={scrollRef} contentContainerStyle={styles.listContent}>
-        {theme.layout.tasks === 'focus' ? (
+        {theme.layout.header === 'vertical' ? (
           // Vertical: the selected day as a big date heading above its items.
           <View style={styles.dayHero}>
             <Text style={[styles.dayHeroNumber, { color: theme.colors.primary }]}>{selectedDateObj.getDate()}</Text>
