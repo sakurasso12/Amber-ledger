@@ -18,6 +18,7 @@ import { categoryLabel } from '@/lib/categoryLabel';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 import { RecurrenceRule, Upcoming, UpcomingMode } from '@/types';
+import { fmtAmount } from '@/lib/money';
 
 /**
  * Upcoming payments (finance v2) — what used to be "planned" and "recurring" expenses, in one list
@@ -96,7 +97,7 @@ export function UpcomingScreen() {
               <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>{when(item)}</Text>
             </View>
             <Text style={[styles.amount, { color: theme.colors.danger }]}>
-              {item.amount.toFixed(0)} {currencyOf(item)}
+              {fmtAmount(item.amount)} {currencyOf(item)}
             </Text>
             <Pressable onPress={() => removeUpcoming(item.id)} hitSlop={8} accessibilityLabel={tr.money.remove}>
               <Text style={{ color: theme.colors.danger, fontSize: 15 }}>✕</Text>

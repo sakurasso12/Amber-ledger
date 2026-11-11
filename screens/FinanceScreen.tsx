@@ -34,6 +34,7 @@ import { AccountPicker } from '@/components/finance/AccountPicker';
 import { Button, Chip } from '@/components/ui';
 import { accountName, expenseCurrency, isSpendable, MAX_CARDS, MAX_GOALS, MAX_STASHES } from '@/lib/accounts';
 import { AccountKind, Expense } from '@/types';
+import { fmtAmount } from '@/lib/money';
 
 export function FinanceScreen() {
   const theme = useTheme();
@@ -179,7 +180,7 @@ export function FinanceScreen() {
     <CustomizableCard widgetId={`finance-${key}`} style={styles.tileCard}>
       <Text style={[styles.statLabel, { color: theme.colors.textMuted }]}>{label}</Text>
       <Text style={[styles.statValue, { color: theme.colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
-        -{value.toFixed(0)} {settings.currency}
+        -{fmtAmount(value)} {settings.currency}
       </Text>
     </CustomizableCard>
   );
@@ -191,7 +192,7 @@ export function FinanceScreen() {
         <View style={size === 'half' ? styles.budgetLabelStack : styles.budgetLabelRow}>
           <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>{label}</Text>
           <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }} numberOfLines={1} adjustsFontSizeToFit>
-            {spent.toFixed(0)} / {limit.toFixed(0)} {settings.currency}
+            {fmtAmount(spent)} / {fmtAmount(limit)} {settings.currency}
           </Text>
         </View>
         <ProgressBar ratio={spent / limit} color={theme.colors.success} />

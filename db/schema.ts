@@ -1,7 +1,7 @@
 export const DB_NAME = 'amber-ledger.db';
 
 /** Current schema version. Bump this and append a migration when the schema changes. */
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = 12;
 
 export const CREATE_TABLES_SQL = `
 PRAGMA journal_mode = WAL;
@@ -207,4 +207,5 @@ export const DEFAULT_CATEGORIES: { id: string; name: string; color: string; sort
   { id: 'cat-housing', name: 'Жильё', color: '#8A5CB8', sortOrder: 2 },
   { id: 'cat-fun', name: 'Развлечения', color: '#3E8F5C', sortOrder: 3 },
   { id: 'cat-other', name: 'Прочее', color: '#8A7A64', sortOrder: 4 },
+  { id: 'cat-loans', name: 'Кредиты', color: '#B8463E', sortOrder: 5 },
 ];

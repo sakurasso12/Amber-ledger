@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { payPeriodRange, toDateKey } from '@/lib/dateRanges';
 import { totalEarnings, workedDaysCount } from '@/lib/earnings';
 import { useTranslation } from '@/i18n';
+import { fmtAmount } from '@/lib/money';
 
 /** Tap cycles a day through: unset → worked (green) → day off (red) → unset. Days before the
  * start of the current pay period are read-only and shown muted — no manual "close period" step
@@ -126,7 +127,7 @@ export function WorkCalendar() {
         <Text style={[styles.summaryItem, { color: theme.colors.success }]}>{tr.workCalendar.worked}: {worked}</Text>
         <Text style={[styles.summaryItem, { color: theme.colors.priorityHigh }]}>{tr.workCalendar.off}: {off}</Text>
         <Text style={[styles.summaryItem, { color: theme.colors.text }]}>
-          ≈ {earned.toFixed(0)} {settings.currency}
+          ≈ {fmtAmount(earned)} {settings.currency}
         </Text>
       </View>
     </View>

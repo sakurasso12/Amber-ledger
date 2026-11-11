@@ -18,6 +18,7 @@ import { Account, AccountKind } from '@/types';
 import { AccountPicker, NO_ACCOUNT_ID, useAccountOptions } from './AccountPicker';
 import { MoneyDialog } from './MoneyDialog';
 import { BAR_HEIGHT, FILL, Wave } from './Wave';
+import { fmtAmount, amountDraft } from '@/lib/money';
 
 const parseAmount = (text: string) => parseFloat(text.replace(',', '.'));
 
@@ -62,7 +63,7 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
   const name = accountName(account, tr.accounts);
   const own = transfers.filter((t) => t.fromId === account.id || t.toId === account.id).slice(0, 20);
   const labelOf = (id: string) => (id === NO_ACCOUNT_ID ? tr.accounts.noSource : options.find((o) => o.id === id)?.label ?? '—');
-  const money = (n: number, currency = account.currency) => `${n.toFixed(0)} ${currency}`;
+  const money = (n: number, currency = account.currency) => `${fmtAmount(n)} ${currency}`;
   const close = () => setStep(null);
 
   function saveNumber(apply: (n: number) => void) {
@@ -74,7 +75,7 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
   }
 
   function openNumber(next: 'balance' | 'target', value: number) {
-    setDraft(value.toFixed(0));
+    setDraft(amountDraft(value));
     setStep(next);
   }
 
@@ -129,7 +130,7 @@ export function AccountCard({ account, compact, disabled }: { account: Account; 
             </Text>
             {spentSinceSet > 0 ? (
               <Text style={[styles.subline, { color: theme.colors.textMuted }]}>
-                {tr.money.spentMonth}: {spentSinceSet.toFixed(0)}
+                {tr.money.spentMonth}: {fmtAmount(spentSinceSet)}
               </Text>
             ) : null}
             {projection ? (
@@ -282,7 +283,7 @@ function GoalBar({ account, saved, disabled, onPress }: { account: Account; save
             🎯 {accountName(account, tr.accounts)}
           </Text>
           <Text style={[styles.goalAmount, { color: theme.colors.textMuted }]} numberOfLines={1}>
-            {saved.toFixed(0)} / {target.toFixed(0)} {account.currency}
+            {fmtAmount(saved)} / {fmtAmount(target)} {account.currency}
           </Text>
         </View>
         <Text style={[styles.goalPercent, { color: theme.colors.text }]}>{Math.round(ratio * 100)}%</Text>

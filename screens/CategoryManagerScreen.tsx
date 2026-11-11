@@ -13,6 +13,7 @@ import { Category } from '@/types';
 import { monthRange } from '@/lib/dateRanges';
 import { totalExpenses } from '@/lib/expenses';
 import { categoryLabel } from '@/lib/categoryLabel';
+import { fmtAmount } from '@/lib/money';
 
 const PALETTE = ['#C1502E', '#3E7FB8', '#8A5CB8', '#3E8F5C', '#8A7A64', '#C98A1E', '#5A8F6B', '#B9702E'];
 
@@ -95,7 +96,7 @@ export function CategoryManagerScreen() {
                 <>
                   <Text style={{ color: theme.colors.textMuted, fontSize: 11 }}>
                     {tr.categoryManager.limitSet(
-                      `${(spentThisMonthByCategory.get(item.id) ?? 0).toFixed(0)}/${item.limitMonth.toFixed(0)} ${currency}`
+                      `${fmtAmount(spentThisMonthByCategory.get(item.id) ?? 0)}/${fmtAmount(item.limitMonth)} ${currency}`
                     )}
                   </Text>
                   <ProgressBar ratio={(spentThisMonthByCategory.get(item.id) ?? 0) / item.limitMonth} color={item.color} height={4} />

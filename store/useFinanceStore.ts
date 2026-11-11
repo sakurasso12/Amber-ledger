@@ -377,7 +377,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     const loan = get().loans.find((l) => l.id === id);
     if (!loan || isPaidOff(loan)) return;
     const { categories } = get();
-    const categoryId = (categories.find((c) => c.id === 'cat-other') ?? categories[0])?.id;
+    const categoryId = (categories.find((c) => c.id === 'cat-loans') ?? categories.find((c) => c.id === 'cat-other') ?? categories[0])?.id;
     if (categoryId) {
       await get().addExpense({
         amount: round2(amount ?? monthlyPayment(loan)),

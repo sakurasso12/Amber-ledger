@@ -12,6 +12,7 @@ import { accountName, primaryId } from '@/lib/accounts';
 import { balanceOf } from '@/lib/ledger';
 import { categoryLabel } from '@/lib/categoryLabel';
 import { PendingItem, snoozeUntilTomorrow } from '@/lib/pending';
+import { fmtAmount } from '@/lib/money';
 
 const parse = (text: string) => {
   const n = parseFloat(text.replace(',', '.'));
@@ -108,7 +109,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
   const pid = primaryId(state.accounts);
   const categoryById = new Map(state.categories.map((c) => [c.id, c]));
   const app = settings.currency;
-  const fmt = (n: number, cur = app) => `${n.toFixed(0)} ${cur}`;
+  const fmt = (n: number, cur = app) => `${fmtAmount(n)} ${cur}`;
   const day = (key: string) => new Date(`${key}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' });
 
   if (items.length === 0) return null;

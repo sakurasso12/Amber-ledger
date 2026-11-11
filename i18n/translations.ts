@@ -437,7 +437,7 @@ export interface Translation {
   };
   level: { tasksDone: string; sound: string; soundHint: string };
   habitWidget: { title: string; subtitle: string; empty: string; done: string };
-  defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
+  defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string; 'cat-loans': string };
   layoutText: {
     noDeadline: string;
     focus: string;
@@ -1215,7 +1215,7 @@ const ru: Translation = {
     empty: 'Привычек пока нет. Включи «Считать серию» у повторяющейся задачи.',
     done: 'Готово — виджет обновится через секунду',
   },
-  defaultCategories: { 'cat-food': 'Еда', 'cat-transport': 'Транспорт', 'cat-housing': 'Жильё', 'cat-fun': 'Развлечения', 'cat-other': 'Прочее' },
+  defaultCategories: { 'cat-food': 'Еда', 'cat-transport': 'Транспорт', 'cat-housing': 'Жильё', 'cat-fun': 'Развлечения', 'cat-other': 'Прочее', 'cat-loans': 'Кредиты' },
   layoutText: {
     noDeadline: 'без срока',
     focus: 'В ФОКУСЕ',
@@ -2001,7 +2001,7 @@ const uk: Translation = {
     empty: 'Звичок поки немає. Увімкни «Рахувати серію» у задачі, що повторюється.',
     done: 'Готово — віджет оновиться за секунду',
   },
-  defaultCategories: { 'cat-food': 'Їжа', 'cat-transport': 'Транспорт', 'cat-housing': 'Житло', 'cat-fun': 'Розваги', 'cat-other': 'Інше' },
+  defaultCategories: { 'cat-food': 'Їжа', 'cat-transport': 'Транспорт', 'cat-housing': 'Житло', 'cat-fun': 'Розваги', 'cat-other': 'Інше', 'cat-loans': 'Кредити' },
   layoutText: {
     noDeadline: 'без терміну',
     focus: 'У ФОКУСІ',
@@ -2787,7 +2787,7 @@ const en: Translation = {
     empty: 'No habits yet. Turn on “Count streak” for a repeating task.',
     done: 'Done — the widget updates in a second',
   },
-  defaultCategories: { 'cat-food': 'Food', 'cat-transport': 'Transport', 'cat-housing': 'Housing', 'cat-fun': 'Fun', 'cat-other': 'Other' },
+  defaultCategories: { 'cat-food': 'Food', 'cat-transport': 'Transport', 'cat-housing': 'Housing', 'cat-fun': 'Fun', 'cat-other': 'Other', 'cat-loans': 'Loans' },
   layoutText: {
     noDeadline: 'no deadline',
     focus: 'IN FOCUS',

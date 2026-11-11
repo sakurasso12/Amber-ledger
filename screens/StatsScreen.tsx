@@ -19,6 +19,7 @@ import { categoryBreakdown, topCategory } from '@/lib/expenses';
 import { useTranslation } from '@/i18n';
 import { FinanceLockGate } from '@/components/finance/FinanceLockGate';
 import { categoryLabel } from '@/lib/categoryLabel';
+import { fmtAmount } from '@/lib/money';
 
 type Tab = 'tasks' | 'finance';
 
@@ -59,8 +60,8 @@ export function StatsScreen() {
           { label: tr.stats.overduePerWeek, value: String(thisWeek?.overdue ?? 0), color: theme.colors.danger },
         ]
       : [
-          { label: tr.stats.earningsPerWeek, value: `${earnedThisWeek.toFixed(0)} ${settings.currency}`, color: theme.colors.success },
-          { label: tr.stats.expensesByCategory, value: `${spentThisMonth.toFixed(0)} ${settings.currency}`, color: theme.colors.danger },
+          { label: tr.stats.earningsPerWeek, value: `${fmtAmount(earnedThisWeek)} ${settings.currency}`, color: theme.colors.success },
+          { label: tr.stats.expensesByCategory, value: `${fmtAmount(spentThisMonth)} ${settings.currency}`, color: theme.colors.danger },
         ];
   const statsMode = theme.layout.stats;
   let summary: React.ReactNode = null;

@@ -48,7 +48,8 @@ export const LAYOUTS: Record<LayoutId, AppLayout> = {
     corners: null,
     tabBar: null,
     menu: 'bubble',
-    menuPlate: true,
+    // Just the buttons on the background — the user found the plate under the menu ugly.
+    menuPlate: false,
     tasks: 'focus',
     expenses: 'rows',
     stats: 'standard',
@@ -65,7 +66,7 @@ export const LAYOUTS: Record<LayoutId, AppLayout> = {
     corners: { tl: 40, tr: 6, br: 40, bl: 6 },
     tabBar: 'pill',
     menu: 'pill',
-    menuPlate: true,
+    menuPlate: false,
     tasks: 'focus',
     expenses: 'big',
     stats: 'big',

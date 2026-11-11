@@ -19,6 +19,7 @@ import { BAR_HEIGHT, FILL, Wave } from './Wave';
 import { MoneyDialog } from './MoneyDialog';
 import { CategoryPicker } from './CategoryPicker';
 import { removeExpenseAsking } from './balanceQuestion';
+import { fmtAmount, amountDraft } from '@/lib/money';
 
 const parse = (text: string) => {
   const n = parseFloat(text.replace(',', '.'));
@@ -100,8 +101,8 @@ export function BudgetBar({ category, disabled = false }: { category: Category; 
             {categoryLabel(category, tr)}
           </Text>
           <Text style={[styles.limit, { color: theme.colors.textMuted }]} numberOfLines={1}>
-            {spent.toFixed(0)} / {limit.toFixed(0)} {currency} ·{' '}
-            {rest >= 0 ? tr.money.budgetLeft(rest.toFixed(0)) : tr.money.budgetOver((-rest).toFixed(0))}
+            {fmtAmount(spent)} / {fmtAmount(limit)} {currency} ·{' '}
+            {rest >= 0 ? tr.money.budgetLeft(fmtAmount(rest)) : tr.money.budgetOver(fmtAmount(-rest))}
           </Text>
         </View>
         <Text style={[styles.percent, { color: over ? theme.colors.danger : theme.colors.text }]}>{Math.round(ratio * 100)}%</Text>
@@ -110,7 +111,7 @@ export function BudgetBar({ category, disabled = false }: { category: Category; 
       {ask ? (
         <View style={styles.monthEnd}>
           <Text style={[styles.monthEndText, { color: theme.colors.textMuted }]}>
-            {tr.money.budgetMonthQuestion(`${limit.toFixed(0)} ${currency}`)}
+            {tr.money.budgetMonthQuestion(`${fmtAmount(limit)} ${currency}`)}
           </Text>
           <Pressable disabled={disabled} onPress={keep} hitSlop={6} style={[styles.chip, { backgroundColor: `${theme.colors.primary}1F` }]}>
             <Text style={[styles.chipText, { color: theme.colors.primary }]}>{tr.money.keep}</Text>
@@ -158,7 +159,7 @@ function BudgetSheet({
     if (mode) {
       setStep(mode === 'limit' ? 'limit' : 'main');
       setAmount('');
-      setLimit((category.limitMonth ?? 0).toFixed(0));
+      setLimit(amountDraft(category.limitMonth ?? 0));
       setPassword('');
       setWrong(false);
     }
@@ -272,7 +273,7 @@ function BudgetSheet({
               {new Date(`${e.date}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' })}
             </Text>
             <Text style={[styles.spendAmount, { color: theme.colors.text }]} numberOfLines={1}>
-              -{e.amount.toFixed(0)} {currency}
+              -{fmtAmount(e.amount)} {currency}
               {e.comment ? ` · ${e.comment}` : ''}
             </Text>
             <Pressable onPress={() => removeExpenseAsking(e.id)} hitSlop={8}>

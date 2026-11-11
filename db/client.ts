@@ -110,6 +110,19 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     await add('expenses', 'rate', 'REAL');
   }
 
+  if (currentVersion < 12) {
+    // Loan payments get their own built-in category (they used to land in "Other"), and the
+    // payments already made move there: payLoan logged them in cat-other with the loan's name.
+    const max = await db.getFirstAsync<{ m: number | null }>('SELECT MAX(sort_order) as m FROM categories');
+    await db.runAsync(
+      'INSERT OR IGNORE INTO categories (id, name, color, is_default, sort_order) VALUES (?, ?, ?, 1, ?)',
+      ['cat-loans', 'Кредиты', '#B8463E', (max?.m ?? 4) + 1]
+    );
+    await db.execAsync(
+      "UPDATE expenses SET category_id = 'cat-loans' WHERE category_id = 'cat-other' AND comment IN (SELECT name FROM loans)"
+    );
+  }
+
   if (currentVersion < SCHEMA_VERSION) {
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }

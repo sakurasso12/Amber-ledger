@@ -9,6 +9,7 @@ import { glowText } from '@/theme/theme';
 import { categoryLabel } from '@/lib/categoryLabel';
 import { Category } from '@/types';
 import { MoneyDialog } from './MoneyDialog';
+import { fmtAmount, amountDraft } from '@/lib/money';
 
 interface BalanceCardProps {
   /** Bank name of the main card ("" = not named). */
@@ -65,7 +66,7 @@ export function BalanceCard({
   const label = name.trim() || tr.financeScreen.bank;
 
   function openEditor() {
-    setDraft(balance.toFixed(2).replace(/\.00$/, ''));
+    setDraft(amountDraft(balance));
     setNameDraft(name);
     setEditing(true);
   }
@@ -79,8 +80,8 @@ export function BalanceCard({
   }
 
   const muted = theme.colors.textMuted;
-  const money = (n: number) => `${n.toFixed(0)} ${currency}`;
-  const signed = (n: number) => `${n >= 0 ? '' : '−'}${Math.abs(n).toFixed(0)} ${currency}`;
+  const money = (n: number) => `${fmtAmount(n)} ${currency}`;
+  const signed = (n: number) => `${n >= 0 ? '' : '−'}${fmtAmount(Math.abs(n))} ${currency}`;
   const balanceColor = balance >= 0 ? theme.colors.success : theme.colors.danger;
 
   // Free vs spoken for: the bar is the card's money; the spoken-for part sits on the right.
@@ -108,7 +109,7 @@ export function BalanceCard({
       {bar}
       {spentMonth > 0 ? (
         <Text style={[styles.subline, { color: muted }]}>
-          {tr.money.spentMonth}: {spentMonth.toFixed(0)}
+          {tr.money.spentMonth}: {fmtAmount(spentMonth)}
         </Text>
       ) : null}
     </Pressable>
