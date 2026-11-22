@@ -16,6 +16,7 @@ import { canCountStreak, firstHabitDeadline } from '@/lib/streaks';
 import { generateId } from '@/lib/id';
 import { deletePersistedImage, pickAndPersistImage } from '@/lib/imagePicker';
 import { useTranslation } from '@/i18n';
+import { ALARMS_AVAILABLE, askAlarmPermissions } from '@/lib/alarms';
 
 export function TaskEditorScreen() {
   const theme = useTheme();
@@ -38,6 +39,7 @@ export function TaskEditorScreen() {
   const [status, setStatus] = useState<TaskStatus>(existing?.status ?? 'not_started');
   const [deadlineAt, setDeadlineAt] = useState<string | null>(existing?.deadlineAt ?? null);
   const [isImportant, setIsImportant] = useState(existing?.isImportant ?? false);
+  const [alarm, setAlarm] = useState(existing?.alarm ?? false);
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule | null>(existing?.recurrenceRule ?? null);
   const [subtasks, setSubtasks] = useState<DraftSubtask[]>(
@@ -96,6 +98,7 @@ export function TaskEditorScreen() {
         recurrenceRule,
         imageUri,
         expenseOnComplete,
+        alarm: alarm && !!habitDeadline,
         subtasks: subtasks.map((s, index) => ({
           id: s.id.startsWith('draft-') ? generateId() : s.id,
           taskId: existing.id,
@@ -117,6 +120,7 @@ export function TaskEditorScreen() {
         recurrenceRule,
         imageUri,
         expenseOnComplete,
+        alarm: alarm && !!habitDeadline,
         subtasks: subtasks.map((s, index) => ({ title: s.title, isDone: s.isDone, sortOrder: index })),
       });
     }
@@ -220,6 +224,25 @@ export function TaskEditorScreen() {
         />
       </View>
 
+      {ALARMS_AVAILABLE ? (
+        <View style={styles.field}>
+          <Chip
+            label={tr.alarm.chip}
+            selected={alarm}
+            onPress={() => {
+              const next = !alarm;
+              setAlarm(next);
+              if (next) askAlarmPermissions();
+            }}
+          />
+          {alarm ? (
+            <Text style={[styles.alarmHint, { color: theme.colors.textMuted }]}>
+              {deadlineAt ? tr.alarm.hint : tr.alarm.needsTime}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
       <TagInput tags={tags} onChange={setTags} />
       <RecurrencePicker value={recurrenceRule} onChange={setRecurrenceRule} showStreak />
       <SubtaskChecklist subtasks={subtasks} onChange={setSubtasks} />
@@ -260,6 +283,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, gap: 18 },
   header: { fontSize: 20, fontWeight: '700' },
   field: { gap: 8 },
+  alarmHint: { fontSize: 12, lineHeight: 17 },
   label: { fontSize: 13, fontWeight: '600' },
   multiline: { minHeight: 80, textAlignVertical: 'top' },
   photoRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },

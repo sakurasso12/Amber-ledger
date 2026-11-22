@@ -17,6 +17,7 @@ export function task(fields: Partial<Task> = {}): Task {
     imageUri: null,
     sortOrder: 0,
     expenseOnComplete: null,
+    alarm: false,
     createdAt: '2026-10-01T08:00:00.000Z',
     updatedAt: '2026-10-01T08:00:00.000Z',
     completedAt: null,

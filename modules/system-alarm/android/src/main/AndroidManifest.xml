@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Puts the task alarm into the system Clock app (normal permission, granted on install). -->
+  <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+  <!-- Lets the midnight hand-off open the Clock while Amber Ledger is in the background.
+       Only asked for when the user turns an alarm on. -->
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+  <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.SET_ALARM" />
+    </intent>
+  </queries>
+
+  <application>
+    <receiver android:name="expo.modules.systemalarm.AlarmTriggerReceiver" android:exported="false" />
+    <receiver android:name="expo.modules.systemalarm.AlarmBootReceiver" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+      </intent-filter>
+    </receiver>
+  </application>
+</manifest>

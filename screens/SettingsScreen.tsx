@@ -1,5 +1,6 @@
 import React from 'react';
-import { Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { TymofiiFace, useMascotOn } from '@/components/mascot/Tymofii';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,6 +28,7 @@ export function SettingsScreen() {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
+  const mascot = useMascotOn();
   const insets = useSafeAreaInsets();
   const settings = useSettingsStore((s) => s.settings);
 
@@ -126,12 +128,28 @@ export function SettingsScreen() {
 
   return (
     <LayoutScreen title={tr.settingsScreen.header} help="settings">
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>{body}</ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>
+        {body}
+        {/* Easter egg: Тимофій peeks out at the very bottom — tap to meet the real cat. */}
+        {mascot ? (
+          <Pressable onPress={() => router.push('/tymofii' as never)} style={styles.peek} accessibilityRole="button" accessibilityLabel={tr.realTymofii.header}>
+            <View style={[styles.psst, { backgroundColor: theme.colors.surfaceAlt, borderColor: theme.colors.border }]}>
+              <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }}>psst… мрр</Text>
+            </View>
+            <View style={styles.peekCat}>
+              <TymofiiFace mood="wink" size={74} />
+            </View>
+          </Pressable>
+        ) : null}
+      </ScrollView>
     </LayoutScreen>
   );
 }
 
 const styles = StyleSheet.create({
+  peek: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 18, marginRight: -18 },
+  psst: { borderWidth: 1, borderRadius: 12, borderBottomRightRadius: 4, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 30 },
+  peekCat: { transform: [{ rotate: '-18deg' }] },
   flex: { flex: 1, gap: 2 },
   bigRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14 },
   bigIcon: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },

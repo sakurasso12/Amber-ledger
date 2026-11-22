@@ -3,6 +3,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 
 let player: AudioPlayer | null = null;
 let purrPlayer: AudioPlayer | null = null;
+let realPlayer: AudioPlayer | null = null;
 
 /** Real recordings (CC0, BigSoundBank #0436 / #0494), trimmed in ~/Downloads/tymofii-sounds. */
 let lastMix: 'purr' | 'meow' = 'meow';
@@ -45,6 +46,17 @@ export function playDoneSound(): void {
   const { soundEffects, purrOnTask } = useSettingsStore.getState().settings;
   if (!soundEffects) return;
   play(purrOnTask ? 'purr' : 'done');
+}
+
+/** The easter-egg page: always Тимофій's real purr, whatever sound is picked in Settings. */
+export function playRealPurr(): void {
+  try {
+    realPlayer?.remove();
+    realPlayer = createAudioPlayer(require('@/assets/sounds/purr.mp3'));
+    realPlayer.play();
+  } catch (e) {
+    console.warn('[sound] real purr failed', e);
+  }
 }
 
 /** Тимофій's sound (purr or meow, Settings) — the "listen" button. Plays even if task sounds are off. */

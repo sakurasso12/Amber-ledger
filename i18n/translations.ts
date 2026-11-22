@@ -741,6 +741,29 @@ export interface Translation {
     screens: Record<'tasks' | 'calendar' | 'finance' | 'stats' | 'settings', { title: string; text: string }[]>;
   };
   quickAdd: { voice: string; voiceLanguage: string; voiceAppLanguage: string };
+  alarm: {
+    chip: string;
+    hint: string;
+    needsTime: string;
+    tapToSet: string;
+    permTitle: string;
+    permMessage: string;
+    permLater: string;
+    permAllow: string;
+  };
+  realTymofii: {
+    header: string;
+    title: string;
+    lead: string;
+    listen: string;
+    listenNote: string;
+    captions: string[];
+    passportTitle: string;
+    pawLabel: string;
+    consent: string;
+    signed: string;
+    signature: string;
+  };
   savings: {
     title: string;
     askTitle: string;
@@ -1667,6 +1690,29 @@ const ru: Translation = {
     },
   },
   quickAdd: { voice: 'Сказать голосом', voiceLanguage: 'Язык голосового ввода', voiceAppLanguage: 'Как в приложении' },
+  alarm: {
+    chip: '⏰ Будильник',
+    hint: 'Будильник появится в приложении «Часы» на время задачи: сегодня — сразу, позже — в полночь того дня. Мелодия и «Отложить» — как у обычного будильника.',
+    needsTime: 'Выбери дату и время — на них и поставится будильник.',
+    tapToSet: 'Нажми, чтобы поставить будильник',
+    permTitle: 'Разрешить работу в фоне',
+    permMessage: 'Чтобы будильник ставился сам, даже когда приложение закрыто и включена экономия батареи, разреши Amber Ledger «Поверх других приложений» и работу без ограничений батареи.',
+    permLater: 'Позже',
+    permAllow: 'Разрешить',
+  },
+  realTymofii: {
+    header: 'Настоящий Тимофей',
+    title: 'Знакомьтесь: настоящий Тимофей',
+    lead: 'Маскот Amber Ledger — не выдумка. Это мой кот Тимофей, и вот он, без фильтров.',
+    listen: 'Послушать настоящее мурлыканье',
+    listenNote: 'Это же «мррр» звучит, когда ты закрываешь задачу.',
+    captions: ['Голову — на массаж', 'Охранник коробок', 'Инспектор корзин', 'Официальное фото на паспорт', 'Альпинист выходного дня', 'Режим энергосбережения', 'Маленький шпендик', 'Прячется от понедельника', 'Обнимашки по расписанию', 'Буханочка'],
+    passportTitle: 'Паспорт животного · согласие',
+    pawLabel: 'Отпечаток лапки Тимофея',
+    consent: 'Я, Тимофей, согласен быть маскотом Amber Ledger и очень рад помогать с задачами и денежками.',
+    signed: 'Подпись лапкой заверена',
+    signature: 'Тимофей',
+  },
   savings: {
     title: 'Подушка безопасности',
     askTitle: 'Добавить карточку для подушки?',
@@ -2591,6 +2637,29 @@ const uk: Translation = {
     },
   },
   quickAdd: { voice: 'Сказати голосом', voiceLanguage: 'Мова голосового вводу', voiceAppLanguage: 'Як у застосунку' },
+  alarm: {
+    chip: '⏰ Будильник',
+    hint: 'Будильник з’явиться в застосунку «Годинник» на час таску: сьогодні — одразу, пізніше — опівночі того дня. Мелодія і «Відкласти» — як у звичайного будильника.',
+    needsTime: 'Вибери дату й час — на них і поставиться будильник.',
+    tapToSet: 'Натисни, щоб поставити будильник',
+    permTitle: 'Дозволити роботу у фоні',
+    permMessage: 'Щоб будильник ставився сам, навіть коли застосунок закритий і ввімкнене збереження батареї, дозволь Amber Ledger «Поверх інших застосунків» і роботу без обмежень батареї.',
+    permLater: 'Пізніше',
+    permAllow: 'Дозволити',
+  },
+  realTymofii: {
+    header: 'Справжній Тимофій',
+    title: 'Знайомтесь: справжній Тимофій',
+    lead: 'Маскот Amber Ledger — не вигадка. Це мій кіт Тимофій, і ось він, без фільтрів.',
+    listen: 'Послухати справжнє муркотіння',
+    listenNote: 'Те саме «мррр» звучить, коли ти закриваєш задачу.',
+    captions: ['Голову — на масаж', 'Охоронець коробок', 'Інспектор кошиків', 'Офіційне фото на паспорт', 'Альпініст вихідного дня', 'Режим енергозбереження', 'Маленький шпендик', 'Ховається від понеділка', 'Обійми за розкладом', 'Буханочка'],
+    passportTitle: 'Паспорт тварини · згода',
+    pawLabel: 'Відбиток лапки Тимофія',
+    consent: 'Я, Тимофій, погоджуюсь бути маскотом Amber Ledger і дуже радий допомагати з задачами й грошенятами.',
+    signed: 'Підпис лапкою засвідчено',
+    signature: 'Тимофій',
+  },
   savings: {
     title: 'Подушка безпеки',
     askTitle: 'Додати картку для подушки?',
@@ -3515,6 +3584,29 @@ const en: Translation = {
     },
   },
   quickAdd: { voice: 'Say it', voiceLanguage: 'Voice input language', voiceAppLanguage: 'Same as the app' },
+  alarm: {
+    chip: '⏰ Alarm',
+    hint: 'An alarm appears in the Clock app at the task time: today — right away, later — at midnight of that day. Ringtone and snooze work like any alarm.',
+    needsTime: 'Pick a date and time — the alarm goes off then.',
+    tapToSet: 'Tap to set the alarm',
+    permTitle: 'Allow background work',
+    permMessage: 'To set alarms on its own, even when the app is closed or battery saver is on, allow Amber Ledger to display over other apps and to run without battery restrictions.',
+    permLater: 'Later',
+    permAllow: 'Allow',
+  },
+  realTymofii: {
+    header: 'The real Tymofii',
+    title: 'Meet the real Tymofii',
+    lead: 'Amber Ledger’s mascot isn’t made up. He’s my cat Tymofii — here he is, no filters.',
+    listen: 'Hear the real purr',
+    listenNote: 'The same purr plays when you finish a task.',
+    captions: ['Head massage, please', 'Box security', 'Basket inspector', 'Official passport photo', 'Weekend climber', 'Power-saving mode', 'Little rascal', 'Hiding from Monday', 'Scheduled cuddles', 'Little loaf'],
+    passportTitle: 'Pet passport · consent',
+    pawLabel: 'Tymofii’s paw print',
+    consent: 'I, Tymofii, agree to be Amber Ledger’s mascot and am very happy to help with tasks and money.',
+    signed: 'Signed with a paw',
+    signature: 'Tymofii',
+  },
   savings: {
     title: 'Savings cushion',
     askTitle: 'Add a card for your savings?',
