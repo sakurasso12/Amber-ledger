@@ -123,6 +123,15 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     );
   }
 
+  if (currentVersion < 13) {
+    // 1.7: subscriptions get their own built-in category.
+    const max = await db.getFirstAsync<{ m: number | null }>('SELECT MAX(sort_order) as m FROM categories');
+    await db.runAsync(
+      'INSERT OR IGNORE INTO categories (id, name, color, is_default, sort_order) VALUES (?, ?, ?, 1, ?)',
+      ['cat-subscriptions', 'Подписки', '#9B5DE5', (max?.m ?? 5) + 1]
+    );
+  }
+
   if (currentVersion < SCHEMA_VERSION) {
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }

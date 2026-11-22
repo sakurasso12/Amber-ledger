@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fabShape } from '@/theme/surfaces';
@@ -10,15 +11,22 @@ interface FabProps {
   onPress: () => void;
   onLongPress?: () => void;
   bottom: number;
+  /** Id for Тимофій's tour spotlight (e.g. 'tasks.fab'). */
+  helpId?: string;
 }
 
 /** The floating "+" button, shaped by the active layout: round or a big ring. */
-export function Fab({ onPress, onLongPress, bottom }: FabProps) {
+export function Fab({ onPress, onLongPress, bottom, helpId }: FabProps) {
+  const helpRef = useHelpTarget(helpId);
   const theme = useTheme();
   const { colors, layout } = theme;
 
   const big = layout.fab === 'big';
+  const size = big ? 68 : 56;
   return (
+    <>
+    {/* Invisible twin in the same spot — what the tour measures. */}
+    {helpId ? <View ref={helpRef} collapsable={false} pointerEvents="none" style={{ position: 'absolute', right: 20, bottom, width: size, height: size }} /> : null}
     <PressableScale
       scaleTo={0.9}
       onPress={onPress}
@@ -35,6 +43,7 @@ export function Fab({ onPress, onLongPress, bottom }: FabProps) {
     >
       <Ionicons name="add" size={big ? 34 : 28} color={colors.primaryText} />
     </PressableScale>
+    </>
   );
 }
 

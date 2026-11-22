@@ -9,6 +9,8 @@ import { glowText } from '@/theme/theme';
 import { categoryLabel } from '@/lib/categoryLabel';
 import { Category } from '@/types';
 import { MoneyDialog } from './MoneyDialog';
+import { Tymofii } from '@/components/mascot/Tymofii';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 import { fmtAmount, amountDraft } from '@/lib/money';
 
 interface BalanceCardProps {
@@ -57,6 +59,7 @@ export function BalanceCard({
   const tr = useTranslation();
   const committedTotal = sumItems(committed);
   const afterAll = balance - committedTotal;
+  const helpRef = useHelpTarget('finance.balance');
   const total = afterAll + awaiting;
 
   const [editing, setEditing] = useState(false);
@@ -169,7 +172,14 @@ export function BalanceCard({
 
   return (
     <CustomizableCard widgetId="finance-balance">
-      {body}
+      <View ref={helpRef} collapsable={false}>{body}</View>
+      <Tymofii
+        mood={afterAll < 0 ? 'worried' : 'happy'}
+        prop={afterAll < 0 ? 'sweat' : 'coin'}
+        say={afterAll < 0 ? tr.mascot.balanceLow : tr.mascot.balanceOk}
+        size={52}
+        style={styles.mascot}
+      />
 
       <MoneyDialog visible={editing} onClose={() => setEditing(false)} title={tr.financeScreen.editBankTitle(currency)} hint={tr.money.correctionHint}>
         <TextField label={tr.accounts.bankName} value={nameDraft} onChangeText={setNameDraft} placeholder={tr.accounts.bankNamePlaceholder} />
@@ -208,6 +218,7 @@ export function BalanceCard({
 }
 
 const styles = StyleSheet.create({
+  mascot: { alignSelf: 'flex-end', marginTop: 6 },
   columns: { flexDirection: 'row', alignItems: 'stretch' },
   mainCol: { flex: 1.3, gap: 4 },
   column: { flex: 1, gap: 4 },

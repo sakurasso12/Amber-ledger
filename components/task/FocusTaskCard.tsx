@@ -10,6 +10,8 @@ import { Task } from '@/types';
 import { useTranslation } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { formatDuration } from '@/widget/widgetShared';
+import { TymofiiFace, useMascotOn } from '@/components/mascot/Tymofii';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 
 interface FocusTaskCardProps {
   task: Task;
@@ -37,6 +39,8 @@ export function FocusTaskCard({ task, onDone, kicker, editing = false, cardId }:
         : tr.homeWidgets.dueIn(formatDuration(ms, tr.homeWidgets));
   // With a photo the card's text sits on the image, so it switches to light text over a dark fade.
   const photo = task.imageUri;
+  const mascot = useMascotOn();
+  const helpRef = useHelpTarget('tasks.focus');
   const textColor = photo ? '#FFFFFF' : theme.colors.text;
   const mutedColor = photo ? 'rgba(255,255,255,0.8)' : theme.colors.textMuted;
 
@@ -70,16 +74,20 @@ export function FocusTaskCard({ task, onDone, kicker, editing = false, cardId }:
       >
         {countdown}
       </Text>
-      <Pressable
-        disabled={editing}
-        onPress={() => {
-          haptics.success();
-          onDone();
-        }}
-        style={[styles.doneButton, { backgroundColor: theme.colors.primary }]}
-      >
-        <Text style={[styles.doneText, { color: theme.colors.primaryText }]}>✓ {tr.layoutText.done}</Text>
-      </Pressable>
+      <View ref={helpRef} collapsable={false} style={styles.bottomRow}>
+        <Pressable
+          disabled={editing}
+          onPress={() => {
+            haptics.success();
+            onDone();
+          }}
+          style={[styles.doneButton, { backgroundColor: theme.colors.primary }]}
+        >
+          <Text style={[styles.doneText, { color: theme.colors.primaryText }]}>✓ {tr.layoutText.done}</Text>
+        </Pressable>
+        {/* Тимофій keeps you company on the focus task — worried once it's overdue. */}
+        {mascot ? <TymofiiFace mood={ms !== null && ms < 0 ? 'worried' : 'calm'} prop={ms !== null && ms < 0 ? 'sweat' : null} size={76} /> : null}
+      </View>
     </PressableScale>
     </CustomizableCard>
   );
@@ -97,6 +105,7 @@ const styles = StyleSheet.create({
   kicker: { fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   title: { fontSize: 30, fontWeight: '800', lineHeight: 34 },
   countdown: { fontSize: 18, fontWeight: '700' },
-  doneButton: { marginTop: 6, alignSelf: 'flex-start', paddingHorizontal: 22, paddingVertical: 12, borderRadius: 24 },
+  bottomRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 6 },
+  doneButton: { alignSelf: 'flex-start', paddingHorizontal: 22, paddingVertical: 12, borderRadius: 24 },
   doneText: { fontSize: 15, fontWeight: '800' },
 });

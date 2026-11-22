@@ -1,4 +1,5 @@
 import React from 'react';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 import { Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -6,11 +7,13 @@ import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 
 /** The pencil at the top of a screen: turns layout editing on; the check mark turns it off. */
-export function EditLayoutButton({ editing, onToggle, disabled = false }: { editing: boolean; onToggle: () => void; disabled?: boolean }) {
+export function EditLayoutButton({ editing, onToggle, disabled = false, helpId }: { editing: boolean; onToggle: () => void; disabled?: boolean; helpId?: string }) {
   const theme = useTheme();
+  const helpRef = useHelpTarget(helpId);
   const tr = useTranslation();
   return (
     <Pressable
+      ref={helpRef}
       disabled={disabled}
       onPress={() => {
         haptics.tap();

@@ -13,6 +13,9 @@ import { balanceOf } from '@/lib/ledger';
 import { categoryLabel } from '@/lib/categoryLabel';
 import { PendingItem, snoozeUntilTomorrow } from '@/lib/pending';
 import { fmtAmount } from '@/lib/money';
+import { BankTxCard } from './BankTxCard';
+import { TymofiiFace, TymofiiMood, TymofiiProp, useMascotOn } from '@/components/mascot/Tymofii';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 
 const parse = (text: string) => {
   const n = parseFloat(text.replace(',', '.'));
@@ -32,11 +35,15 @@ interface AskCardProps {
   otherLabel: string;
   /** Extra buttons under the main ones ("not yet", "didn't happen", …). */
   extra: { label: string; onPress: () => void }[];
+  /** Тимофій's reaction on this card (when the mascot is on). */
+  mascot?: { mood: TymofiiMood; prop?: TymofiiProp };
 }
 
 /** One question card: yes / other amount / the rest. */
-function AskCard({ emoji, title, subtitle, amount, currency, yesLabel, onYes, onOther, otherLabel, extra }: AskCardProps) {
+function AskCard({ emoji, title, subtitle, amount, currency, yesLabel, onYes, onOther, otherLabel, extra, mascot }: AskCardProps) {
   const theme = useTheme();
+  const mascotOn = useMascotOn();
+  const face = mascotOn && mascot;
   const tr = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -51,10 +58,16 @@ function AskCard({ emoji, title, subtitle, amount, currency, yesLabel, onYes, on
 
   return (
     <View style={[styles.card, { backgroundColor: `${theme.colors.accent}1F`, borderColor: theme.colors.accent }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>
-        {emoji} {title}
-      </Text>
-      {subtitle ? <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{subtitle}</Text> : null}
+      <View style={styles.head}>
+        <View style={styles.headText}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>
+            {face ? '' : `${emoji} `}
+            {title}
+          </Text>
+          {subtitle ? <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{subtitle}</Text> : null}
+        </View>
+        {face ? <TymofiiFace mood={mascot.mood} prop={mascot.prop ?? null} size={52} /> : null}
+      </View>
       {editing ? (
         <View style={styles.editor}>
           <TextField label={tr.money.amountLabel(currency)} value={draft} onChangeText={setDraft} keyboardType="decimal-pad" autoFocus />
@@ -102,6 +115,7 @@ function AskCard({ emoji, title, subtitle, amount, currency, yesLabel, onYes, on
  */
 export function PendingList({ items }: { items: PendingItem[] }) {
   const theme = useTheme();
+  const helpRef = useHelpTarget('finance.pending');
   const tr = useTranslation();
   const settings = useSettingsStore((s) => s.settings);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
@@ -115,7 +129,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <View style={styles.list}>
+    <View ref={helpRef} collapsable={false} style={styles.list}>
       <Text style={[styles.section, { color: theme.colors.textMuted }]}>{tr.money.pendingTitle}</Text>
       {items.map((item) => {
         switch (item.type) {
@@ -126,6 +140,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
               <AskCard
                 key={item.key}
                 emoji="💰"
+                mascot={{ mood: 'stars', prop: 'coins' }}
                 title={tr.salaryPrompt.title}
                 subtitle={tr.salaryPrompt.expected(fmt(due.amount), formatRangeLabel(due.period, tr.localeCode))}
                 amount={due.amount}
@@ -147,6 +162,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
               <AskCard
                 key={item.key}
                 emoji={repeat ? '🔁' : '🗓️'}
+                mascot={{ mood: 'open', prop: settings.subscriptionIds.includes(u.id) ? 'bell' : 'coin' }}
                 title={u.mode === 'month' ? tr.money.monthDue(name, fmt(u.amount, cur)) : tr.money.upcomingDue(name, fmt(u.amount, cur))}
                 subtitle={u.mode === 'month' ? undefined : day(item.date)}
                 amount={u.amount}
@@ -168,6 +184,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
               <AskCard
                 key={item.key}
                 emoji="🏦"
+                mascot={{ mood: 'open', prop: 'coin' }}
                 title={tr.money.loanDue(item.loan.name || tr.loans.title, fmt(item.amount, item.loan.currency))}
                 subtitle={day(item.date)}
                 amount={item.amount}
@@ -179,6 +196,27 @@ export function PendingList({ items }: { items: PendingItem[] }) {
                 extra={[{ label: tr.money.notYet, onPress: () => state.answerLoan(item.loan.id, null) }]}
               />
             );
+          case 'bank':
+            return <BankTxCard key={item.key} tx={item.tx} />;
+          case 'bankBalance': {
+            const cur = state.accounts.find((a) => a.id === item.accountId)?.currency ?? app;
+            return (
+              <AskCard
+                key={item.key}
+                emoji="🏦"
+                mascot={{ mood: 'worried', prop: 'sweat' }}
+                title={tr.bank.balanceTitle(fmt(item.bank, cur))}
+                subtitle={tr.bank.balanceBody(fmt(item.app, cur))}
+                amount={item.bank}
+                currency={cur}
+                yesLabel={tr.bank.align}
+                onYes={() => state.setAccountBalance(item.accountId, item.bank)}
+                otherLabel={tr.bank.otherAmount}
+                onOther={(n) => state.setAccountBalance(item.accountId, n)}
+                extra={[{ label: tr.bank.no, onPress: () => updateSettings({ bankBalanceDismissed: item.bank }) }]}
+              />
+            );
+          }
           case 'check': {
             const a = item.account;
             const expected = balanceOf(a.id, state, pid);
@@ -186,6 +224,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
               <AskCard
                 key={item.key}
                 emoji="🔎"
+                mascot={{ mood: 'wink', prop: 'question' }}
                 title={tr.money.checkTitle(accountName(a, tr.accounts))}
                 subtitle={tr.money.checkBody(fmt(expected, a.currency))}
                 amount={expected}
@@ -208,6 +247,8 @@ const styles = StyleSheet.create({
   list: { gap: 10 },
   section: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   card: { borderWidth: 1, borderRadius: 16, padding: 14, gap: 6 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  headText: { flex: 1, gap: 4 },
   title: { fontSize: 15, fontWeight: '700' },
   subtitle: { fontSize: 12, lineHeight: 17 },
   actions: { gap: 8, marginTop: 6 },

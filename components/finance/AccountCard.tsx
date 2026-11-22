@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { TymofiiFace, useMascotOn } from '@/components/mascot/Tymofii';
+import { playPurr } from '@/lib/sounds';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import Svg from 'react-native-svg';
-import { Easing, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { Easing, useSharedValue, withRepeat, withTiming, cancelAnimation } from 'react-native-reanimated';
 import { Text } from '@/components/ui/Text';
 import { Button, CustomizableCard, DateField, PressableScale, TextField } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -244,6 +247,7 @@ function GoalBar({ account, saved, disabled, onPress }: { account: Account; save
   const target = account.target ?? 0;
   const ratio = target > 0 ? Math.max(0, saved / target) : 0;
   const reached = target > 0 && saved >= target;
+  const mascot = useMascotOn();
   const [width, setWidth] = useState(0);
 
   const fill = useSharedValue(0);
@@ -251,15 +255,23 @@ function GoalBar({ account, saved, disabled, onPress }: { account: Account; save
   useEffect(() => {
     fill.value = withTiming(Math.min(1, ratio), FILL);
   }, [ratio, fill]);
-  useEffect(() => {
-    phase.value = withRepeat(withTiming(2 * Math.PI, { duration: 2600, easing: Easing.linear }), -1, false);
-  }, [phase]);
+  // The wave only rolls while this screen is in front: under an open sheet or another tab it
+  // stops, so it isn't redrawn 120 times a second behind the popup.
+  useFocusEffect(
+    useCallback(() => {
+      phase.value = withRepeat(withTiming(phase.value + 2 * Math.PI, { duration: 2600, easing: Easing.linear }), -1, false);
+      return () => cancelAnimation(phase);
+    }, [phase])
+  );
 
   // Reaching the goal: one happy buzz the moment it happens (not on every open).
   const [wasReached, setWasReached] = useState(reached);
   if (reached !== wasReached) {
     setWasReached(reached);
-    if (reached) haptics.success();
+    if (reached) {
+      haptics.success();
+      if (mascot) playPurr();
+    }
   }
 
   const color = reached ? theme.colors.success : theme.colors.primary;
@@ -286,6 +298,7 @@ function GoalBar({ account, saved, disabled, onPress }: { account: Account; save
             {fmtAmount(saved)} / {fmtAmount(target)} {account.currency}
           </Text>
         </View>
+        {mascot && reached ? <TymofiiFace mood="stars" prop="party" size={44} /> : null}
         <Text style={[styles.goalPercent, { color: theme.colors.text }]}>{Math.round(ratio * 100)}%</Text>
       </PressableScale>
       {reached ? <Text style={[styles.reached, { color: theme.colors.success }]}>{tr.accounts.goalReached}</Text> : null}

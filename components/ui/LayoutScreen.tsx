@@ -1,4 +1,5 @@
 import React from 'react';
+import { HelpScreen, TymofiiHelpButton } from '@/components/mascot/TymofiiHelp';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -18,10 +19,23 @@ interface LayoutScreenProps {
   headerOverride?: React.ReactNode;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  /** Тимофій's "How does it work?" topics for this screen (button next to the title). */
+  help?: HelpScreen;
 }
 
 /** Root of every main tab: draws the header the active layout asks for (see theme/layouts.ts). */
-export function LayoutScreen({ title, count, right, headerOverride, children, style }: LayoutScreenProps) {
+export function LayoutScreen({ title, count, right: rightProp, headerOverride, children, style, help }: LayoutScreenProps) {
+  const right =
+    help && rightProp ? (
+      <View style={styles.helpRow}>
+        <TymofiiHelpButton screen={help} />
+        {rightProp}
+      </View>
+    ) : help ? (
+      <TymofiiHelpButton screen={help} />
+    ) : (
+      rightProp
+    );
   const theme = useTheme();
   const topInset = useSafeAreaInsets().top;
   const { colors, layout } = theme;
@@ -76,6 +90,7 @@ export function LayoutScreen({ title, count, right, headerOverride, children, st
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  helpRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 
   classicRow: {
     flexDirection: 'row',

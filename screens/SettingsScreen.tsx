@@ -125,7 +125,7 @@ export function SettingsScreen() {
   }
 
   return (
-    <LayoutScreen title={tr.settingsScreen.header}>
+    <LayoutScreen title={tr.settingsScreen.header} help="settings">
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>{body}</ScrollView>
     </LayoutScreen>
   );

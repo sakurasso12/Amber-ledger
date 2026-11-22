@@ -155,11 +155,12 @@ export function StatsScreen() {
   return (
     <LayoutScreen
       title={tr.stats.header}
+      help="stats"
       right={
         <View style={styles.headerRight}>
           {/* ⋮ lists what was removed from the tab that's open. */}
           {editingLayout ? <HiddenModulesButton items={tab === 'tasks' ? hiddenTaskItems : hiddenFinanceItems} /> : null}
-          <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={financeLocked} />
+          <EditLayoutButton helpId="stats.edit" editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={financeLocked} />
         </View>
       }
     >

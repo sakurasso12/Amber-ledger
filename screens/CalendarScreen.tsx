@@ -119,6 +119,7 @@ export function CalendarScreen() {
   return (
     <LayoutScreen
       title={tr.calendarScreen.header}
+      help="calendar"
       count={itemCount}
       right={
         expensesForDay.length > 1 ? (

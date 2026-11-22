@@ -1,6 +1,7 @@
 import { endOfMonth, subDays } from 'date-fns';
 import { Account, Loan, Upcoming } from '@/types';
 import { AppSettings } from '@/types/settings';
+import type { BankTx } from './bank/iko';
 import { PeriodEarnings } from './earnings';
 import { parseDateKey, toDateKey, todayKey } from './dateRanges';
 import { isSpendable } from './accounts';
@@ -16,7 +17,9 @@ export type PendingItem =
   | { key: string; type: 'salary'; date: string; due: PeriodEarnings }
   | { key: string; type: 'upcoming'; date: string; upcoming: Upcoming }
   | { key: string; type: 'loan'; date: string; loan: Loan; amount: number }
-  | { key: string; type: 'check'; date: string; account: Account };
+  | { key: string; type: 'check'; date: string; account: Account }
+  | { key: string; type: 'bank'; date: string; tx: BankTx }
+  | { key: string; type: 'bankBalance'; date: string; accountId: string; bank: number; app: number };
 
 export interface PendingInput {
   salaryDue: PeriodEarnings | null;
@@ -24,6 +27,10 @@ export interface PendingInput {
   loans: Loan[];
   accounts: Account[];
   settings: Pick<AppSettings, 'pendingSnoozed' | 'reconcileWeekday' | 'reconciledWeeks'>;
+  /** Personal build: IKO transactions waiting for an answer. */
+  bank?: BankTx[];
+  /** Personal build: last bank balance vs the app's balance of the same card (asked when they differ). */
+  bankBalance?: { accountId: string; bank: number; app: number } | null;
   now?: Date;
 }
 
@@ -70,6 +77,12 @@ export function pendingItems(input: PendingInput): PendingItem[] {
       if ((input.settings.reconciledWeeks[account.id] ?? '') >= day) continue;
       items.push({ key: `check-${account.id}-${day}`, type: 'check', date: day, account });
     }
+  }
+
+  for (const tx of input.bank ?? []) items.push({ key: `bank-${tx.id}`, type: 'bank', date: tx.at.slice(0, 10), tx });
+  const bb = input.bankBalance;
+  if (bb && (input.bank ?? []).length === 0 && Math.abs(bb.bank - bb.app) >= 0.01) {
+    items.push({ key: `bankBalance-${bb.bank}`, type: 'bankBalance', date: today, ...bb });
   }
 
   const nowIso = now.toISOString();

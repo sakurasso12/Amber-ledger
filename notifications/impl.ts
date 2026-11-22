@@ -25,6 +25,7 @@ export { cancelTaskReminder, scheduleTaskReminder, syncTaskReminder } from './sc
 export { checkBudgetAlerts } from './budgetAlerts';
 export { syncSalaryReminder } from './salary';
 export { syncLoanReminders } from './loans';
+export { syncSubscriptionReminders } from './subscriptions';
 export { syncCheckReminder } from './checks';
 export { clearStickyNotification, syncStickyNotification } from './sticky';
 export { registerNotificationCategories, listenForSnoozeActions, TASK_REMINDER_CATEGORY } from './actions';

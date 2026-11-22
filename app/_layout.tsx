@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { TourOverlay } from '@/components/mascot/TourOverlay';
 import { useWindowDimensions, View } from 'react-native';
 import Stack, { TransitionPresets } from 'expo-router/js-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -29,7 +30,9 @@ import { runAutoCleanup } from '@/lib/dataWipe';
  * pushed screen follows the finger when swiped right from its left side and pops on release, like iOS.
  * Editors and lists open as iOS-style sheets that slide up and can be swiped down.
  */
-const MODAL = { presentation: 'modal', ...TransitionPresets.ModalPresentationIOS, gestureEnabled: true } as const;
+// Sheets slide up over the screen that stays still. (ModalPresentationIOS also shrank the whole
+// screen behind every frame — a full Finance board with glass cards and waves — which dropped frames.)
+const MODAL = { presentation: 'modal', ...TransitionPresets.ModalSlideFromBottomIOS, gestureEnabled: true } as const;
 
 function RootStack() {
   const theme = useTheme();
@@ -68,6 +71,7 @@ function RootStack() {
       </Stack>
       <Onboarding />
       <WhatsNew />
+      <TourOverlay />
     </>
   );
 }

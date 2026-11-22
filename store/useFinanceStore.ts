@@ -65,7 +65,7 @@ interface FinanceState {
   toggleWorkedToday: () => Promise<void>;
   clearWorkDay: (date: string) => Promise<void>;
 
-  addUpcoming: (draft: UpcomingDraft) => Promise<void>;
+  addUpcoming: (draft: UpcomingDraft) => Promise<string>;
   updateUpcoming: (item: Upcoming) => Promise<void>;
   removeUpcoming: (id: string) => Promise<void>;
   /** Its day came: `amount` null = it didn't happen; otherwise it becomes an expense. A repeating
@@ -74,6 +74,8 @@ interface FinanceState {
 
   /** "The salary came": an income on `accountId`, and the period stops waiting. */
   confirmSalary: (periodKey: string, amount: number, accountId: string) => Promise<void>;
+  /** Money that came in outside the salary flow (e.g. a bank transfer seen by the IKO listener). */
+  addIncome: (amount: number, accountId: string, date: string) => Promise<void>;
   /** A loan payment's day came: `amount` null = not yet (asks again tomorrow). */
   answerLoan: (loanId: string, amount: number | null, accountId?: string) => Promise<void>;
   /** Weekly check: `real` null = "yes, it's right"; a number = the real balance (a correction). */
@@ -221,6 +223,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     const item: Upcoming = { ...draft, id: generateId(), createdAt: nowIso() };
     await financeRepo.saveUpcoming(item);
     set((state) => ({ upcoming: [...state.upcoming, item] }));
+    return item.id;
   },
 
   updateUpcoming: async (item) => {
@@ -258,6 +261,12 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
       salaryConfirmations: { ...settings.salaryConfirmations, [periodKey]: { amount, confirmedAt: at, accountId } },
       salaryPromptSnoozedUntil: null,
     });
+  },
+
+  addIncome: async (amount, accountId, date) => {
+    const income: Income = { id: generateId(), accountId, amount, date, periodKey: null, createdAt: nowIso() };
+    await financeRepo.saveIncome(income);
+    set((state) => ({ incomes: [income, ...state.incomes] }));
   },
 
   answerLoan: async (loanId, amount, accountId) => {
