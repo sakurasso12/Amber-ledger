@@ -13,6 +13,7 @@ import { useTranslation } from '@/i18n';
 import { Loan } from '@/types';
 import { AccountPicker } from './AccountPicker';
 import { MoneyDialog } from './MoneyDialog';
+import { fmtAmount } from '@/lib/money';
 
 const parseNumber = (text: string) => parseFloat(text.replace(',', '.'));
 
@@ -30,7 +31,7 @@ export function LoanCard({ loan, disabled }: { loan: Loan; disabled: boolean }) 
   const [payFrom, setPayFrom] = useState(pid);
 
   const pay = monthlyPayment(loan);
-  const money = (n: number) => `${n.toFixed(0)} ${loan.currency}`;
+  const money = (n: number) => `${fmtAmount(n)} ${loan.currency}`;
   const next = nextPaymentDate(loan);
   const days = daysToPayment(loan);
   const paidOff = isPaidOff(loan);

@@ -17,6 +17,14 @@
       },
       "channel": "production",
       "autoIncrement": true
+    },
+    "personal": {
+      "extends": "preview",
+      "channel": "personal",
+      "env": {
+        "PERSONAL_FEATURES": "1",
+        "EXPO_PUBLIC_PERSONAL": "1"
+      }
     }
   },
   "submit": {

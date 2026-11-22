@@ -3,6 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '@/theme/ThemeProvider';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import { TymofiiFace } from '@/components/mascot/Tymofii';
 
 /** Soft layered-circle backdrop behind the emoji — a lightweight, theme-colored stand-in for a
  * bespoke illustration per empty state. */
@@ -17,11 +19,12 @@ function Backdrop({ color }: { color: string }) {
 
 export function EmptyState({ icon, title, subtitle }: { icon: string; title: string; subtitle?: string }) {
   const theme = useTheme();
+  const mascot = useSettingsStore((s) => s.settings.mascotEnabled);
   return (
     <View style={styles.wrapper}>
       <View style={styles.iconWrap}>
         <Backdrop color={theme.colors.accent} />
-        <Text style={styles.icon}>{icon}</Text>
+        {mascot ? <TymofiiFace mood="sleep" prop="zzz" size={92} /> : <Text style={styles.icon}>{icon}</Text>}
       </View>
       <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
       {subtitle ? <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{subtitle}</Text> : null}

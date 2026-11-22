@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amber Ledger — конструктор теми</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Roboto+Condensed:wght@400;700&family=Roboto+Mono:wght@400;700&family=Noto+Serif:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --ui-bg:#101114; --ui-bg2:#17181d; --ui-bg3:#202229; --ui-line:#2b2e38; --ui-fg:#ececf1; --ui-mute:#8c8f9c; --ui-acc:#d98e3b; }
+* { box-sizing:border-box; }
+html, body { margin:0; height:100%; background:var(--ui-bg); color:var(--ui-fg); font:13px/1.4 Inter, system-ui, sans-serif; }
+button, input, select, textarea { font:inherit; color:inherit; }
+#app { display:grid; grid-template-columns:380px 1fr; height:100%; }
+#panel { background:var(--ui-bg2); border-right:1px solid var(--ui-line); overflow-y:auto; padding:12px 12px 90px; }
+#panel h1 { font-size:16px; margin:2px 4px 10px; }
+.toolbar { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.btn { background:var(--ui-bg3); border:1px solid var(--ui-line); border-radius:9px; padding:6px 10px; cursor:pointer; }
+.btn:hover { border-color:var(--ui-acc); }
+.btn.acc { background:var(--ui-acc); border-color:var(--ui-acc); color:#1a1006; font-weight:700; }
+details { background:var(--ui-bg); border:1px solid var(--ui-line); border-radius:12px; margin-bottom:8px; }
+summary { cursor:pointer; padding:9px 12px; font-weight:700; list-style:none; display:flex; justify-content:space-between; }
+summary::after { content:'▾'; color:var(--ui-mute); }
+details:not([open]) summary::after { content:'▸'; }
+.sec { padding:2px 12px 12px; display:grid; gap:8px; }
+.row { display:grid; grid-template-columns:130px 1fr; align-items:center; gap:8px; }
+.row > label { color:var(--ui-mute); font-size:12px; }
+.val { display:flex; align-items:center; gap:6px; }
+.val input[type=range] { flex:1; accent-color:var(--ui-acc); }
+.val output { min-width:34px; text-align:right; color:var(--ui-mute); font-size:11px; font-variant-numeric:tabular-nums; }
+select, input[type=text] { width:100%; background:var(--ui-bg3); border:1px solid var(--ui-line); border-radius:8px; padding:5px 7px; }
+.chips { display:flex; flex-wrap:wrap; gap:5px; }
+.chip { padding:4px 9px; border-radius:20px; background:var(--ui-bg3); border:1px solid var(--ui-line); cursor:pointer; font-size:12px; user-select:none; }
+.chip.on { background:var(--ui-acc); border-color:var(--ui-acc); color:#1a1006; font-weight:600; }
+.hint { color:var(--ui-mute); font-size:11px; line-height:1.45; }
+.tok { display:grid; grid-template-columns:30px 1fr 84px; gap:8px; align-items:center; padding:5px 6px; border-radius:9px; border:1px solid transparent; }
+.tok.sel { border-color:var(--ui-acc); background:#d98e3b14; }
+.tok input[type=color] { width:30px; height:30px; border:1px solid var(--ui-line); border-radius:8px; padding:0; background:none; cursor:pointer; }
+.tok b { display:block; font-size:12px; }
+.tok small { color:var(--ui-mute); font-size:10.5px; line-height:1.3; display:block; }
+.tok input[type=text] { font:11px 'Roboto Mono', monospace; padding:4px 6px; }
+.ctr { font-size:10px; padding:1px 5px; border-radius:6px; margin-left:4px; font-weight:700; }
+.ctr.ok { background:#1f4d2e; color:#8ef0ad; } .ctr.mid { background:#4d421f; color:#f5d36b; } .ctr.bad { background:#4d1f1f; color:#ff8f8f; }
+.modes { display:flex; gap:6px; margin-bottom:6px; }
+.swatches { display:flex; gap:3px; flex-wrap:wrap; }
+.swatches i { width:16px; height:16px; border-radius:4px; display:block; border:1px solid #0004; }
+
+#stage { overflow:auto; display:flex; flex-direction:column; }
+#tabs { display:flex; gap:6px; padding:12px 18px 0; flex-wrap:wrap; align-items:center; }
+.tab { padding:7px 14px; border-radius:10px 10px 0 0; background:var(--ui-bg2); border:1px solid var(--ui-line); border-bottom:0; cursor:pointer; }
+.tab.on { background:var(--ui-acc); color:#1a1006; border-color:var(--ui-acc); font-weight:600; }
+#tabs .spacer { flex:1; }
+#view { flex:1; display:flex; gap:28px; padding:20px; flex-wrap:wrap; justify-content:center; align-items:flex-start; border-top:1px solid var(--ui-line); }
+.phonewrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.phone { width:360px; height:760px; border-radius:44px; padding:11px; background:#050505; box-shadow:0 0 0 2px #2a2c33, 0 30px 70px #000a; }
+.cap { color:var(--ui-mute); font-size:12px; }
+#tip { position:fixed; pointer-events:none; background:#000d; color:#fff; padding:4px 8px; border-radius:6px; font-size:11px; z-index:30; display:none; white-space:nowrap; }
+
+/* ---------- app mock (all colours from CSS variables) ---------- */
+.scr { width:100%; height:100%; border-radius:34px; overflow:hidden; position:relative; background:var(--background); color:var(--text); font-family:var(--f-regular); font-size:calc(14px * var(--fs)); }
+.scr [data-t] { cursor:pointer; }
+.scr [data-t]:hover { outline:1.5px dashed #ff00aa99; outline-offset:1px; }
+.sb { height:28px; display:flex; justify-content:space-between; align-items:center; padding:0 22px; font-size:11px; font-weight:600; }
+.body > * { flex-shrink:0; }
+.body { position:absolute; top:28px; left:0; right:0; bottom:var(--tabh); overflow:hidden; padding:4px 14px 14px; display:flex; flex-direction:column; gap:12px; }
+.hdr { display:flex; align-items:center; justify-content:space-between; padding:8px 2px 2px; }
+.h1 { font-family:var(--f-heading); font-size:calc(26px * var(--fs) * var(--hs)); font-weight:var(--hw); letter-spacing:var(--hls); }
+.card { background:var(--surface); border-radius:var(--rc); padding:var(--pad); border:var(--bw) solid var(--border); box-shadow:var(--cshadow); }
+.scr .backdrop { position:absolute; inset:0; background-size:cover; background-position:center; }
+.scr .backdrop + .dim { position:absolute; inset:0; }
+.scr > .sb, .scr > .body, .scr > .tabbar, .scr > .fab { z-index:1; }
+.glass .card, .glass .tb-classic, .glass .tb-floating, .glass .seg span.on, .glass .ask { background:var(--glassBg) !important; backdrop-filter:blur(var(--gblur)) saturate(160%); -webkit-backdrop-filter:blur(var(--gblur)) saturate(160%); border:1px solid var(--glassEdge) !important; box-shadow:inset 0 1px 0 var(--glassEdge), var(--cshadow); }
+.glass .btns { background:var(--glassBg); backdrop-filter:blur(var(--gblur)); border:1px solid var(--glassEdge); }
+.glow .btnp, .glow .fab { box-shadow:0 0 calc(var(--glow) * 28px) var(--primaryGlow), 0 4px 14px #0005; }
+.glow .tabbar .ti.on { text-shadow:0 0 calc(var(--glow) * 14px) var(--primary); }
+.glow[data-mode=dark] .big, .glow[data-mode=dark] .h1 { text-shadow:0 0 calc(var(--glow) * 18px) currentColor; }
+.glow .bar i, .glow .chart i { box-shadow:0 0 calc(var(--glow) * 14px) currentColor; }
+.glow .ask { box-shadow:0 0 calc(var(--glow) * 24px) var(--accentGlow); }
+.flat .card { background:transparent; border:0; border-bottom:var(--bw) solid var(--border); border-radius:0; box-shadow:none; padding-left:0; padding-right:0; }
+.lbl { font-size:calc(11px * var(--fs)); font-weight:700; color:var(--textMuted); text-transform:var(--up); letter-spacing:var(--uls); }
+.muted { color:var(--textMuted); }
+.big { font-family:var(--f-heading); font-size:calc(24px * var(--fs) * var(--hs)); font-weight:var(--hw); letter-spacing:var(--hls); }
+.rowf { display:flex; align-items:center; gap:10px; }
+.grow { flex:1; min-width:0; }
+.dot { width:9px; height:9px; border-radius:50%; flex:none; }
+.pill { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:var(--rctl); font-size:calc(11px * var(--fs)); font-weight:600; }
+.btnp { background:var(--primary); color:var(--primaryText); border-radius:var(--rctl); padding:9px 12px; font-weight:700; text-align:center; font-size:calc(13px * var(--fs)); }
+.btns { background:var(--surfaceAlt); color:var(--text); border-radius:var(--rctl); padding:9px 12px; font-weight:600; text-align:center; font-size:calc(13px * var(--fs)); border:var(--bw) solid var(--border); }
+.fab { position:absolute; right:18px; bottom:calc(var(--tabh) + 16px); width:56px; height:56px; border-radius:50%; background:var(--primary); color:var(--primaryText); display:grid; place-items:center; font-size:30px; font-weight:300; box-shadow:0 6px 16px #0005; }
+.tabbar { position:absolute; left:0; right:0; bottom:0; height:var(--tabh); display:flex; justify-content:space-around; align-items:center; font-size:calc(10.5px * var(--fs)); }
+.tabbar .ti { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--textMuted); font-weight:700; }
+.tabbar .ti.on { color:var(--primary); }
+.tabbar .ti i { width:20px; height:20px; border-radius:6px; border:2px solid currentColor; display:block; }
+.tb-classic { background:var(--surface); border-top:1px solid var(--border); }
+.tb-floating { left:14px; right:14px; bottom:12px; height:58px; border-radius:29px; background:var(--surface); box-shadow:0 8px 22px #0004; border:var(--bw) solid var(--border); }
+.tb-underline { background:var(--background); border-top:var(--bw) solid var(--border); }
+.tb-underline .ti.on { color:var(--text); box-shadow:inset 0 3px 0 var(--text); padding-top:6px; }
+.tb-underline .ti i { display:none; }
+.ring { width:64px; height:64px; flex:none; }
+.habit { aspect-ratio:1; display:flex; flex-direction:column; justify-content:space-between; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.bar { height:8px; border-radius:5px; background:var(--surfaceAlt); overflow:hidden; }
+.bar i { display:block; height:100%; border-radius:5px; }
+.wave { height:58px; border-radius:var(--rc); overflow:hidden; position:relative; display:flex; align-items:center; padding:0 14px; background:var(--emptyBar); border:1px solid transparent; }
+.chart { display:flex; align-items:flex-end; gap:8px; height:110px; padding-top:6px; }
+.chart i { flex:1; border-radius:6px 6px 2px 2px; display:block; }
+.switch { width:40px; height:22px; border-radius:12px; position:relative; flex:none; }
+.switch::after { content:''; position:absolute; top:3px; width:16px; height:16px; border-radius:50%; background:#fff; }
+.switch.on::after { right:3px; } .switch.off::after { left:3px; }
+.setrow { display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--border); }
+.setrow:last-child { border-bottom:0; }
+.ico { width:30px; height:30px; border-radius:9px; display:grid; place-items:center; font-size:15px; flex:none; }
+.ask { border:1px solid var(--accent); border-radius:16px; padding:12px; display:grid; gap:8px; }
+.widget { width:330px; height:160px; border-radius:var(--wr); padding:14px; display:flex; flex-direction:column; justify-content:space-between; }
+.seg { display:flex; background:var(--surfaceAlt); border-radius:var(--rctl); padding:3px; }
+.seg span { flex:1; text-align:center; padding:6px; border-radius:calc(var(--rctl) - 3px); font-weight:600; font-size:calc(12px * var(--fs)); color:var(--textMuted); }
+.seg span.on { background:var(--surface); color:var(--text); box-shadow:0 1px 3px #0002; }
+#modal { position:fixed; inset:0; background:#000a; display:none; place-items:center; z-index:40; }
+#modal.on { display:grid; }
+#modal .box { width:min(760px, 94vw); background:var(--ui-bg2); border:1px solid var(--ui-line); border-radius:16px; padding:16px; display:grid; gap:10px; }
+#modal textarea { width:100%; height:380px; background:var(--ui-bg); border:1px solid var(--ui-line); border-radius:10px; padding:10px; font:12px/1.45 'Roboto Mono', monospace; }
+
+.finish { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:2px; }
+.fbtn { border:1px solid var(--ui-line); border-radius:12px; padding:10px; cursor:pointer; background:var(--ui-bg3); }
+.fbtn b { display:block; font-size:14px; } .fbtn small { color:var(--ui-mute); font-size:11px; }
+.fbtn.on { border-color:var(--ui-acc); background:#d98e3b22; }
+.blob { border:1px solid var(--ui-line); border-radius:10px; padding:8px; display:grid; gap:6px; background:var(--ui-bg2); }
+.blob.sel { border-color:var(--ui-acc); }
+.blobhead { display:flex; align-items:center; gap:8px; }
+.blobhead i { width:18px; height:18px; border-radius:50%; display:block; border:1px solid #0006; }
+.scr { touch-action:none; }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="panel">
+    <h1>🟧 Amber Ledger · конструктор теми</h1>
+    <div class="toolbar">
+      <button class="btn" id="undoBtn">↶ Назад</button>
+      <button class="btn" id="randBtn">🎲 Ідея</button>
+      <button class="btn acc" id="exportBtn">⬇ Експорт</button>
+      <button class="btn" id="importBtn">⬆ Імпорт</button>
+    </div>
+    <div class="toolbar" id="baseBar"></div>
+    <div id="controls"></div>
+  </aside>
+  <main id="stage"><div id="tabs"></div><div id="view"></div></main>
+</div>
+<div id="tip"></div>
+<div id="modal"><div class="box"><b id="mTitle"></b><div class="hint" id="mHint"></div><textarea id="mText" spellcheck="false"></textarea>
+  <div class="toolbar"><button class="btn acc" id="mOk"></button><button class="btn" id="mCopy">Копіювати</button><button class="btn" id="mClose">Закрити</button></div></div></div>
+
+<script>
+'use strict';
+// ============================================================================================
+// The real tokens of the app (theme/theme.ts ThemeColors + theme/designs.ts Design). Every theme has
+// two finishes, picked by the user in the app (Settings → Тема → Кольори):
+//   matte — calm colours, ordinary cards;
+//   glow  — vivid colours, glass cards, coloured glow, a gradient behind the screens.
+// ============================================================================================
+const TOKENS = [
+  ['background', 'Фон екрана', 'Під усім: фон кожного екрана'],
+  ['surface', 'Картки', 'Картки, нижня панель, діалоги, вибраний сегмент'],
+  ['surfaceAlt', 'Другий фон', 'Поля вводу, неактивні сегменти, порожня частина смужок, другорядні кнопки'],
+  ['border', 'Лінії й обводки', 'Обводки карток, роздільники в списках'],
+  ['text', 'Текст', 'Основний текст і великі цифри'],
+  ['textMuted', 'Сірий текст', 'Підписи, дати, неактивні вкладки, «до зарплати»'],
+  ['primary', 'Головний колір', 'Кнопка «+», головні кнопки, активна вкладка, перемикачі, хвиля бюджету, графіки'],
+  ['primaryText', 'Текст на головному', 'Текст і іконки на кнопках головного кольору'],
+  ['accent', 'Акцент', '«Має прийти», рамка «Чекає відповіді», олівець ✏️, посилання'],
+  ['success', 'Успіх / плюс', 'Баланс у плюсі, «зроблено», бюджет у межах'],
+  ['warning', 'Попередження', 'Скоро дедлайн, жовті позначки'],
+  ['danger', 'Небезпека / мінус', 'Витрати, баланс у мінусі, перевищення, видалення'],
+  ['priorityLow', 'Пріоритет: низький', 'Крапка в задачі'],
+  ['priorityMedium', 'Пріоритет: середній', 'Крапка в задачі'],
+  ['priorityHigh', 'Пріоритет: високий', 'Крапка в задачі'],
+];
+const TOKEN_NAMES = Object.fromEntries(TOKENS.map(([k, n]) => [k, n]));
+
+const blob = (color, x, y, size, opacity) => ({ color, x, y, size, opacity });
+const BD1 = (mode, extra = {}) => ({ mode, dim: 0.2, soft: 0.6, blobs: [], linear: { angle: 160, stops: [{ color: 'primary', pos: 0, opacity: 0.5 }, { color: 'background', pos: 70, opacity: 1 }] }, photo: null, ...extra });
+/** A screen background for each mode — the light and the dark theme get their own gradient. */
+const BD = (mode, extra = {}, darkExtra = extra) => ({ light: BD1(mode, extra), dark: BD1(mode, darkExtra) });
+/** Older saves had one background for both modes. */
+const splitBackdrop = (b) => (b && b.mode ? { light: clone(b), dark: clone(b) } : b);
+
+const BASES = {
+  crimson: {
+    label: '🍷 Червона ніч',
+    matte: {
+      palettes: {
+        light: { background: '#FFF6F7', surface: '#FFFFFF', surfaceAlt: '#F8E6E9', border: '#EDCFD5', text: '#2A0B12', textMuted: '#8A5E67', primary: '#A8233B', primaryText: '#FFFFFF', accent: '#C4566F', success: '#2E8A5E', warning: '#B98419', danger: '#C25A2E', priorityLow: '#2E8A5E', priorityMedium: '#B98419', priorityHigh: '#A8233B' },
+        dark: { background: '#0C0507', surface: '#1B0D11', surfaceAlt: '#2A1419', border: '#45222A', text: '#F7E4E8', textMuted: '#B08A92', primary: '#D6455F', primaryText: '#FFFFFF', accent: '#E38A9B', success: '#5BCB94', warning: '#E3B44E', danger: '#E2774E', priorityLow: '#5BCB94', priorityMedium: '#E3B44E', priorityHigh: '#D6455F' },
+      },
+      cardStyle: 'outlined', glass: { opacity: 0.5, blur: 40, highlight: 0.12 }, strength: 0, backdrop: BD('none'),
+    },
+    glow: {
+      palettes: {
+        light: { background: '#FFF5F6', surface: '#FFFFFF', surfaceAlt: '#FBE3E7', border: '#F2C5CD', text: '#2A0710', textMuted: '#8E5A64', primary: '#C8102E', primaryText: '#FFFFFF', accent: '#E8456B', success: '#12A86B', warning: '#D99100', danger: '#E2541C', priorityLow: '#12A86B', priorityMedium: '#D99100', priorityHigh: '#C8102E' },
+        dark: { background: '#0A0204', surface: '#1A0509', surfaceAlt: '#2A0A10', border: '#4A0F1C', text: '#FFE9EE', textMuted: '#C48A96', primary: '#FF1F4B', primaryText: '#FFFFFF', accent: '#FF8FA3', success: '#2EF2A0', warning: '#FFC23D', danger: '#FF7A45', priorityLow: '#2EF2A0', priorityMedium: '#FFC23D', priorityHigh: '#FF1F4B' },
+      },
+      cardStyle: 'glass', glass: { opacity: 0.42, blur: 55, highlight: 0.14 }, strength: 0.55,
+      backdrop: BD('blobs', { dim: 0.1, soft: 0.75, blobs: [blob('primary', 10, 6, 60, 0.3), blob('accent', 100, 55, 45, 0.18)] }, { dim: 0.15, soft: 0.7, blobs: [blob('primary', 10, 6, 60, 0.5), blob('accent', 100, 55, 45, 0.25)] }),
+    },
+    defaultFinish: 'glow',
+    fonts: { heading: 'sans-serif-medium' }, fontScale: 1, headingScale: 1.15, headingLetterSpacing: -0.4, uppercaseLabels: true, radius: { card: 22, control: 14 }, borderWidth: 1, cardPadding: 16, tabBar: 'floating',
+    widget: { background: '#1A0509', text: '#FFE9EE', textMuted: '#C48A96', accent: '#FF1F4B', danger: '#FF7A45', radius: 22 },
+  },
+  amber: {
+    label: '🟧 Amber',
+    matte: {
+      palettes: {
+        light: { background: '#F4F1FB', surface: '#FFFFFF', surfaceAlt: '#EAE4F7', border: '#DDD4F0', text: '#1A1230', textMuted: '#6E6390', primary: '#7C3AED', primaryText: '#FFFFFF', accent: '#A855F7', success: '#17A673', warning: '#E09B14', danger: '#E5486B', priorityLow: '#17A673', priorityMedium: '#E09B14', priorityHigh: '#E5486B' },
+        dark: { background: '#000000', surface: '#120A1F', surfaceAlt: '#1E1030', border: '#3A2158', text: '#F1E9FF', textMuted: '#9B87B8', primary: '#A855F7', primaryText: '#0A0410', accent: '#C084FC', success: '#4ADE80', warning: '#FACC15', danger: '#F87171', priorityLow: '#4ADE80', priorityMedium: '#FACC15', priorityHigh: '#F87171' },
+      },
+      cardStyle: 'outlined', glass: { opacity: 0.55, blur: 40, highlight: 0.12 }, strength: 0, backdrop: BD('none'),
+    },
+    glow: {
+      palettes: null, // = the matte palettes made more vivid (same rule as the app)
+      cardStyle: 'glass', glass: { opacity: 0.55, blur: 40, highlight: 0.12 }, strength: 0.45,
+      backdrop: BD('blobs', { dim: 0, soft: 0.8, blobs: [blob('primary', 23, 0, 120, 0.62)] }, { dim: 0.2, soft: 0.7, blobs: [blob('primary', 0, 0, 55, 0.45), blob('accent', 100, 100, 50, 0.3)] }),
+    },
+    defaultFinish: 'matte',
+    fonts: {}, fontScale: 1, headingScale: 1, headingLetterSpacing: 0, uppercaseLabels: false, radius: { card: 16, control: 12 }, borderWidth: 1, cardPadding: 14, tabBar: 'classic',
+    widget: { background: '#FFFFFF', text: '#1A1230', textMuted: '#6E6390', accent: '#7C3AED', danger: '#E5486B', radius: 16 },
+  },
+  neon: {
+    label: '🌃 Neon',
+    matte: {
+      palettes: {
+        light: { background: '#EEF1FB', surface: '#FFFFFF', surfaceAlt: '#E3E8F8', border: '#D5DCF2', text: '#141A33', textMuted: '#6B7396', primary: '#5B5BF0', primaryText: '#FFFFFF', accent: '#0BB5D8', success: '#17A673', warning: '#E09B14', danger: '#E5486B', priorityLow: '#17A673', priorityMedium: '#E09B14', priorityHigh: '#E5486B' },
+        dark: { background: '#070B1A', surface: '#111833', surfaceAlt: '#1A2347', border: '#25305C', text: '#E8ECFF', textMuted: '#8A93BF', primary: '#22D3EE', primaryText: '#04121A', accent: '#F472D0', success: '#34E3A0', warning: '#FFC857', danger: '#FF5C8A', priorityLow: '#34E3A0', priorityMedium: '#FFC857', priorityHigh: '#FF5C8A' },
+      },
+      cardStyle: 'elevated', glass: { opacity: 0.4, blur: 50, highlight: 0.18 }, strength: 0, backdrop: BD('none'),
+    },
+    glow: {
+      palettes: null,
+      cardStyle: 'glass', glass: { opacity: 0.4, blur: 50, highlight: 0.18 }, strength: 0.8,
+      backdrop: BD('blobs', { dim: 0.1, soft: 0.65, blobs: [blob('primary', 5, 15, 50, 0.45), blob('accent', 95, 75, 50, 0.4)] }),
+    },
+    defaultFinish: 'matte',
+    fonts: { regular: 'sans-serif', medium: 'sans-serif-medium', bold: 'sans-serif-medium', heading: 'sans-serif-light' }, fontScale: 1.06, headingScale: 1.25, headingLetterSpacing: -0.5, uppercaseLabels: true, radius: { card: 26, control: 18 }, borderWidth: 0, cardPadding: 18, tabBar: 'floating',
+    widget: { background: '#111833', text: '#E8ECFF', textMuted: '#8A93BF', accent: '#22D3EE', danger: '#FF5C8A', radius: 26 },
+  },
+  sakura: {
+    label: '🌸 Сакура',
+    matte: {
+      palettes: {
+        light: { background: '#FFF6FA', surface: '#FFFFFF', surfaceAlt: '#FCE4EF', border: '#F4CDE0', text: '#2B0F1F', textMuted: '#8E6178', primary: '#D63384', primaryText: '#FFFFFF', accent: '#9B6CF0', success: '#1F9D6B', warning: '#CC8A0E', danger: '#E04848', priorityLow: '#1F9D6B', priorityMedium: '#CC8A0E', priorityHigh: '#E04848' },
+        dark: { background: '#0E070B', surface: '#1C0F17', surfaceAlt: '#2A1622', border: '#43233A', text: '#FCE8F3', textMuted: '#B58FA6', primary: '#F062A8', primaryText: '#1A0612', accent: '#B79CFF', success: '#5ED6A0', warning: '#F2C14E', danger: '#FF6B6B', priorityLow: '#5ED6A0', priorityMedium: '#F2C14E', priorityHigh: '#FF6B6B' },
+      },
+      cardStyle: 'outlined', glass: { opacity: 0.5, blur: 45, highlight: 0.16 }, strength: 0, backdrop: BD('none'),
+    },
+    glow: {
+      palettes: null, cardStyle: 'glass', glass: { opacity: 0.45, blur: 50, highlight: 0.16 }, strength: 0.5,
+      backdrop: BD('blobs', { dim: 0.05, soft: 0.8, blobs: [blob('primary', 85, 0, 70, 0.28), blob('accent', 0, 70, 55, 0.2)] }, { dim: 0.12, soft: 0.75, blobs: [blob('#FF9BCB', 85, 0, 62, 0.34), blob('accent', 0, 78, 58, 0.34), blob('#FFC9E3', 40, 40, 35, 0.06)] }),
+    },
+    defaultFinish: 'glow',
+    fonts: {}, fontScale: 1, headingScale: 1.1, headingLetterSpacing: -0.3, uppercaseLabels: false, radius: { card: 24, control: 16 }, borderWidth: 1, cardPadding: 15, tabBar: 'floating',
+    widget: { background: '#1C0F17', text: '#FCE8F3', textMuted: '#B58FA6', accent: '#F062A8', danger: '#FF6B6B', radius: 24 },
+  },
+  tropic: {
+    label: '🌴 Тропік',
+    matte: {
+      palettes: {
+        light: { background: '#F2FBF7', surface: '#FFFFFF', surfaceAlt: '#E0F3EA', border: '#C9E8DA', text: '#0B2A1F', textMuted: '#5A7F71', primary: '#0F9D6E', primaryText: '#FFFFFF', accent: '#0EA5E9', success: '#16A34A', warning: '#D97706', danger: '#E11D48', priorityLow: '#16A34A', priorityMedium: '#D97706', priorityHigh: '#E11D48' },
+        dark: { background: '#03100C', surface: '#0B1C17', surfaceAlt: '#12291F', border: '#1F4236', text: '#E6FFF5', textMuted: '#86B3A2', primary: '#2EE6A6', primaryText: '#032117', accent: '#7DD3FC', success: '#4ADE80', warning: '#FACC15', danger: '#FB7185', priorityLow: '#4ADE80', priorityMedium: '#FACC15', priorityHigh: '#FB7185' },
+      },
+      cardStyle: 'outlined', glass: { opacity: 0.5, blur: 45, highlight: 0.14 }, strength: 0, backdrop: BD('none'),
+    },
+    glow: {
+      palettes: null, cardStyle: 'glass', glass: { opacity: 0.45, blur: 50, highlight: 0.14 }, strength: 0.6,
+      backdrop: BD('blobs', { dim: 0.05, soft: 0.8, blobs: [blob('primary', 0, 0, 70, 0.25), blob('accent', 100, 100, 55, 0.2)] }, { dim: 0.15, soft: 0.7, blobs: [blob('primary', 0, 0, 60, 0.4), blob('accent', 100, 90, 50, 0.3)] }),
+    },
+    defaultFinish: 'glow',
+    fonts: { heading: 'sans-serif-medium' }, fontScale: 1, headingScale: 1.1, headingLetterSpacing: -0.3, uppercaseLabels: true, radius: { card: 18, control: 12 }, borderWidth: 1, cardPadding: 15, tabBar: 'classic',
+    widget: { background: '#0B1C17', text: '#E6FFF5', textMuted: '#86B3A2', accent: '#2EE6A6', danger: '#FB7185', radius: 18 },
+  },
+};
+// Android system font families (the app ships no font files) and how they look in this preview.
+const FONT_FAMILIES = { '': 'Системний (Roboto)', 'sans-serif': 'sans-serif', 'sans-serif-light': 'sans-serif-light', 'sans-serif-medium': 'sans-serif-medium', 'sans-serif-condensed': 'sans-serif-condensed', 'sans-serif-black': 'sans-serif-black', serif: 'serif', monospace: 'monospace' };
+const FONT_CSS = { '': ["'Roboto'", 400], 'sans-serif': ["'Roboto'", 400], 'sans-serif-light': ["'Roboto'", 300], 'sans-serif-medium': ["'Roboto'", 500], 'sans-serif-condensed': ["'Roboto Condensed'", 400], 'sans-serif-black': ["'Roboto'", 900], serif: ["'Noto Serif', Georgia", 400], monospace: ["'Roboto Mono'", 400] };
+
+// ---------- colour helpers ----------
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const hex2rgb = (h) => { h = h.replace('#', ''); if (h.length === 3) h = [...h].map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
+const rgb2hex = (r, g, b) => '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase();
+const lum = (h) => { const f = (v) => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }; const [r, g, b] = hex2rgb(h); return .2126 * f(r) + .7152 * f(g) + .0722 * f(b); };
+const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); };
+const rgba = (h, a) => { const [r, g, b] = hex2rgb(h); return `rgba(${r},${g},${b},${a})`; };
+function hex2hsl(h) { let [r, g, b] = hex2rgb(h).map((v) => v / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); let hh = 0, s = 0; const l = (mx + mn) / 2; if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); hh = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; hh *= 60; } return [hh, s * 100, l * 100]; }
+function hsl2hex(h, s, l) { s /= 100; l /= 100; const k = (n) => (n + h / 30) % 12; const a = s * Math.min(l, 1 - l); const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))); return rgb2hex(f(0) * 255, f(8) * 255, f(4) * 255); }
+const isHex = (v) => /^#[0-9a-fA-F]{6}$/.test(v);
+const COLOR_KEYS = ['primary', 'accent', 'success', 'warning', 'danger', 'priorityLow', 'priorityMedium', 'priorityHigh'];
+/** Same rule as theme/theme.ts vivid(): colour tokens more saturated, a touch brighter on dark. */
+function vivid(p, dark) { const o = { ...p }; for (const k of COLOR_KEYS) { const [h, s, l] = hex2hsl(p[k]); o[k] = hsl2hex(h, Math.min(100, s + 22), dark ? Math.min(78, l + 4) : l); } return o; }
+
+/** A whole light + dark palette from one main colour (and a harmony for the accent). */
+function generate(primary, harmony, mood) {
+  const [h, s] = hex2hsl(primary);
+  const accH = { analog: h + 30, complement: h + 180, triad: h + 120, split: h + 150, mono: h }[harmony];
+  const sat = mood === 'muted' ? Math.min(s, 40) : mood === 'vivid' ? Math.max(s, 85) : mood === 'neon' ? 100 : s;
+  const neon = mood === 'neon';
+  const light = {
+    background: hsl2hex(h, Math.min(sat, 35), 97), surface: '#FFFFFF', surfaceAlt: hsl2hex(h, Math.min(sat, 30), 92), border: hsl2hex(h, Math.min(sat, 25), 85),
+    text: hsl2hex(h, 25, 11), textMuted: hsl2hex(h, 12, 45), primary: hsl2hex(h, sat, 42), primaryText: '#FFFFFF', accent: hsl2hex(accH, sat, 48),
+    success: hsl2hex(145, 45, 38), warning: hsl2hex(40, 75, 44), danger: hsl2hex(8, 62, 48), priorityLow: hsl2hex(145, 30, 45), priorityMedium: hsl2hex(40, 75, 44), priorityHigh: hsl2hex(8, 62, 48),
+  };
+  const dark = {
+    background: mood === 'oled' || neon ? '#000000' : hsl2hex(h, Math.min(sat, 40), 5), surface: hsl2hex(h, Math.min(sat, 45), 9), surfaceAlt: hsl2hex(h, Math.min(sat, 45), 14), border: hsl2hex(h, Math.min(sat, 40), 22),
+    text: hsl2hex(h, 60, 94), textMuted: hsl2hex(h, 18, 64), primary: hsl2hex(h, sat, neon ? 58 : 66), primaryText: neon ? '#FFFFFF' : hsl2hex(h, 60, 6), accent: hsl2hex(accH, sat, neon ? 64 : 72),
+    success: hsl2hex(150, neon ? 95 : 65, 58), warning: hsl2hex(45, neon ? 100 : 90, 60), danger: hsl2hex(12, neon ? 100 : 85, 64), priorityLow: hsl2hex(150, neon ? 95 : 65, 58), priorityMedium: hsl2hex(45, neon ? 100 : 90, 60), priorityHigh: hsl2hex(h, sat, 60),
+  };
+  return { light, dark };
+}
+
+// ============================================================================================
+// State
+// ============================================================================================
+const VIEW = { screen: 'finance', mode: 'both', edit: 'dark', finish: 'glow' };
+function fromBase(key) { const b = clone(BASES[key]); delete b.label; return { name: BASES[key].label.replace(/^\S+\s/, ''), base: key, ...b, view: clone(VIEW) }; }
+/** Older saves of this page (one finish) become the glow finish of a new two-finish theme. */
+function upgrade(s) {
+  if (s.matte && s.glow && typeof s.glow === 'object') {
+    const t = { ...fromBase('crimson'), ...s, view: { ...VIEW, ...(s.view || {}) } };
+    t.matte.backdrop = splitBackdrop(t.matte.backdrop); t.glow.backdrop = splitBackdrop(t.glow.backdrop);
+    return t;
+  }
+  const t = fromBase('crimson');
+  if (s.palettes) t.glow.palettes = s.palettes;
+  if (s.glass) t.glow.glass = { opacity: (s.glass.opacity ?? 42) / 100, blur: Math.round((s.glass.blur ?? 22) * 2.5), highlight: (s.glass.highlight ?? 14) / 100 };
+  if (typeof s.glow === 'number') t.glow.strength = s.glow / 100;
+  for (const k of ['name', 'fonts', 'fontScale', 'headingScale', 'headingLetterSpacing', 'uppercaseLabels', 'radius', 'borderWidth', 'cardPadding', 'tabBar', 'widget']) if (s[k] !== undefined) t[k] = s[k];
+  return t;
+}
+let D = (() => { try { const s = JSON.parse(localStorage.getItem('amber.theme2') || localStorage.getItem('amber.theme') || 'null'); return s ? upgrade(s) : fromBase('crimson'); } catch { return fromBase('crimson'); } })();
+const undo = [];
+const push = () => { undo.push(JSON.stringify(D)); if (undo.length > 100) undo.shift(); };
+const save = () => { try { localStorage.setItem('amber.theme2', JSON.stringify(D)); } catch { /* a big photo — keep going without saving it */ } };
+let selected = null;
+let selBlob = 0;
+
+/** The finish being looked at / edited. */
+const cur = () => D[D.view.finish];
+/** Palette of the current finish in a mode (a glow finish without own palettes = vivid matte). */
+function PAL(mode) { const f = cur(); if (f.palettes) return f.palettes[mode]; return vivid(D.matte.palettes[mode], mode === 'dark'); }
+/** The palette that edits write into (creates own glow palettes on the first edit). */
+function editablePalettes() { const f = cur(); if (!f.palettes) f.palettes = { light: vivid(D.matte.palettes.light, false), dark: vivid(D.matte.palettes.dark, true) }; return f.palettes; }
+const colorOf = (c, mode) => (c && c.startsWith('#') ? c : PAL(mode)[c] || '#000000');
+
+// ============================================================================================
+// Panel
+// ============================================================================================
+const openState = JSON.parse(localStorage.getItem('amber.theme.open') || '{}');
+function section(title, defOpen, fill) {
+  const d = document.createElement('details'); d.open = title in openState ? openState[title] : defOpen;
+  d.addEventListener('toggle', () => { openState[title] = d.open; localStorage.setItem('amber.theme.open', JSON.stringify(openState)); });
+  d.innerHTML = `<summary>${title}</summary><div class="sec"></div>`; fill(d.querySelector('.sec')); return d;
+}
+function rowWith(label, el) { const r = rowEl(label, '<span></span>'); r.lastChild.replaceWith(el); return r; }
+function rowEl(label, inner) { const r = document.createElement('div'); r.className = 'row'; r.innerHTML = `<label>${label}</label>${inner}`; return r; }
+function chips(box, label, opts, curv, pick) {
+  const r = rowEl(label, `<div class="chips">${Object.entries(opts).map(([k, n]) => `<span class="chip ${String(curv) === String(k) ? 'on' : ''}" data-v="${k}">${n}</span>`).join('')}</div>`);
+  r.querySelectorAll('.chip').forEach((c) => (c.onclick = () => { push(); pick(c.dataset.v); save(); build(); render(); })); box.appendChild(r);
+}
+function range(box, label, get, setv, min, max, step = 1, unit = '', show = (v) => v) {
+  const r = rowEl(label, `<div class="val"><input type="range" min="${min}" max="${max}" step="${step}" value="${get()}"><output>${show(get())}${unit}</output></div>`);
+  const i = r.querySelector('input'); i.onpointerdown = push; i.oninput = () => { setv(+i.value); r.querySelector('output').textContent = show(+i.value) + unit; save(); render(); }; box.appendChild(r);
+  return r;
+}
+function contrastBadge(a, b, need = 4.5) { const c = contrast(a, b); const cls = c >= need ? 'ok' : c >= 3 ? 'mid' : 'bad'; return `<span class="ctr ${cls}" title="Контраст ${c.toFixed(1)}:1 (норма для тексту ≥ 4.5)">${c.toFixed(1)}</span>`; }
+/** A colour that is either a palette token ("primary") or its own hex. */
+function colorPick(value, mode, onChange) {
+  const wrap = document.createElement('div'); wrap.className = 'val';
+  const isTok = value && !value.startsWith('#');
+  wrap.innerHTML = `<select style="flex:1">${TOKENS.map(([k, n]) => `<option value="${k}" ${value === k ? 'selected' : ''}>${n}</option>`).join('')}<option value="#" ${isTok ? '' : 'selected'}>Свій колір…</option></select><input type="color" value="${colorOf(value, mode)}" ${isTok ? 'style="opacity:.45"' : ''}>`;
+  const [sel, col] = wrap.querySelectorAll('select,input');
+  sel.onchange = () => { push(); onChange(sel.value === '#' ? col.value.toUpperCase() : sel.value); save(); build(); render(); };
+  col.onpointerdown = push; col.oninput = () => { onChange(col.value.toUpperCase()); save(); render(); }; col.onchange = build;
+  return wrap;
+}
+
+const BACKDROP_PRESETS = {
+  soft: { label: "М'які плями", mode: 'blobs', soft: 0.7, dim: 0.15, blobs: [blob('primary', 10, 6, 60, 0.5), blob('accent', 100, 55, 45, 0.25)] },
+  corner: { label: 'Світло з кута', mode: 'blobs', soft: 0.8, dim: 0.1, blobs: [blob('primary', 0, 0, 80, 0.55)] },
+  bottom: { label: 'Сяйво знизу', mode: 'blobs', soft: 0.75, dim: 0.1, blobs: [blob('primary', 50, 110, 75, 0.55), blob('accent', 15, 100, 40, 0.3)] },
+  aurora: { label: 'Аврора', mode: 'blobs', soft: 0.6, dim: 0.2, blobs: [blob('primary', 20, 15, 45, 0.45), blob('accent', 80, 30, 40, 0.35), blob('success', 60, 85, 35, 0.2)] },
+  spot: { label: 'Пляма за контентом', mode: 'blobs', soft: 0.5, dim: 0.25, blobs: [blob('primary', 60, 40, 45, 0.4)] },
+  dusk: { label: 'Захід (лінійний)', mode: 'linear', dim: 0, linear: { angle: 180, stops: [{ color: 'primary', pos: 0, opacity: 0.45 }, { color: 'background', pos: 55, opacity: 1 }] } },
+  diag: { label: 'Діагональ (лінійний)', mode: 'linear', dim: 0, linear: { angle: 135, stops: [{ color: 'primary', pos: 0, opacity: 0.35 }, { color: 'background', pos: 50, opacity: 1 }, { color: 'accent', pos: 100, opacity: 0.3 }] } },
+};
+
+function build() {
+  const panel = document.getElementById('panel'); const scroll = panel.scrollTop;
+  document.getElementById('baseBar').innerHTML = '<span class="hint" style="align-self:center">Теми:</span>' + Object.entries(BASES).map(([k, b]) => `<button class="btn ${D.base === k ? 'acc' : ''}" data-base="${k}">${b.label}</button>`).join('');
+  document.querySelectorAll('[data-base]').forEach((btn) => (btn.onclick = () => { push(); const v = D.view; D = fromBase(btn.dataset.base); D.view = { ...v, finish: BASES[btn.dataset.base].defaultFinish }; save(); build(); render(); }));
+  const root = document.getElementById('controls'); root.innerHTML = '';
+  const finish = D.view.finish; const F = cur(); const mode = D.view.edit;
+
+  // ---- which finish ----
+  const fin = document.createElement('div');
+  fin.innerHTML = `<div class="finish">${[['matte', '🧱 Матовий', 'спокійні кольори, звичайні картки'], ['glow', '✨ Яскравий', 'соковиті кольори, скло, світіння, градієнт']].map(([k, n, h]) => `<div class="fbtn ${finish === k ? 'on' : ''}" data-f="${k}"><b>${n}</b><small>${h}</small></div>`).join('')}</div>
+    <div class="hint" style="margin:6px 2px 10px">У застосунку це перемикач «Кольори: матові / яскраві» в налаштуваннях теми. Ти редагуєш <b>${finish === 'glow' ? 'яскравий' : 'матовий'}</b> варіант. За замовчуванням для цієї теми: <span class="chip ${D.defaultFinish === 'matte' ? 'on' : ''}" data-def="matte">матовий</span> <span class="chip ${D.defaultFinish === 'glow' ? 'on' : ''}" data-def="glow">яскравий</span></div>`;
+  fin.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => { D.view.finish = b.dataset.f; save(); build(); render(); }));
+  fin.querySelectorAll('[data-def]').forEach((b) => (b.onclick = () => { push(); D.defaultFinish = b.dataset.def; save(); build(); }));
+  root.appendChild(fin);
+
+  root.appendChild(section('🏷 Назва', false, (box) => {
+    const r = rowEl('Назва теми', `<input type="text" value="${D.name.replace(/"/g, '&quot;')}">`);
+    r.querySelector('input').oninput = (e) => { D.name = e.target.value; save(); }; box.appendChild(r);
+  }));
+
+  root.appendChild(section('🎨 Кольори', true, (box) => {
+    box.insertAdjacentHTML('beforeend', `<div class="modes">${['light', 'dark'].map((m) => `<span class="chip ${mode === m ? 'on' : ''}" data-m="${m}">${m === 'light' ? '☀ Світла' : '🌙 Темна'}</span>`).join('')}<span class="chip" id="copyL">Світла → темна</span><span class="chip" id="copyD">Темна → світла</span></div>
+      <div class="hint">Клікни на будь-що в макеті — тут відкриється його колір. Цифра — контраст із фоном (зелена ≥ 4.5 — читабельно).</div>
+      ${finish === 'glow' && !F.palettes ? '<div class="hint" style="color:#f5d36b">Зараз яскраві кольори рахуються автоматично з матових (насиченіші). Щойно зміниш будь-який — у яскравого варіанту буде своя палітра.</div>' : ''}
+      ${finish === 'glow' && F.palettes ? '<div class="toolbar" style="margin:0"><button class="btn" id="autoVivid">↺ Знову рахувати з матових</button></div>' : ''}`);
+    box.querySelectorAll('[data-m]').forEach((c) => (c.onclick = () => { D.view.edit = c.dataset.m; save(); build(); render(); }));
+    const av = box.querySelector('#autoVivid'); if (av) av.onclick = () => { push(); F.palettes = null; save(); build(); render(); };
+    const invert = (src) => Object.fromEntries(Object.entries(src).map(([k, v]) => { const [h, s, l] = hex2hsl(v); return [k, hsl2hex(h, s, k.startsWith('priority') || ['success', 'warning', 'danger', 'primary', 'accent'].includes(k) ? Math.min(85, Math.max(55, 100 - l + 10)) : 100 - l)]; }));
+    box.querySelector('#copyL').onclick = () => { push(); const P = editablePalettes(); P.dark = invert(P.light); save(); build(); render(); };
+    box.querySelector('#copyD').onclick = () => { push(); const P = editablePalettes(); P.light = invert(P.dark); save(); build(); render(); };
+    const P = PAL(mode);
+    const onBg = { text: 'surface', textMuted: 'surface', primary: 'background', primaryText: 'primary', accent: 'surface', success: 'surface', warning: 'surface', danger: 'surface', border: 'surface', surface: 'background', surfaceAlt: 'surface' };
+    for (const [k, name, where] of TOKENS) {
+      const t = document.createElement('div'); t.className = 'tok' + (selected === k ? ' sel' : ''); t.id = 'tok-' + k;
+      const badge = onBg[k] ? contrastBadge(P[k], P[onBg[k]], ['border', 'surface', 'surfaceAlt'].includes(k) ? 1.05 : 4.5) : '';
+      t.innerHTML = `<input type="color" value="${P[k]}"><div><b>${name}${badge}</b><small>${where}</small></div><input type="text" value="${P[k]}">`;
+      const [c, x] = t.querySelectorAll('input');
+      c.onpointerdown = push;
+      c.oninput = () => { editablePalettes()[mode][k] = c.value.toUpperCase(); x.value = c.value.toUpperCase(); selected = k; save(); render(); };
+      c.onchange = build;
+      x.onchange = () => { const v = x.value.trim().startsWith('#') ? x.value.trim() : '#' + x.value.trim(); if (isHex(v)) { push(); editablePalettes()[mode][k] = v.toUpperCase(); save(); build(); render(); } };
+      t.onclick = (e) => { if (e.target.tagName === 'INPUT') return; selected = k; build(); render(); };
+      box.appendChild(t);
+    }
+    const sat = rowEl('Яскравість', `<div class="val"><button class="btn" data-d="-10">− тьмяніше</button><button class="btn" data-d="10">+ яскравіше</button></div>`);
+    sat.querySelectorAll('button').forEach((b) => (b.onclick = () => {
+      push(); const d = +b.dataset.d; const Pl = editablePalettes();
+      for (const m of ['light', 'dark']) for (const k of COLOR_KEYS) { const [h, s0, l] = hex2hsl(Pl[m][k]); Pl[m][k] = hsl2hex(h, Math.max(0, Math.min(100, s0 + d)), l); }
+      save(); build(); render();
+    }));
+    box.appendChild(sat);
+  }));
+
+  root.appendChild(section('🌈 Фон екрана (градієнт)', true, (box) => {
+    const B = F.backdrop[mode];
+    box.insertAdjacentHTML('beforeend', `<div class="modes">${['light', 'dark'].map((m) => `<span class="chip ${mode === m ? 'on' : ''}" data-bm="${m}">${m === 'light' ? '☀ Світла' : '🌙 Темна'}</span>`).join('')}<span class="chip" id="bdCopy">Скопіювати в ${mode === 'light' ? 'темну' : 'світлу'}</span></div>
+      <div class="hint">У світлої і темної теми свій фон — зараз редагуєш <b>${mode === 'light' ? 'світлу' : 'темну'}</b>. Те, що за всіма екранами${finish === 'glow' ? ' — скляні картки розмивають саме його' : ''}. Кольори можна брати з палітри або ставити свої.</div>`);
+    box.querySelectorAll('[data-bm]').forEach((c) => (c.onclick = () => { D.view.edit = c.dataset.bm; save(); build(); render(); }));
+    box.querySelector('#bdCopy').onclick = () => { push(); F.backdrop[mode === 'light' ? 'dark' : 'light'] = clone(B); save(); build(); render(); };
+    chips(box, 'Вид', { none: 'Однотонний', blobs: 'Плями', linear: 'Лінійний', photo: 'Фото' }, B.mode, (v) => (B.mode = v));
+    const pr = document.createElement('div'); pr.className = 'chips';
+    pr.innerHTML = Object.entries(BACKDROP_PRESETS).map(([k, p]) => `<span class="chip" data-p="${k}">${p.label}</span>`).join('');
+    pr.querySelectorAll('[data-p]').forEach((c) => (c.onclick = () => { push(); const p = clone(BACKDROP_PRESETS[c.dataset.p]); delete p.label; Object.assign(B, p); selBlob = 0; save(); build(); render(); }));
+    box.appendChild(rowWith('Готові', pr));
+    if (B.mode === 'none') return;
+    range(box, 'Затемнення', () => Math.round(B.dim * 100), (v) => (B.dim = v / 100), 0, 85, 1, '%');
+    if (B.mode === 'blobs') {
+      range(box, "М'якість країв", () => Math.round(B.soft * 100), (v) => (B.soft = v / 100), 0, 100, 1, '%');
+      box.insertAdjacentHTML('beforeend', '<div class="hint">Плями можна <b>тягати мишкою прямо на макеті</b> (за фон, між картками); колесо над макетом — розмір вибраної плями.</div>');
+      B.blobs.forEach((bl, i) => {
+        const it = document.createElement('div'); it.className = 'blob' + (i === selBlob ? ' sel' : '');
+        it.innerHTML = `<div class="blobhead"><i style="background:${colorOf(bl.color, mode)}"></i><b style="flex:1">Пляма ${i + 1}</b><button class="btn" data-a="dup">⧉</button><button class="btn" data-a="del">✕</button></div>`;
+        it.appendChild(rowWith('Колір', colorPick(bl.color, mode, (v) => (bl.color = v))));
+        range(it, 'Зліва-справа', () => bl.x, (v) => (bl.x = v), -20, 120, 1, '%');
+        range(it, 'Зверху-вниз', () => bl.y, (v) => (bl.y = v), -20, 120, 1, '%');
+        range(it, 'Розмір', () => bl.size, (v) => (bl.size = v), 10, 120, 1, '%');
+        range(it, 'Сила', () => Math.round(bl.opacity * 100), (v) => (bl.opacity = v / 100), 5, 100, 1, '%');
+        it.querySelectorAll('[data-a]').forEach((b) => (b.onclick = () => { push(); if (b.dataset.a === 'del') B.blobs.splice(i, 1); else B.blobs.splice(i + 1, 0, { ...clone(bl), x: bl.x + 10, y: bl.y + 10 }); selBlob = Math.max(0, Math.min(selBlob, B.blobs.length - 1)); save(); build(); render(); }));
+        it.onclick = (e) => { if (e.target.closest('input,select,button')) return; selBlob = i; build(); };
+        box.appendChild(it);
+      });
+      const add = document.createElement('div'); add.className = 'toolbar';
+      add.innerHTML = '<button class="btn">＋ Пляма</button>';
+      add.querySelector('button').onclick = () => { push(); B.blobs.push(blob(['primary', 'accent', 'success', 'warning'][B.blobs.length % 4], 50, 50, 40, 0.4)); selBlob = B.blobs.length - 1; save(); build(); render(); };
+      box.appendChild(add);
+    }
+    if (B.mode === 'linear') {
+      const L = B.linear;
+      range(box, 'Кут', () => L.angle, (v) => (L.angle = v), 0, 360, 5, '°');
+      L.stops.forEach((st, i) => {
+        const it = document.createElement('div'); it.className = 'blob';
+        it.innerHTML = `<div class="blobhead"><i style="background:${colorOf(st.color, mode)}"></i><b style="flex:1">Колір ${i + 1}</b>${L.stops.length > 2 ? '<button class="btn" data-a="del">✕</button>' : ''}</div>`;
+        it.appendChild(rowWith('Колір', colorPick(st.color, mode, (v) => (st.color = v))));
+        range(it, 'Де', () => st.pos, (v) => (st.pos = v), 0, 100, 1, '%');
+        range(it, 'Сила', () => Math.round(st.opacity * 100), (v) => (st.opacity = v / 100), 0, 100, 1, '%');
+        const del = it.querySelector('[data-a=del]'); if (del) del.onclick = () => { push(); L.stops.splice(i, 1); save(); build(); render(); };
+        box.appendChild(it);
+      });
+      const add = document.createElement('div'); add.className = 'toolbar';
+      add.innerHTML = '<button class="btn">＋ Колір</button>';
+      add.querySelector('button').onclick = () => { push(); L.stops.push({ color: 'accent', pos: 100, opacity: 0.4 }); L.stops.sort((a, b) => a.pos - b.pos); save(); build(); render(); };
+      box.appendChild(add);
+    }
+    if (B.mode === 'photo') {
+      const r2 = rowEl('Фото', `<label class="btn">🖼 Вибрати<input type="file" accept="image/*" hidden></label>`);
+      r2.querySelector('input').onchange = (e) => { const f = e.target.files[0]; if (!f) return; const fr = new FileReader(); fr.onload = () => { const im = new Image(); im.onload = () => { const k = Math.min(1, 900 / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = im.width * k; c.height = im.height * k; c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); push(); B.photo = c.toDataURL('image/jpeg', .85); save(); render(); }; im.src = fr.result; }; fr.readAsDataURL(f); };
+      box.appendChild(r2);
+      box.insertAdjacentHTML('beforeend', '<div class="hint">У застосунку фото на фон і так ставиться в «Налаштування → Фон»; тут — щоб подивитись, як на ньому лягає тема.</div>');
+    }
+  }));
+
+  root.appendChild(section('🪟 Картки: скло, тінь, світіння', true, (box) => {
+    chips(box, 'Картки', { outlined: 'З обводкою', elevated: 'З тінню', flat: 'Без фону', glass: '🪟 Скло' }, F.cardStyle, (v) => (F.cardStyle = v));
+    box.insertAdjacentHTML('beforeend', '<div class="hint">Це вигляд карток за замовчуванням. У застосунку кожній картці можна буде окремо поставити скло / тінь / без фону / своє фото через «⋮».</div>');
+    if (F.cardStyle === 'glass') {
+      range(box, 'Непрозорість скла', () => Math.round(F.glass.opacity * 100), (v) => (F.glass.opacity = v / 100), 5, 95, 1, '%');
+      range(box, 'Розмиття', () => F.glass.blur, (v) => (F.glass.blur = v), 0, 100, 1, '');
+      range(box, 'Відблиск по краю', () => Math.round(F.glass.highlight * 100), (v) => (F.glass.highlight = v / 100), 0, 40, 1, '%');
+    }
+    range(box, 'Світіння кольорів', () => Math.round(F.strength * 100), (v) => (F.strength = v / 100), 0, 100, 1, '%');
+    box.insertAdjacentHTML('beforeend', '<div class="hint">Світіння — кнопки, «+», активна вкладка, суми й смужки підсвічуються своїм кольором.</div>');
+  }));
+
+  root.appendChild(section('🧪 Згенерувати палітру', false, (box) => {
+    const g = rowEl('Головний колір', `<div class="val"><input type="color" value="${PAL('dark').primary}" id="genC"><select id="genH"><option value="analog">Акцент: сусідній</option><option value="complement">Акцент: протилежний</option><option value="triad">Акцент: тріада</option><option value="split">Акцент: розщеплений</option><option value="mono">Акцент: той самий</option></select></div>`);
+    box.appendChild(g);
+    const m = rowEl('Настрій', `<div class="val"><select id="genM"><option value="normal">Звичайний</option><option value="vivid">Яскравий</option><option value="muted">Приглушений</option><option value="oled">Чорний OLED</option><option value="neon">Неон (максимум)</option></select><button class="btn acc" id="genGo">Згенерувати</button></div>`);
+    box.appendChild(m);
+    box.insertAdjacentHTML('beforeend', `<div class="hint">Замінить палітру ${finish === 'glow' ? 'яскравого' : 'матового'} варіанту.</div>`);
+    m.querySelector('#genGo').onclick = () => { push(); F.palettes = generate(g.querySelector('#genC').value, g.querySelector('#genH').value, m.querySelector('#genM').value); save(); build(); render(); };
+  }));
+
+  root.appendChild(section('⬛ Форми', false, (box) => {
+    box.insertAdjacentHTML('beforeend', '<div class="hint">Спільне для обох варіантів.</div>');
+    range(box, 'Кути карток', () => D.radius.card, (v) => (D.radius.card = v), 0, 32, 1, 'px');
+    range(box, 'Кути кнопок/полів', () => D.radius.control, (v) => (D.radius.control = v), 0, 28, 1, 'px');
+    range(box, 'Товщина обводки', () => D.borderWidth, (v) => (D.borderWidth = v), 0, 3, 1, 'px');
+    range(box, 'Відступ у картках', () => D.cardPadding, (v) => (D.cardPadding = v), 8, 24, 1, 'px');
+    chips(box, 'Нижня панель', { classic: 'Класична', floating: 'Плаваюча', underline: 'Підкреслення' }, D.tabBar, (v) => (D.tabBar = v));
+  }));
+  root.appendChild(section('🔤 Шрифти', false, (box) => {
+    for (const [k, n] of [['regular', 'Звичайний'], ['medium', 'Середній'], ['bold', 'Жирний'], ['heading', 'Заголовки й великі цифри']]) {
+      const r = rowEl(n, `<select>${Object.entries(FONT_FAMILIES).map(([v, l]) => `<option value="${v}" ${(D.fonts[k] || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`);
+      r.querySelector('select').onchange = (e) => { push(); if (e.target.value) D.fonts[k] = e.target.value; else delete D.fonts[k]; save(); render(); };
+      box.appendChild(r);
+    }
+    range(box, 'Масштаб тексту', () => D.fontScale, (v) => (D.fontScale = v), .85, 1.3, .01, '×');
+    range(box, 'Масштаб заголовків', () => D.headingScale, (v) => (D.headingScale = v), .8, 1.6, .01, '×');
+    range(box, 'Міжлітерний заголовків', () => D.headingLetterSpacing, (v) => (D.headingLetterSpacing = v), -1.5, 2, .1, 'px');
+    chips(box, 'Малі підписи', { false: 'Як є', true: 'ВЕЛИКИМИ' }, D.uppercaseLabels, (v) => (D.uppercaseLabels = v === 'true'));
+  }));
+  root.appendChild(section('📲 Віджет на робочому столі', false, (box) => {
+    box.insertAdjacentHTML('beforeend', '<div class="hint">Віджет не перемикається між світлою і темною — у нього одна своя палітра.</div>');
+    for (const [k, n] of [['background', 'Фон'], ['text', 'Текст'], ['textMuted', 'Сірий текст'], ['accent', 'Акцент'], ['danger', 'Витрати']]) {
+      const r = rowEl(n, `<div class="val"><input type="color" value="${D.widget[k]}"><input type="text" value="${D.widget[k]}" style="width:90px"></div>`);
+      const [c, x] = r.querySelectorAll('input');
+      c.onpointerdown = push; c.oninput = () => { D.widget[k] = c.value.toUpperCase(); x.value = D.widget[k]; save(); render(); };
+      x.onchange = () => { if (isHex(x.value)) { push(); D.widget[k] = x.value.toUpperCase(); save(); build(); render(); } };
+      box.appendChild(r);
+    }
+    range(box, 'Кути віджета', () => D.widget.radius, (v) => (D.widget.radius = v), 0, 32, 1, 'px');
+    const b = document.createElement('div'); b.className = 'toolbar';
+    b.innerHTML = '<button class="btn">Взяти з темної палітри</button><button class="btn">Взяти зі світлої</button>';
+    const [bd, bl] = b.querySelectorAll('button');
+    const take = (p) => { push(); D.widget = { ...D.widget, background: p.surface, text: p.text, textMuted: p.textMuted, accent: p.primary, danger: p.danger }; save(); build(); render(); };
+    bd.onclick = () => take(PAL('dark')); bl.onclick = () => take(PAL('light'));
+    box.appendChild(b);
+  }));
+  panel.scrollTop = scroll;
+}
+
+// ============================================================================================
+// Mock screens
+// ============================================================================================
+function cssVars(mode) {
+  const P = PAL(mode); const F = cur(); const f = (k) => FONT_CSS[D.fonts[k] || ''];
+  const v = {
+    ...Object.fromEntries(Object.entries(P).map(([k, x]) => ['--' + k, x])),
+    '--fs': D.fontScale, '--hs': D.headingScale, '--hls': D.headingLetterSpacing + 'px', '--hw': 800,
+    '--f-regular': `${f('regular')[0]}, sans-serif`, '--f-heading': `${f('heading')[0]}, sans-serif`,
+    '--rc': D.radius.card + 'px', '--rctl': D.radius.control + 'px', '--bw': (F.cardStyle === 'elevated' ? 0 : D.borderWidth) + 'px', '--pad': D.cardPadding + 'px',
+    '--cshadow': F.cardStyle === 'elevated' ? (mode === 'dark' ? '0 8px 24px rgba(0,0,0,.5)' : '0 6px 18px rgba(20,20,40,.10)') : 'none',
+    '--up': D.uppercaseLabels ? 'uppercase' : 'none', '--uls': D.uppercaseLabels ? '.8px' : '0', '--tabh': D.tabBar === 'floating' ? '82px' : '58px',
+    '--emptyBar': mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)',
+    '--wr': D.widget.radius + 'px',
+    '--glassBg': rgba(P.surface, F.glass.opacity), '--gblur': Math.round(F.glass.blur * 0.4) + 'px',
+    '--glassEdge': mode === 'dark' ? `rgba(255,255,255,${F.glass.highlight})` : `rgba(255,255,255,${Math.min(.9, F.glass.highlight * 4)})`,
+    '--glow': F.strength, '--primaryGlow': rgba(P.primary, .75), '--accentGlow': rgba(P.accent, .45),
+  };
+  if (D.fonts.heading === 'sans-serif-light') v['--hw'] = 300;
+  if (D.fonts.heading === 'sans-serif-black') v['--hw'] = 900;
+  return Object.entries(v).map(([k, x]) => `${k}:${x}`).join(';');
+}
+const T = (tok, extra = '') => `data-t="${tok}" ${extra}`;
+
+function tabbar(active) {
+  const items = [['tasks', 'Задачі'], ['calendar', 'Календар'], ['finance', 'Фінанси'], ['stats', 'Статистика'], ['settings', 'Налашт.']];
+  return `<div class="tabbar tb-${D.tabBar}" ${T(D.tabBar === 'underline' ? 'background' : 'surface')}>${items.map(([k, n]) => `<div class="ti ${k === active ? 'on' : ''}" ${T(k === active ? (D.tabBar === 'underline' ? 'text' : 'primary') : 'textMuted')}><i></i>${n}</div>`).join('')}</div>`;
+}
+function statusBar() { return `<div class="sb" ${T('text')}><span>10:29</span><span>▲ ▮ 84%</span></div>`; }
+
+function ringSvg(mode) {
+  const P = PAL(mode); let s = ''; for (let i = 0; i < 10; i++) { const a0 = (i * 36 - 90 + 3) * Math.PI / 180, a1 = ((i + 1) * 36 - 90 - 3) * Math.PI / 180; const r = 26; s += `<path d="M${32 + r * Math.cos(a0)} ${32 + r * Math.sin(a0)} A${r} ${r} 0 0 1 ${32 + r * Math.cos(a1)} ${32 + r * Math.sin(a1)}" stroke="${i < 6 ? P.primary : P.surfaceAlt}" stroke-width="7" fill="none" stroke-linecap="round"/>`; }
+  return `<svg class="ring" viewBox="0 0 64 64" ${T('primary')}>${s}<text x="32" y="37" text-anchor="middle" font-size="15" font-weight="800" fill="${P.text}">6</text></svg>`;
+}
+
+function tasksScreen(mode) {
+  const P = PAL(mode);
+  const task = (title, meta, pr, done = false) => `<div class="card rowf" ${T('surface')}><span class="dot" ${T('priority' + pr)} style="background:var(--priority${pr})"></span><div class="grow"><div style="font-weight:600;${done ? 'text-decoration:line-through;color:var(--textMuted)' : ''}" ${T(done ? 'textMuted' : 'text')}>${title}</div><div class="muted" style="font-size:calc(12px * var(--fs))" ${T('textMuted')}>${meta}</div></div>${done ? `<span class="pill" ${T('success')} style="background:${rgba(P.success, .15)};color:var(--success)">✓</span>` : `<span class="pill" ${T('surfaceAlt')} style="background:var(--surfaceAlt);color:var(--textMuted)">Не почато</span>`}</div>`;
+  return `${statusBar()}<div class="body">
+    <div class="hdr"><span class="h1" ${T('text')}>Задачі</span><span ${T('accent')} style="color:var(--accent)">✏️</span></div>
+    <div class="grid2">
+      <div class="card rowf" ${T('surface')} style="flex-direction:column;align-items:flex-start;gap:6px">${ringSvg(mode)}<div class="lbl" ${T('textMuted')}>Рівень 4 · 6/10</div></div>
+      <div class="card habit" ${T('surface')}><div class="lbl" ${T('textMuted')}>Спортзал</div><div class="big" ${T('warning')} style="color:var(--warning)">🔥 12</div><div class="muted" style="font-size:11px" ${T('textMuted')}>днів поспіль</div></div>
+    </div>
+    <div class="lbl" ${T('textMuted')}>Сьогодні</div>
+    ${task('Здати UX завдання', 'Сьогодні · 23:59', 'High')}
+    ${task('Купити каву', 'Сьогодні · 14:00', 'Medium')}
+    ${task('Прогулянка', 'Вчора', 'Low', true)}
+    ${task('Оплатити інтернет', 'Завтра · 150 zł', 'Medium')}
+  </div><div class="fab" ${T('primary')}>+</div>${tabbar('tasks')}`;
+}
+
+function financeScreen(mode) {
+  const P = PAL(mode);
+  return `${statusBar()}<div class="body" style="gap:10px">
+    <div class="hdr"><span class="h1" ${T('text')}>Фінанси</span><span ${T('accent')} style="color:var(--accent)">✏️</span></div>
+    <div class="ask" ${T('accent')} style="background:${rgba(P.accent, .12)}"><b ${T('text')}>💰 Зарплата прийшла?</b><span class="muted" style="font-size:12px" ${T('textMuted')}>Очікуємо 4 200 zł за 1–31 жовт.</span><div class="rowf"><div class="btnp grow" ${T('primary')}>Так</div><div class="btns grow" ${T('surfaceAlt')}>Інша сума</div></div></div>
+    <div class="card" ${T('surface')}><div class="rowf" style="align-items:stretch">
+      <div class="grow" style="display:grid;gap:3px"><div class="lbl" ${T('textMuted')}>PKO <span style="color:var(--accent)">✏️</span></div><div class="big" ${T('success')} style="color:var(--success)">2 340 zł</div><div class="muted" style="font-size:11.5px;font-weight:600" ${T('textMuted')}>▸ до зарплати 10 лист.: <b>1 120 zł</b></div><div class="bar" ${T('surfaceAlt')}><i style="width:48%;background:var(--success)"></i></div></div>
+      <div style="width:1px;background:var(--border);margin:0 12px" ${T('border')}></div>
+      <div class="grow" style="display:grid;gap:3px;align-content:start"><div class="lbl" ${T('textMuted')}>Має прийти</div><div class="big" ${T('accent')} style="color:var(--accent)">4 200 zł</div><div class="muted" style="font-size:11px" ${T('textMuted')}>+ 1 860 нараховується</div></div>
+    </div></div>
+    <div class="wave" ${T('primary')}><div style="position:absolute;inset:0;width:62%;background:${rgba(P.primary, .55)};border-radius:0 30px 30px 0"></div><div class="grow" style="position:relative"><b ${T('text')}>Їжа</b><div class="muted" style="font-size:11.5px;font-weight:600" ${T('textMuted')}>496 / 800 zł · лишилось 304</div></div><b style="position:relative;font-size:20px" ${T('text')}>62%</b></div>
+    <div class="grid2"><div class="card" ${T('surface')}><div class="lbl" ${T('textMuted')}>💵 Готівка</div><div style="font-size:20px;font-weight:800" ${T('success')} style="color:var(--success)"><span style="color:var(--success)">120 €</span></div></div><div class="card" ${T('surface')}><div class="lbl" ${T('textMuted')}>За місяць</div><div style="font-size:20px;font-weight:800;color:var(--danger)" ${T('danger')}>-1 284 zł</div></div></div>
+    <div class="lbl" ${T('textMuted')}>Останні витрати</div>
+    ${[['Кава', 'Їжа', 14, P.warning], ['Оренда', 'Житло', 900, P.accent], ['Uber', 'Транспорт', 32, P.primary]].map(([n, c, a, col]) => `<div class="card rowf" ${T('surface')} style="padding:10px var(--pad)"><span class="dot" style="background:${col}"></span><div class="grow"><b ${T('text')}>${n}</b><div class="muted" style="font-size:11px" ${T('textMuted')}>${c}</div></div><b ${T('danger')} style="color:var(--danger)">-${a} zł</b></div>`).join('')}
+  </div><div class="fab" ${T('primary')}>+</div>${tabbar('finance')}`;
+}
+
+function statsScreen(mode) {
+  const P = PAL(mode); const hs = [40, 65, 30, 80, 55, 92, 48];
+  return `${statusBar()}<div class="body">
+    <div class="hdr"><span class="h1" ${T('text')}>Статистика</span></div>
+    <div class="seg" ${T('surfaceAlt')}><span class="on" ${T('surface')}>Задачі</span><span ${T('textMuted')}>Фінанси</span></div>
+    <div class="card" ${T('surface')}><div class="lbl" ${T('textMuted')}>Заробіток по тижнях</div><div class="chart">${hs.map((h, i) => `<i ${T('primary')} style="height:${h}%;background:${i === 5 ? P.primary : rgba(P.primary, .45)}"></i>`).join('')}</div><div class="rowf muted" style="justify-content:space-between;font-size:10px;margin-top:4px" ${T('textMuted')}>${['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'нд'].map((d) => `<span>${d}</span>`).join('')}</div></div>
+    <div class="card" ${T('surface')} style="display:grid;gap:9px"><div class="lbl" ${T('textMuted')}>Витрати за категоріями</div>
+      ${[['Їжа', 46, P.warning], ['Житло', 32, P.accent], ['Транспорт', 14, P.primary], ['Розваги', 8, P.danger]].map(([n, p, c]) => `<div><div class="rowf" style="justify-content:space-between;font-size:12px"><span ${T('text')}>${n}</span><span class="muted" ${T('textMuted')}>${p}%</span></div><div class="bar" ${T('surfaceAlt')}><i style="width:${p}%;background:${c}"></i></div></div>`).join('')}
+    </div>
+    <div class="grid2"><div class="card" ${T('surface')}><div class="lbl" ${T('textMuted')}>Зроблено</div><div class="big" ${T('success')} style="color:var(--success)">34</div></div><div class="card" ${T('surface')}><div class="lbl" ${T('textMuted')}>Прострочено</div><div class="big" ${T('danger')} style="color:var(--danger)">3</div></div></div>
+  </div>${tabbar('stats')}`;
+}
+
+function settingsScreen(mode) {
+  const P = PAL(mode);
+  const row = (ic, col, n, v, sw) => `<div class="setrow" ${T('border')}><span class="ico" style="background:${rgba(col, .16)};color:${col}">${ic}</span><span class="grow" ${T('text')}>${n}</span>${sw !== undefined ? `<span class="switch ${sw ? 'on' : 'off'}" ${T(sw ? 'primary' : 'surfaceAlt')} style="background:${sw ? P.primary : P.surfaceAlt}"></span>` : `<span class="muted" ${T('textMuted')}>${v} ›</span>`}</div>`;
+  return `${statusBar()}<div class="body">
+    <div class="hdr"><span class="h1" ${T('text')}>Налаштування</span></div>
+    <div class="card rowf" ${T('surface')}><span style="width:48px;height:48px;border-radius:50%;background:var(--primary);color:var(--primaryText);display:grid;place-items:center;font-weight:800;font-size:20px" ${T('primary')}>V</span><div class="grow"><b ${T('text')}>Vladyslav</b><div class="muted" style="font-size:12px" ${T('textMuted')}>Профіль і пароль</div></div></div>
+    <div class="lbl" ${T('textMuted')}>Вигляд</div>
+    <div class="card" ${T('surface')} style="padding-top:2px;padding-bottom:2px">${row('🎨', P.primary, 'Тема', D.name)}${row('🌙', P.accent, 'Темний режим', '', true)}${row('🌐', P.success, 'Мова', 'Українська')}</div>
+    <div class="lbl" ${T('textMuted')}>Дані</div>
+    <div class="card" ${T('surface')} style="padding-top:2px;padding-bottom:2px">${row('🔔', P.warning, 'Сповіщення', '', true)}${row('🔒', P.danger, 'Блокування фінансів', '', false)}${row('📤', P.primary, 'Перенос даних', 'QR')}</div>
+    <div class="btns" ${T('surfaceAlt')}>Підтримка</div>
+    <div class="btnp" style="background:var(--danger)" ${T('danger')}>Стерти дані</div>
+  </div>${tabbar('settings')}`;
+}
+
+function widgetScreen() {
+  const W = D.widget;
+  return `<div style="position:absolute;inset:0;background:linear-gradient(160deg,#2b3a67,#593c8f 55%,#0e0b16)"></div>${statusBar()}<div style="position:absolute;top:60px;left:0;right:0;display:grid;place-items:center;gap:16px">
+    <div class="widget" ${T('widget')} style="background:${W.background};color:${W.text}">
+      <div class="rowf" style="justify-content:space-between"><b style="font-size:13px">Сьогодні</b><span style="color:${W.textMuted};font-size:12px">пн, 9 лист.</span></div>
+      <div style="display:grid;gap:5px">${['Здати UX завдання · 23:59', 'Купити каву · 14:00'].map((t, i) => `<div class="rowf" style="font-size:13px"><span class="dot" style="background:${i ? W.accent : W.danger}"></span>${t}</div>`).join('')}</div>
+      <div class="rowf" style="justify-content:space-between;font-size:12px"><span style="color:${W.textMuted}">Витрачено сьогодні</span><b style="color:${W.danger}">-46 zł</b></div>
+    </div>
+    <div class="rowf" style="gap:16px">
+      <div class="widget" style="width:157px;height:157px;background:${W.background};color:${W.text}"><b style="font-size:13px">Наступна</b><div style="font-size:15px;font-weight:700">Купити каву</div><span style="color:${W.accent};font-weight:700;font-size:12px">через 2 год</span></div>
+      <div class="widget" style="width:157px;height:157px;background:${W.background};color:${W.text};align-items:center;justify-content:center"><div style="font-size:42px">🔥</div><b style="font-size:26px;color:${W.accent}">12</b><span style="color:${W.textMuted};font-size:11px">Спортзал</span></div>
+    </div>
+    <div class="hint" style="color:#fff9;max-width:300px;text-align:center">Віджети завжди беруть кольори з розділу «Віджет на робочому столі».</div>
+  </div>`;
+}
+
+/** The gradient behind the screens — the same CSS the app will pass to experimental_backgroundImage. */
+function backdropCss(mode) {
+  const B = cur().backdrop[mode]; const P = PAL(mode);
+  if (B.mode === 'photo' && B.photo) return `background:url(${B.photo}) center/cover`;
+  if (B.mode === 'linear') return `background:linear-gradient(${B.linear.angle}deg, ${B.linear.stops.map((s) => `${rgba(colorOf(s.color, mode), s.opacity)} ${s.pos}%`).join(', ')}), ${P.background}`;
+  if (B.mode === 'blobs') {
+    const g = B.blobs.map((b) => { const c = colorOf(b.color, mode); const inner = Math.round(b.size * (1 - B.soft)); return `radial-gradient(circle at ${b.x}% ${b.y}%, ${rgba(c, b.opacity)} ${inner}%, ${rgba(c, 0)} ${b.size}%)`; });
+    return `background:${[...g, P.background].join(', ')}`;
+  }
+  return '';
+}
+function backdropHTML(mode) {
+  const B = cur().backdrop[mode];
+  if (D.view.screen === 'widget' || B.mode === 'none') return '';
+  const P = PAL(mode);
+  return `<div class="backdrop" style="${backdropCss(mode)}"></div><div class="dim" style="background:${rgba(P.background, B.dim)}"></div>`;
+}
+
+const SCREENS = { tasks: ['✓ Задачі', tasksScreen], finance: ['💰 Фінанси', financeScreen], stats: ['📊 Статистика', statsScreen], settings: ['⚙ Налаштування', settingsScreen], widget: ['📲 Віджети', widgetScreen] };
+
+function render() {
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = Object.entries(SCREENS).map(([k, [n]]) => `<span class="tab ${D.view.screen === k ? 'on' : ''}" data-k="${k}">${n}</span>`).join('') + `<span class="spacer"></span>` +
+    `<span class="chip ${D.view.finish === 'matte' ? 'on' : ''}" data-fin="matte">🧱 Матовий</span><span class="chip ${D.view.finish === 'glow' ? 'on' : ''}" data-fin="glow">✨ Яскравий</span><span style="width:10px"></span>` +
+    ['both', 'light', 'dark'].map((m) => `<span class="chip ${D.view.mode === m ? 'on' : ''}" data-mode="${m}">${{ both: 'Обидві', light: '☀', dark: '🌙' }[m]}</span>`).join(' ');
+  tabs.querySelectorAll('.tab').forEach((t) => (t.onclick = () => { D.view.screen = t.dataset.k; save(); render(); }));
+  tabs.querySelectorAll('[data-mode]').forEach((t) => (t.onclick = () => { D.view.mode = t.dataset.mode; save(); render(); }));
+  tabs.querySelectorAll('[data-fin]').forEach((t) => (t.onclick = () => { D.view.finish = t.dataset.fin; save(); build(); render(); }));
+  const modes = D.view.screen === 'widget' ? ['light'] : D.view.mode === 'both' ? ['light', 'dark'] : [D.view.mode];
+  const [, fn] = SCREENS[D.view.screen]; const F = cur();
+  document.getElementById('view').innerHTML = modes.map((m) => `<div class="phonewrap"><div class="phone"><div class="scr ${F.cardStyle === 'flat' ? 'flat' : ''} ${F.cardStyle === 'glass' ? 'glass' : ''} ${F.strength > 0 ? 'glow' : ''}" data-mode="${m}" style="${cssVars(m)}">${backdropHTML(m)}${fn(m)}</div></div><div class="cap">${D.view.screen === 'widget' ? 'Віджети' : (m === 'light' ? '☀ Світла' : '🌙 Темна') + ' · ' + (D.view.finish === 'glow' ? 'яскравий' : 'матовий')}</div></div>`).join('');
+  document.querySelectorAll('.scr [data-t]').forEach((el) => {
+    el.onclick = (e) => {
+      e.stopPropagation(); const tok = el.dataset.t;
+      if (tok === 'widget') { openState['📲 Віджет на робочому столі'] = true; build(); return; }
+      selected = tok; D.view.edit = el.closest('.scr').dataset.mode; openState['🎨 Кольори'] = true; save(); build();
+      document.getElementById('tok-' + tok)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    };
+    el.onmousemove = (e) => { const tip = document.getElementById('tip'); const tok = el.dataset.t; tip.textContent = `${TOKEN_NAMES[tok] || 'Віджет'} · ${tok}`; tip.style.display = 'block'; tip.style.left = e.clientX + 12 + 'px'; tip.style.top = e.clientY + 12 + 'px'; e.stopPropagation(); };
+    el.onmouseleave = () => (document.getElementById('tip').style.display = 'none');
+  });
+  hookBlobDrag();
+}
+
+/** Drag the selected blob straight on the screen (on the background between cards); wheel = size. */
+function hookBlobDrag() {
+  document.querySelectorAll('.scr').forEach((scr) => {
+    if (D.view.screen === 'widget') return;
+    const B = cur().backdrop[scr.dataset.mode]; if (B.mode !== 'blobs' || !B.blobs.length) return;
+    scr.onpointerdown = (e) => {
+      if (e.target.closest('[data-t]')) return;
+      const rect = scr.getBoundingClientRect();
+      const px = ((e.clientX - rect.left) / rect.width) * 100, py = ((e.clientY - rect.top) / rect.height) * 100;
+      // Grab the nearest blob, not just the selected one.
+      let best = selBlob, bd = 1e9; B.blobs.forEach((b, i) => { const d = (b.x - px) ** 2 + (b.y - py) ** 2; if (d < bd) { bd = d; best = i; } });
+      selBlob = best; push(); scr.setPointerCapture(e.pointerId);
+      // Dragging on a phone also switches the editor to that phone's mode.
+      if (D.view.edit !== scr.dataset.mode) { D.view.edit = scr.dataset.mode; }
+      const move = (ev) => {
+        const bl = B.blobs[selBlob];
+        bl.x = Math.round(Math.max(-20, Math.min(120, ((ev.clientX - rect.left) / rect.width) * 100)));
+        bl.y = Math.round(Math.max(-20, Math.min(120, ((ev.clientY - rect.top) / rect.height) * 100)));
+        document.querySelectorAll('.scr').forEach((s2) => { const bd2 = s2.querySelector('.backdrop'); if (bd2) bd2.style.cssText = backdropCss(s2.dataset.mode); });
+      };
+      scr.onpointermove = move;
+      scr.onpointerup = () => { scr.onpointermove = null; save(); build(); render(); };
+    };
+    scr.onwheel = (e) => {
+      if (e.target.closest('[data-t]')) return;
+      e.preventDefault(); const bl = B.blobs[selBlob]; if (!bl) return;
+      bl.size = Math.max(10, Math.min(120, bl.size + (e.deltaY < 0 ? 3 : -3)));
+      document.querySelectorAll('.scr').forEach((s2) => { const bd2 = s2.querySelector('.backdrop'); if (bd2) bd2.style.cssText = backdropCss(s2.dataset.mode); });
+      save(); clearTimeout(hookBlobDrag.t); hookBlobDrag.t = setTimeout(build, 300);
+    };
+  });
+}
+
+// ============================================================================================
+// Export / import / misc
+// ============================================================================================
+function exportTs() {
+  const id = (D.base && D.name === BASES[D.base]?.label.replace(/^\S+\s/, '')) ? D.base : (D.name || 'custom').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'custom';
+  const pal = (p, ind = '    ') => '{\n' + TOKENS.map(([k]) => `${ind}  ${k}: '${p[k]}',`).join('\n') + `\n${ind}}`;
+  const fonts = Object.keys(D.fonts).length ? `{ ${Object.entries(D.fonts).map(([k, v]) => `${k}: '${v}'`).join(', ')} }` : '{}';
+  const bd = (B) => JSON.stringify({ light: { ...B.light, photo: undefined }, dark: { ...B.dark, photo: undefined } });
+  const G = D.glow, M = D.matte;
+  return `/** ${D.name} */
+const ${id}: Design = {
+  id: '${id}',
+  palettes: {
+    light: ${pal(M.palettes.light)},
+    dark: ${pal(M.palettes.dark)},
+  },
+  fonts: ${fonts},
+  fontScale: ${D.fontScale},
+  headingScale: ${D.headingScale},
+  headingLetterSpacing: ${D.headingLetterSpacing},
+  uppercaseLabels: ${D.uppercaseLabels},
+  radius: { card: ${D.radius.card}, control: ${D.radius.control} },
+  borderWidth: ${D.borderWidth},
+  cardStyle: '${M.cardStyle}',
+  cardPadding: ${D.cardPadding},
+  tabBar: '${D.tabBar}',
+  matteBackdrop: ${bd(M.backdrop)},
+  glow: {
+${G.palettes ? `    palettes: {\n      light: ${pal(G.palettes.light, '      ')},\n      dark: ${pal(G.palettes.dark, '      ')},\n    },\n` : ''}    cardStyle: '${G.cardStyle}',
+    glass: { opacity: ${G.glass.opacity}, blur: ${G.glass.blur}, highlight: ${G.glass.highlight} },
+    strength: ${G.strength},
+    backdrop: ${bd(G.backdrop)},
+  },
+  defaultFinish: '${D.defaultFinish}',
+  widget: { background: '${D.widget.background}', text: '${D.widget.text}', textMuted: '${D.widget.textMuted}', accent: '${D.widget.accent}', danger: '${D.widget.danger}', radius: ${D.widget.radius} },
+};
+
+/* JSON для імпорту назад у конструктор:
+${JSON.stringify({ ...D, view: undefined, matte: { ...M, backdrop: JSON.parse(bd(M.backdrop)) }, glow: { ...G, backdrop: JSON.parse(bd(G.backdrop)) } })}
+*/`;
+}
+const modal = document.getElementById('modal');
+function openModal(title, hint, text, ok, onOk) {
+  document.getElementById('mTitle').textContent = title; document.getElementById('mHint').textContent = hint;
+  const ta = document.getElementById('mText'); ta.value = text; ta.readOnly = !onOk;
+  const b = document.getElementById('mOk'); b.textContent = ok;
+  b.onclick = () => { if (onOk) onOk(ta.value); else { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' })); a.download = 'amber-theme.ts'; a.click(); } };
+  modal.classList.add('on');
+}
+document.getElementById('mClose').onclick = () => modal.classList.remove('on');
+document.getElementById('mCopy').onclick = () => navigator.clipboard.writeText(document.getElementById('mText').value);
+document.getElementById('exportBtn').onclick = () => openModal('Експорт теми', 'Готовий код для theme/designs.ts з обома варіантами (матовий і яскравий). Скинь мені або просто скажи «готово» — я прочитаю звідси сам.', exportTs(), '⬇ Зберегти файл', null);
+document.getElementById('importBtn').onclick = () => openModal('Імпорт', 'Встав JSON з експорту (той, що в коментарі в кінці).', '', 'Застосувати', (t) => {
+  try { const m = t.match(/\/\*[^\n]*\n(\{[\s\S]*\})\s*\*\//) || t.match(/\{[\s\S]*\}/); const p = JSON.parse(m[1] || m[0]); push(); D = upgrade({ ...p, view: D.view }); save(); build(); render(); modal.classList.remove('on'); } catch (e) { alert('Не вдалося прочитати: ' + e.message); }
+});
+document.getElementById('undoBtn').onclick = () => { if (!undo.length) return; const v = D.view; D = JSON.parse(undo.pop()); D.view = v; save(); build(); render(); };
+document.getElementById('randBtn').onclick = () => {
+  push();
+  const c = hsl2hex(Math.random() * 360, 55 + Math.random() * 35, 50);
+  cur().palettes = generate(c, ['analog', 'complement', 'triad', 'split', 'mono'][Math.floor(Math.random() * 5)], ['normal', 'vivid', 'muted', 'oled', 'neon'][Math.floor(Math.random() * 5)]);
+  save(); build(); render();
+};
+document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'z' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); document.getElementById('undoBtn').click(); } });
+const qs = new URLSearchParams(location.search);
+if (qs.get('screen')) D.view.screen = qs.get('screen');
+if (qs.get('base') && BASES[qs.get('base')]) { push(); D = fromBase(qs.get('base')); D.view.finish = BASES[qs.get('base')].defaultFinish; save(); history.replaceState(null, '', location.pathname); }
+if (qs.get('finish')) D.view.finish = qs.get('finish');
+build(); render(); document.fonts?.ready.then(render);
+
+</script>
+</body>
+</html>

@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { Category, Expense } from '@/types';
+import { fmtAmount } from '@/lib/money';
 
 interface ExpenseListItemProps {
   expense: Expense;
@@ -23,7 +24,7 @@ export function ExpenseListItem({ expense, category, currency, onPress, variant 
   const tr = useTranslation();
   const color = category?.color ?? theme.colors.textMuted;
   // Hidden while Finance is locked (Settings → Security) — this row also shows up in Calendar.
-  const amount = useFinanceLocked() ? `•••• ${currency}` : `-${expense.amount.toFixed(0)} ${currency}`;
+  const amount = useFinanceLocked() ? `•••• ${currency}` : `-${fmtAmount(expense.amount)} ${currency}`;
   const date = new Date(`${expense.date}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' });
   // Spending plans: the limit taken off is tagged "Plan"; going past the limit is marked in red.
   const overspend = expense.planRole === 'overspend';

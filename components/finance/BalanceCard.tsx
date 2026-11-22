@@ -5,9 +5,13 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { CustomizableCard, Button, TextField } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 import { CommittedItem, sumItems } from '@/lib/ledger';
+import { glowText } from '@/theme/theme';
 import { categoryLabel } from '@/lib/categoryLabel';
 import { Category } from '@/types';
 import { MoneyDialog } from './MoneyDialog';
+import { Tymofii } from '@/components/mascot/Tymofii';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
+import { fmtAmount, amountDraft } from '@/lib/money';
 
 interface BalanceCardProps {
   /** Bank name of the main card ("" = not named). */
@@ -55,6 +59,7 @@ export function BalanceCard({
   const tr = useTranslation();
   const committedTotal = sumItems(committed);
   const afterAll = balance - committedTotal;
+  const helpRef = useHelpTarget('finance.balance');
   const total = afterAll + awaiting;
 
   const [editing, setEditing] = useState(false);
@@ -64,7 +69,7 @@ export function BalanceCard({
   const label = name.trim() || tr.financeScreen.bank;
 
   function openEditor() {
-    setDraft(balance.toFixed(2).replace(/\.00$/, ''));
+    setDraft(amountDraft(balance));
     setNameDraft(name);
     setEditing(true);
   }
@@ -78,8 +83,8 @@ export function BalanceCard({
   }
 
   const muted = theme.colors.textMuted;
-  const money = (n: number) => `${n.toFixed(0)} ${currency}`;
-  const signed = (n: number) => `${n >= 0 ? '' : '−'}${Math.abs(n).toFixed(0)} ${currency}`;
+  const money = (n: number) => `${fmtAmount(n)} ${currency}`;
+  const signed = (n: number) => `${n >= 0 ? '' : '−'}${fmtAmount(Math.abs(n))} ${currency}`;
   const balanceColor = balance >= 0 ? theme.colors.success : theme.colors.danger;
 
   // Free vs spoken for: the bar is the card's money; the spoken-for part sits on the right.
@@ -96,7 +101,7 @@ export function BalanceCard({
       <Text style={[styles.header, { color: muted }]}>
         {label} <Text style={{ color: theme.colors.accent }}>✏️</Text>
       </Text>
-      <Text numberOfLines={1} adjustsFontSizeToFit style={[big ? styles.heroAmount : styles.amount, { color: balanceColor }]}>
+      <Text numberOfLines={1} adjustsFontSizeToFit style={[big ? styles.heroAmount : styles.amount, { color: balanceColor }, glowText(theme, balanceColor)]}>
         {signed(balance)}
       </Text>
       <Pressable onPress={() => setListOpen(true)} hitSlop={6}>
@@ -107,7 +112,7 @@ export function BalanceCard({
       {bar}
       {spentMonth > 0 ? (
         <Text style={[styles.subline, { color: muted }]}>
-          {tr.money.spentMonth}: {spentMonth.toFixed(0)}
+          {tr.money.spentMonth}: {fmtAmount(spentMonth)}
         </Text>
       ) : null}
     </Pressable>
@@ -118,7 +123,7 @@ export function BalanceCard({
       <Text style={[styles.header, { color: muted }]}>{tr.financeScreen.incoming}</Text>
       {awaitingLabel ? (
         <>
-          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: theme.colors.accent }]}>{money(awaiting)}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.amount, { color: theme.colors.accent }, glowText(theme, theme.colors.accent)]}>{money(awaiting)}</Text>
           <Text style={[styles.subline, { color: muted }]}>{awaitingLabel}</Text>
         </>
       ) : null}
@@ -167,7 +172,14 @@ export function BalanceCard({
 
   return (
     <CustomizableCard widgetId="finance-balance">
-      {body}
+      <View ref={helpRef} collapsable={false}>{body}</View>
+      <Tymofii
+        mood={afterAll < 0 ? 'worried' : 'happy'}
+        prop={afterAll < 0 ? 'sweat' : 'coin'}
+        say={afterAll < 0 ? tr.mascot.balanceLow : tr.mascot.balanceOk}
+        size={52}
+        style={styles.mascot}
+      />
 
       <MoneyDialog visible={editing} onClose={() => setEditing(false)} title={tr.financeScreen.editBankTitle(currency)} hint={tr.money.correctionHint}>
         <TextField label={tr.accounts.bankName} value={nameDraft} onChangeText={setNameDraft} placeholder={tr.accounts.bankNamePlaceholder} />
@@ -206,6 +218,7 @@ export function BalanceCard({
 }
 
 const styles = StyleSheet.create({
+  mascot: { alignSelf: 'flex-end', marginTop: 6 },
   columns: { flexDirection: 'row', alignItems: 'stretch' },
   mainCol: { flex: 1.3, gap: 4 },
   column: { flex: 1, gap: 4 },

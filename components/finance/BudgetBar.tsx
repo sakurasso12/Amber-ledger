@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { TymofiiFace, useMascotOn } from '@/components/mascot/Tymofii';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import Svg from 'react-native-svg';
-import { Easing, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { Easing, useSharedValue, withRepeat, withTiming, cancelAnimation } from 'react-native-reanimated';
 import { addMonths, endOfMonth, startOfMonth } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -19,6 +22,7 @@ import { BAR_HEIGHT, FILL, Wave } from './Wave';
 import { MoneyDialog } from './MoneyDialog';
 import { CategoryPicker } from './CategoryPicker';
 import { removeExpenseAsking } from './balanceQuestion';
+import { fmtAmount, amountDraft } from '@/lib/money';
 
 const parse = (text: string) => {
   const n = parseFloat(text.replace(',', '.'));
@@ -57,6 +61,8 @@ export function BudgetBar({ category, disabled = false }: { category: Category; 
   );
   const ratio = limit > 0 ? spent / limit : 0;
   const over = ratio > 1;
+  const mascot = useMascotOn();
+  const helpRef = useHelpTarget('finance.budget');
   const [width, setWidth] = useState(0);
   const [sheet, setSheet] = useState<null | 'main' | 'limit'>(null);
 
@@ -65,9 +71,14 @@ export function BudgetBar({ category, disabled = false }: { category: Category; 
   useEffect(() => {
     fill.value = withTiming(Math.min(1, ratio), FILL);
   }, [ratio, fill]);
-  useEffect(() => {
-    phase.value = withRepeat(withTiming(2 * Math.PI, { duration: 2600, easing: Easing.linear }), -1, false);
-  }, [phase]);
+  // The wave only rolls while this screen is in front: under an open sheet or another tab it
+  // stops, so it isn't redrawn 120 times a second behind the popup.
+  useFocusEffect(
+    useCallback(() => {
+      phase.value = withRepeat(withTiming(phase.value + 2 * Math.PI, { duration: 2600, easing: Easing.linear }), -1, false);
+      return () => cancelAnimation(phase);
+    }, [phase])
+  );
 
   const fillColor = over ? theme.colors.danger : theme.colors.primary;
   const empty = theme.dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
@@ -82,7 +93,7 @@ export function BudgetBar({ category, disabled = false }: { category: Category; 
   }
 
   return (
-    <View style={styles.wrap}>
+    <View ref={helpRef} collapsable={false} style={styles.wrap}>
       <PressableScale
         disabled={disabled}
         onPress={() => setSheet('main')}
@@ -100,17 +111,20 @@ export function BudgetBar({ category, disabled = false }: { category: Category; 
             {categoryLabel(category, tr)}
           </Text>
           <Text style={[styles.limit, { color: theme.colors.textMuted }]} numberOfLines={1}>
-            {spent.toFixed(0)} / {limit.toFixed(0)} {currency} ·{' '}
-            {rest >= 0 ? tr.money.budgetLeft(rest.toFixed(0)) : tr.money.budgetOver((-rest).toFixed(0))}
+            {fmtAmount(spent)} / {fmtAmount(limit)} {currency} ·{' '}
+            {rest >= 0 ? tr.money.budgetLeft(fmtAmount(rest)) : tr.money.budgetOver(fmtAmount(-rest))}
           </Text>
         </View>
+        {mascot ? (
+          <TymofiiFace mood={over ? 'sad' : ratio >= 0.8 ? 'worried' : 'calm'} prop={over ? 'emptyCoin' : ratio >= 0.8 ? 'sweat' : null} size={44} />
+        ) : null}
         <Text style={[styles.percent, { color: over ? theme.colors.danger : theme.colors.text }]}>{Math.round(ratio * 100)}%</Text>
       </PressableScale>
 
       {ask ? (
         <View style={styles.monthEnd}>
           <Text style={[styles.monthEndText, { color: theme.colors.textMuted }]}>
-            {tr.money.budgetMonthQuestion(`${limit.toFixed(0)} ${currency}`)}
+            {tr.money.budgetMonthQuestion(`${fmtAmount(limit)} ${currency}`)}
           </Text>
           <Pressable disabled={disabled} onPress={keep} hitSlop={6} style={[styles.chip, { backgroundColor: `${theme.colors.primary}1F` }]}>
             <Text style={[styles.chipText, { color: theme.colors.primary }]}>{tr.money.keep}</Text>
@@ -158,7 +172,7 @@ function BudgetSheet({
     if (mode) {
       setStep(mode === 'limit' ? 'limit' : 'main');
       setAmount('');
-      setLimit((category.limitMonth ?? 0).toFixed(0));
+      setLimit(amountDraft(category.limitMonth ?? 0));
       setPassword('');
       setWrong(false);
     }
@@ -272,7 +286,7 @@ function BudgetSheet({
               {new Date(`${e.date}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' })}
             </Text>
             <Text style={[styles.spendAmount, { color: theme.colors.text }]} numberOfLines={1}>
-              -{e.amount.toFixed(0)} {currency}
+              -{fmtAmount(e.amount)} {currency}
               {e.comment ? ` · ${e.comment}` : ''}
             </Text>
             <Pressable onPress={() => removeExpenseAsking(e.id)} hitSlop={8}>

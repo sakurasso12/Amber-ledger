@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, AppState, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, endOfMonth, startOfMonth } from 'date-fns';
@@ -20,10 +20,11 @@ import { WorkCalendar } from '@/components/finance/WorkCalendar';
 import { ExpenseListItem } from '@/components/finance/ExpenseListItem';
 import { formatRangeLabel, monthRange, toDateKey, todayKey, weekRange } from '@/lib/dateRanges';
 import { payrollState } from '@/lib/earnings';
-import { syncCheckReminder, syncLoanReminders, syncSalaryReminder } from '@/notifications';
+import { syncCheckReminder, syncLoanReminders, syncSalaryReminder, syncSubscriptionReminders } from '@/notifications';
 import { totalExpenses } from '@/lib/expenses';
 import { balanceOf, committedUntil, nextPayday, spentFrom } from '@/lib/ledger';
 import { pendingItems } from '@/lib/pending';
+import { BANK_FEATURE, bankAccessGranted, bankAvailable, openBankAccessSettings, pullBankTransactions } from '@/lib/bank/sync';
 import { useTranslation } from '@/i18n';
 import { FinanceLockGate } from '@/components/finance/FinanceLockGate';
 import { AccountCard, AccountFormDialog } from '@/components/finance/AccountCard';
@@ -32,8 +33,9 @@ import { MAX_LOANS } from '@/lib/loans';
 import { MoneyDialog } from '@/components/finance/MoneyDialog';
 import { AccountPicker } from '@/components/finance/AccountPicker';
 import { Button, Chip } from '@/components/ui';
-import { accountName, expenseCurrency, isSpendable, MAX_CARDS, MAX_GOALS, MAX_STASHES } from '@/lib/accounts';
+import { accountName, expenseCurrency, isSpendable, MAX_CARDS, MAX_GOALS, MAX_STASHES, primaryId as primaryIdOf } from '@/lib/accounts';
 import { AccountKind, Expense } from '@/types';
+import { fmtAmount } from '@/lib/money';
 
 export function FinanceScreen() {
   const theme = useTheme();
@@ -93,9 +95,29 @@ export function FinanceScreen() {
   const snoozedUntil = settings.salaryPromptSnoozedUntil ? new Date(settings.salaryPromptSnoozedUntil) : null;
   const salaryDue = payroll.due && (!snoozedUntil || snoozedUntil <= now) ? payroll.due : null;
   // "Awaiting answer": salary, loan payments, upcoming payments whose day came, the weekly check.
+  // Personal build: IKO notifications → "Awaiting answer" (pulled on open and when the app comes back).
+  const [bankAccess, setBankAccess] = useState(() => bankAccessGranted());
+  useEffect(() => {
+    if (!BANK_FEATURE) return;
+    const sync = () => {
+      setBankAccess(bankAccessGranted());
+      pullBankTransactions();
+    };
+    sync();
+    const sub = AppState.addEventListener('change', (s) => s === 'active' && sync());
+    return () => sub.remove();
+  }, []);
+  // Only one number from the store (not the whole store): re-render only when the card balance changes.
+  const bankPid = primaryIdOf(accounts);
+  const appCardBalance = useFinanceStore((s) => (BANK_FEATURE && bankPid ? balanceOf(bankPid, s, bankPid) : 0));
+  const bankBalance = useMemo(() => {
+    const bank = settings.bankLastBalance;
+    if (!BANK_FEATURE || bank === null || !bankPid || settings.bankBalanceDismissed === bank) return null;
+    return { accountId: bankPid, bank, app: appCardBalance };
+  }, [settings.bankLastBalance, settings.bankBalanceDismissed, bankPid, appCardBalance]);
   const pending = useMemo(
-    () => pendingItems({ salaryDue, upcoming, loans, accounts, settings, now }),
-    [salaryDue, upcoming, loans, accounts, settings, now]
+    () => pendingItems({ salaryDue, upcoming, loans, accounts, settings, now, bank: settings.bankPending, bankBalance }),
+    [salaryDue, upcoming, loans, accounts, settings, now, bankBalance]
   );
 
   useEffect(() => {
@@ -144,6 +166,10 @@ export function FinanceScreen() {
   useEffect(() => {
     syncLoanReminders(loans, settings);
   }, [loans, settings.notificationsEnabled, settings.language]);
+  // 1.7: subscriptions — the morning before each charge, with Тимофій's purr if that's on.
+  useEffect(() => {
+    syncSubscriptionReminders(upcoming, settings, settings.currency);
+  }, [upcoming, settings.subscriptionIds, settings.subscriptionReminders, settings.purrNotifications, settings.notificationsEnabled, settings.language, settings.currency]);
   // The weekly balance check's evening reminder.
   useEffect(() => {
     syncCheckReminder(settings);
@@ -179,7 +205,7 @@ export function FinanceScreen() {
     <CustomizableCard widgetId={`finance-${key}`} style={styles.tileCard}>
       <Text style={[styles.statLabel, { color: theme.colors.textMuted }]}>{label}</Text>
       <Text style={[styles.statValue, { color: theme.colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
-        -{value.toFixed(0)} {settings.currency}
+        -{fmtAmount(value)} {settings.currency}
       </Text>
     </CustomizableCard>
   );
@@ -191,7 +217,7 @@ export function FinanceScreen() {
         <View style={size === 'half' ? styles.budgetLabelStack : styles.budgetLabelRow}>
           <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>{label}</Text>
           <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }} numberOfLines={1} adjustsFontSizeToFit>
-            {spent.toFixed(0)} / {limit.toFixed(0)} {settings.currency}
+            {fmtAmount(spent)} / {fmtAmount(limit)} {settings.currency}
           </Text>
         </View>
         <ProgressBar ratio={spent / limit} color={theme.colors.success} />
@@ -286,6 +312,13 @@ export function FinanceScreen() {
 
   const listHeader = (
           <View style={styles.topSection}>
+            {BANK_FEATURE && !bankAccess && bankAvailable() ? (
+              <View style={[styles.bankAccess, { borderColor: theme.colors.accent }]}>
+                <Text style={{ color: theme.colors.text, fontWeight: '700' }}>💳 {tr.bank.accessTitle}</Text>
+                <Text style={{ color: theme.colors.textMuted, fontSize: 12, lineHeight: 17 }}>{tr.bank.accessHint}</Text>
+                <Button title={tr.bank.accessButton} onPress={openBankAccessSettings} />
+              </View>
+            ) : null}
             <PendingList items={pending} />
             {askSalaryAccount ? (
               <CustomizableCard widgetId="finance-salary-account" style={styles.askCard}>
@@ -330,6 +363,7 @@ export function FinanceScreen() {
   return (
     <LayoutScreen
       title={tr.financeScreen.header}
+      help="finance"
       right={
         <View style={styles.headerRight}>
           <FinanceMenuHeader />
@@ -339,7 +373,7 @@ export function FinanceScreen() {
             </Pressable>
           ) : null}
           {editingLayout ? <HiddenModulesButton items={removedItems} /> : null}
-          <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={locked} />
+          <EditLayoutButton helpId="finance.edit" editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={locked} />
         </View>
       }
     >
@@ -369,6 +403,7 @@ export function FinanceScreen() {
 
       {editingLayout ? null : (
         <Fab
+          helpId="finance.fab"
           onPress={() => router.push('/expense/new')}
           onLongPress={() => defaultQuickAddCategoryId && setQuickAddOpen(true)}
           bottom={insets.bottom + 16}
@@ -402,6 +437,7 @@ export function FinanceScreen() {
 }
 
 const styles = StyleSheet.create({
+  bankAccess: { borderWidth: 1, borderRadius: 16, padding: 14, gap: 8, marginBottom: 10 },
   container: { flex: 1 },
   listContent: { paddingHorizontal: 16, paddingBottom: 96 },
   topSection: { gap: 14, marginBottom: 14 },

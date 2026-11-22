@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { applyAccent, AppTheme, builtInThemes } from './theme';
+import { applyAccent, AppTheme, builtInThemes, vivid } from './theme';
 import { DESIGNS } from './designs';
-import { LAYOUTS } from './layouts';
+import { resolveLayout } from './layouts';
 
 interface ThemeContextValue {
   theme: AppTheme;
@@ -22,21 +22,35 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const accentColor = useSettingsStore((s) => s.settings.accentColor);
   const designId = useSettingsStore((s) => s.settings.designId);
   const layoutId = useSettingsStore((s) => s.settings.layoutId);
+  const colorFinish = useSettingsStore((s) => s.settings.colorFinish);
+  const layoutOverrides = useSettingsStore((s) => s.settings.layoutOverrides);
   const systemScheme = useColorScheme();
 
   const theme = useMemo<AppTheme>(() => {
-    const design = DESIGNS[designId] ?? DESIGNS.amber;
+    const baseDesign = DESIGNS[designId] ?? DESIGNS.amber;
     const dark = themeMode === 'dark' || (themeMode === 'system' && systemScheme === 'dark');
+    const glow = colorFinish === 'glow';
+    // The glow finish: the design's own vivid palettes (or the matte ones made more saturated), its
+    // card style (usually glass), a coloured glow and colour blobs behind the screens.
+    const g = baseDesign.glow;
+    const look = glow ? g : { ...baseDesign.matte, cardStyle: baseDesign.cardStyle };
+    const design = glow ? { ...baseDesign, cardStyle: g.cardStyle } : baseDesign;
+    const matteColors = dark ? baseDesign.palettes.dark : baseDesign.palettes.light;
+    const colors = glow ? (g.palettes ? (dark ? g.palettes.dark : g.palettes.light) : vivid(matteColors, dark)) : matteColors;
     const base: AppTheme = {
-      id: `${design.id}-${dark ? 'dark' : 'light'}`,
+      id: `${design.id}-${dark ? 'dark' : 'light'}${glow ? '-glow' : ''}`,
       label: design.id,
       dark,
-      colors: dark ? design.palettes.dark : design.palettes.light,
+      colors,
       design,
-      layout: LAYOUTS[layoutId] ?? LAYOUTS.standard,
+      layout: resolveLayout(layoutId, layoutOverrides),
+      finish: glow ? 'glow' : 'matte',
+      glow: look.strength,
+      glass: look.glass,
+      backdrop: dark ? look.backdrop.dark : look.backdrop.light,
     };
     return applyAccent(base, accentColor);
-  }, [themeMode, systemScheme, accentColor, designId, layoutId]);
+  }, [themeMode, systemScheme, accentColor, designId, layoutId, colorFinish, layoutOverrides]);
 
   const value = useMemo(() => ({ theme, availableThemes: builtInThemes }), [theme]);
 

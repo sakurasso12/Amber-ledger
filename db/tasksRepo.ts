@@ -20,6 +20,7 @@ interface TaskRow {
   sort_order: number;
   expense_category_id: string | null;
   expense_amount: number | null;
+  alarm: number | null;
   created_at: string;
   updated_at: string;
   completed_at: string | null;
@@ -59,6 +60,7 @@ function rowToTask(row: TaskRow, subtasks: SubTask[], tags: string[]): Task {
       row.expense_category_id && row.expense_amount != null
         ? { categoryId: row.expense_category_id, amount: row.expense_amount }
         : null,
+    alarm: row.alarm === 1,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     completedAt: row.completed_at,
@@ -138,6 +140,7 @@ export async function createTask(draft: TaskDraft): Promise<Task> {
     imageUri: draft.imageUri,
     sortOrder: (maxSortOrder?.max_order ?? -1) + 1,
     expenseOnComplete: draft.expenseOnComplete,
+    alarm: draft.alarm ?? false,
     createdAt: now,
     updatedAt: now,
     completedAt: draft.status === 'done' ? now : null,
@@ -155,9 +158,9 @@ export async function createTask(draft: TaskDraft): Promise<Task> {
     `INSERT INTO tasks (
       id, title, description, deadline_at, priority, status, is_important,
       recurrence_freq, recurrence_interval, recurrence_weekdays, recurrence_until, recurrence_streak,
-      series_id, image_uri, sort_order, expense_category_id, expense_amount,
+      series_id, image_uri, sort_order, expense_category_id, expense_amount, alarm,
       created_at, updated_at, completed_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       task.id,
       task.title,
@@ -176,6 +179,7 @@ export async function createTask(draft: TaskDraft): Promise<Task> {
       task.sortOrder,
       task.expenseOnComplete?.categoryId ?? null,
       task.expenseOnComplete?.amount ?? null,
+      task.alarm ? 1 : 0,
       task.createdAt,
       task.updatedAt,
       task.completedAt,
@@ -203,6 +207,7 @@ export async function createNextRecurringInstance(source: Task, deadlineAt: stri
     recurrenceRule: source.recurrenceRule,
     imageUri: null,
     expenseOnComplete: source.expenseOnComplete,
+    alarm: source.alarm,
     subtasks: source.subtasks.map((s) => ({ title: s.title, isDone: false, sortOrder: s.sortOrder })),
   });
 
@@ -219,7 +224,7 @@ export async function updateTask(task: Task): Promise<void> {
     `UPDATE tasks SET
       title = ?, description = ?, deadline_at = ?, priority = ?, status = ?, is_important = ?,
       recurrence_freq = ?, recurrence_interval = ?, recurrence_weekdays = ?, recurrence_until = ?, recurrence_streak = ?,
-      series_id = ?, image_uri = ?, expense_category_id = ?, expense_amount = ?, updated_at = ?, completed_at = ?
+      series_id = ?, image_uri = ?, expense_category_id = ?, expense_amount = ?, alarm = ?, updated_at = ?, completed_at = ?
     WHERE id = ?`,
     [
       task.title,
@@ -237,6 +242,7 @@ export async function updateTask(task: Task): Promise<void> {
       task.imageUri,
       task.expenseOnComplete?.categoryId ?? null,
       task.expenseOnComplete?.amount ?? null,
+      task.alarm ? 1 : 0,
       updatedAt,
       task.completedAt,
       task.id,

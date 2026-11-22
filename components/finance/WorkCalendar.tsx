@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { addMonths, endOfMonth, endOfWeek, startOfMonth, startOfWeek } from 'date-fns';
@@ -8,11 +9,13 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { payPeriodRange, toDateKey } from '@/lib/dateRanges';
 import { totalEarnings, workedDaysCount } from '@/lib/earnings';
 import { useTranslation } from '@/i18n';
+import { fmtAmount } from '@/lib/money';
 
 /** Tap cycles a day through: unset → worked (green) → day off (red) → unset. Days before the
  * start of the current pay period are read-only and shown muted — no manual "close period" step
  * needed, it just follows the period boundary from Settings → Заработок. */
 export function WorkCalendar() {
+  const helpRef = useHelpTarget('finance.workCalendar');
   const theme = useTheme();
   const tr = useTranslation();
   const [month, setMonth] = useState(new Date());
@@ -59,17 +62,26 @@ export function WorkCalendar() {
   }
 
   // Summary reflects the pay period that the displayed month falls in, not the raw calendar month.
-  const displayedPeriod = useMemo(
-    () => payPeriodRange(new Date(month.getFullYear(), month.getMonth(), 15), settings.payPeriodStartDay),
-    [month, settings.payPeriodStartDay]
-  );
+  // Looking at the month you're in → the period you're in now (its colours and its money match).
+  // Any other month → the period that starts in it (or contains its 15th when the start day is
+  // past the month's end).
+  const displayedPeriod = useMemo(() => {
+    const now = new Date();
+    if (month.getFullYear() === now.getFullYear() && month.getMonth() === now.getMonth()) {
+      return payPeriodRange(now, settings.payPeriodStartDay);
+    }
+    const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+    const anchorDay = Math.min(Math.max(1, settings.payPeriodStartDay), lastDay);
+    return payPeriodRange(new Date(month.getFullYear(), month.getMonth(), anchorDay), settings.payPeriodStartDay);
+  }, [month, settings.payPeriodStartDay]);
+  const periodLabel = `${displayedPeriod.start.toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' })} – ${displayedPeriod.end.toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'short' })}`;
   const worked = workedDaysCount(workDays, displayedPeriod);
   const off = workDays.filter((w) => !w.isWorked && toDateInRange(w.date, displayedPeriod)).length;
   const earned = totalEarnings(workDays, settings, displayedPeriod);
   const monthLabel = month.toLocaleDateString(tr.localeCode, { month: 'long', year: 'numeric' });
 
   return (
-    <View>
+    <View ref={helpRef} collapsable={false}>
       <View style={styles.monthNav}>
         <Pressable onPress={() => setMonth((m) => addMonths(m, -1))} hitSlop={8}>
           <Text style={[styles.navArrow, { color: theme.colors.primary }]}>‹</Text>
@@ -94,14 +106,15 @@ export function WorkCalendar() {
             const key = toDateKey(date);
             const record = workDayByDate.get(key);
             const isPast = key < currentPeriodStartKey;
+            // Closed periods keep their colours, just faded — the history stays readable.
             const bg = isPast
               ? record
-                ? theme.colors.surfaceAlt
+                ? `${record.isWorked ? theme.colors.success : theme.colors.priorityHigh}55`
                 : 'transparent'
               : record
               ? record.isWorked
                 ? theme.colors.success
-                : theme.colors.danger
+                : theme.colors.priorityHigh
               : 'transparent';
             const textColor = isPast
               ? theme.colors.textMuted
@@ -122,11 +135,12 @@ export function WorkCalendar() {
         </View>
       ))}
 
+      <Text style={[styles.periodLabel, { color: theme.colors.textMuted }]}>{periodLabel}</Text>
       <View style={styles.summaryRow}>
         <Text style={[styles.summaryItem, { color: theme.colors.success }]}>{tr.workCalendar.worked}: {worked}</Text>
-        <Text style={[styles.summaryItem, { color: theme.colors.danger }]}>{tr.workCalendar.off}: {off}</Text>
+        <Text style={[styles.summaryItem, { color: theme.colors.priorityHigh }]}>{tr.workCalendar.off}: {off}</Text>
         <Text style={[styles.summaryItem, { color: theme.colors.text }]}>
-          ≈ {earned.toFixed(0)} {settings.currency}
+          ≈ {fmtAmount(earned)} {settings.currency}
         </Text>
       </View>
     </View>
@@ -139,6 +153,7 @@ function toDateInRange(dateKey: string, range: { start: Date; end: Date }): bool
 }
 
 const styles = StyleSheet.create({
+  periodLabel: { fontSize: 12, fontWeight: '600', textAlign: 'center', marginTop: 6 },
   monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20, marginBottom: 8 },
   navArrow: { fontSize: 22, fontWeight: '700', paddingHorizontal: 10 },
   monthLabel: { fontSize: 15, fontWeight: '700', textTransform: 'capitalize', minWidth: 150, textAlign: 'center' },

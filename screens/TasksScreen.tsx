@@ -129,7 +129,7 @@ export function TasksScreen() {
           <TaskModules
             habits={habitList}
             editing={editingLayout}
-            focus={showFocus ? <FocusTaskCard task={focusTask} editing={editingLayout} onDone={() => setStatus(focusTask.id, 'done')} /> : undefined}
+            focus={showFocus ? <FocusTaskCard task={focusTask} cardId="tasks-focus" editing={editingLayout} onDone={() => setStatus(focusTask.id, 'done')} /> : undefined}
           />
         </View>
       )}
@@ -156,13 +156,14 @@ export function TasksScreen() {
   return (
     <LayoutScreen
       title={tr.tasksScreen.header}
+      help="tasks"
       count={visibleTasks.length + habitList.length}
       headerOverride={selectionBar}
       right={
         // Pencil: rearrange and resize the cards; the check mark ends editing. ⋮ brings back removed ones.
         <View style={styles.headerRight}>
           {editingLayout ? <HiddenModulesButton items={hiddenModules} /> : null}
-          <EditLayoutButton editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} />
+          <EditLayoutButton helpId="tasks.edit" editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} />
         </View>
       }
     >
@@ -173,12 +174,14 @@ export function TasksScreen() {
           placeholder={tr.tasksScreen.quickAddPlaceholder}
           onSubmit={quickAddTask}
           onClose={() => setQuickAddOpen(false)}
+          closeOnSubmit
           style={{ bottom: insets.bottom + 82 }}
         />
       ) : null}
 
       {!selectionMode && !editingLayout ? (
         <Fab
+          helpId="tasks.fab"
           onPress={() => router.push('/task/new')}
           onLongPress={() => setQuickAddOpen(true)}
           bottom={insets.bottom + 16}

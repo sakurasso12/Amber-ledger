@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useTranslation } from '@/i18n';
 import { TourCards, TourSlide } from './TourCards';
+import { TymofiiFace } from '@/components/mascot/Tymofii';
 
 /** The installed app version (from app.json). */
 export const APP_VERSION = Constants.expoConfig?.version ?? '0';
@@ -19,6 +20,8 @@ const ICONS: Record<string, (keyof typeof Ionicons.glyphMap)[]> = {
   '1.3.3': ['gift-outline'],
   '1.4.0': ['gift-outline', 'card-outline', 'swap-horizontal-outline', 'archive-outline', 'flag-outline', 'business-outline', 'cash-outline', 'calendar-outline'],
   '1.5.0': ['gift-outline', 'wallet-outline', 'hourglass-outline', 'help-circle-outline', 'calendar-outline', 'water-outline', 'swap-horizontal-outline', 'phone-landscape-outline'],
+  '1.6.0': ['gift-outline', 'sparkles-outline', 'color-palette-outline', 'albums-outline', 'options-outline'],
+  '1.7.0': ['paw-outline', 'happy-outline', 'musical-notes-outline', 'repeat-outline', 'stats-chart-outline'],
 };
 
 /**
@@ -33,6 +36,7 @@ export function WhatsNew() {
   const lastSeen = useSettingsStore((s) => s.settings.lastSeenVersion);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const backRef = useRef<(() => boolean) | null>(null);
+  const mascot = useSettingsStore((s) => s.settings.mascotEnabled);
 
   const release = tr.whatsNew.releases[APP_VERSION];
   const visible = onboardingDone && lastSeen !== APP_VERSION && !!release;
@@ -44,6 +48,12 @@ export function WhatsNew() {
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent navigationBarTranslucent onRequestClose={() => backRef.current?.()}>
       <View style={[styles.backdrop, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
+        {/* Тимофій presents every update (since 1.7). */}
+        {mascot ? (
+          <View style={styles.mascot}>
+            <TymofiiFace mood="happy" prop="party" size={110} />
+          </View>
+        ) : null}
         <TourCards slides={slides} finishLabel={tr.whatsNew.done} backRef={backRef} onFinish={close} />
       </View>
     </Modal>
@@ -52,4 +62,5 @@ export function WhatsNew() {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.62)' },
+  mascot: { alignItems: 'center', marginBottom: -8 },
 });

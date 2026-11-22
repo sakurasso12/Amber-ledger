@@ -49,6 +49,8 @@ export interface Task {
   sortOrder: number;
   /** If set, completing this task logs a matching expense automatically. */
   expenseOnComplete: ExpenseOnComplete | null;
+  /** Also put an alarm into the system Clock for the deadline time (Android). */
+  alarm: boolean;
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
@@ -66,5 +68,6 @@ export interface TaskDraft {
   recurrenceRule: RecurrenceRule | null;
   imageUri: string | null;
   expenseOnComplete: ExpenseOnComplete | null;
+  alarm?: boolean;
   subtasks: Omit<SubTask, 'id' | 'taskId'>[];
 }

@@ -278,7 +278,7 @@ export interface Translation {
   };
   workCalendar: { worked: string; off: string };
   widgetMenu: { pick: string; remove: string; shape: string };
-  cardShape: { title: string; theme: string; square: string; rounded: string; round: string; leaf: string };
+  cardShape: { title: string; theme: string; square: string; rounded: string; round: string; leaf: string; bgTitle: string; bgGlass: string; bgShadow: string; bgNone: string; bgPhoto: string; bgRemovePhoto: string; menu: string; opacityTitle: string };
   categoryPicker: { label: string };
   expenseEditor: {
     headerNew: string;
@@ -365,7 +365,7 @@ export interface Translation {
     advanceHint: string;
   };
   budgetSettings: { title: string; weekLimit: string; monthLimit: string; notSetPlaceholder: string };
-  themeSettings: { title: string; accentLabel: string };
+  themeSettings: { title: string; accentLabel: string; finishLabel: string; finishMatte: string; finishGlow: string; finishHint: string; backgroundHint: string; focusCard: string; focusCardHint: string };
   languageSettings: { title: string; note: string };
   notificationsSettings: { title: string; enabled: string; disabled: string; reminderLabel: string; note: string };
   backgroundSettings: { title: string; notSet: string; pick: string; replace: string; remove: string };
@@ -437,7 +437,7 @@ export interface Translation {
   };
   level: { tasksDone: string; sound: string; soundHint: string };
   habitWidget: { title: string; subtitle: string; empty: string; done: string };
-  defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string };
+  defaultCategories: { 'cat-food': string; 'cat-transport': string; 'cat-housing': string; 'cat-fun': string; 'cat-other': string; 'cat-loans': string; 'cat-subscriptions': string };
   layoutText: {
     noDeadline: string;
     focus: string;
@@ -452,12 +452,16 @@ export interface Translation {
     v3: string;
   };
   designs: {
+    crimson: string;
+    crimsonDescription: string;
     amber: string;
     amberDescription: string;
     neon: string;
     neonDescription: string;
-    paper: string;
-    paperDescription: string;
+    sakura: string;
+    sakuraDescription: string;
+    tropic: string;
+    tropicDescription: string;
   };
   salaryPrompt: {
     title: string;
@@ -618,6 +622,148 @@ export interface Translation {
     checkNotifTitle: string;
     checkNotifBody: string;
   };
+  layoutCustom: {
+    title: string;
+    presets: string;
+    presetStandard: string;
+    presetVertical: string;
+    header: string; headerTop: string; headerSide: string;
+    menu: string; menuBubble: string; menuPill: string; menuClassic: string; menuUnderline: string;
+    plate: string; plateOn: string; plateOff: string;
+    corners: string; cornersTheme: string; cornersLeaf: string;
+    tasks: string; tasksFocus: string; tasksRows: string;
+    expenses: string; expensesRows: string; expensesBig: string;
+    stats: string; statsStandard: string; statsBig: string;
+    settings: string; settingsList: string; settingsBig: string;
+    fab: string; fabRound: string; fabBig: string;
+    balance: string; balanceColumns: string; balanceHero: string;
+    financeMenu: string; financeMenuClassic: string; financeMenuChips: string;
+    colorTitle: string; colorHint: string; colorApply: string;
+    sectionTitle: string; sectionHint: string;
+    headerHint: string; menuHint: string; plateHint: string; cornersHint: string; tasksHint: string;
+    expensesHint: string; balanceHint: string; financeMenuHint: string; statsHint: string; settingsHint: string; fabHint: string;
+  };
+  bank: {
+    accessTitle: string;
+    accessHint: string;
+    accessButton: string;
+    spent: (amount: string) => string;
+    received: (amount: string) => string;
+    unknown: (amount: string) => string;
+    via: (method: string, time: string) => string;
+    nameLabel: string;
+    addExpense: string;
+    addIncome: string;
+    skip: string;
+    gap: (amount: string) => string;
+    balanceTitle: (amount: string) => string;
+    balanceBody: (app: string) => string;
+    align: string;
+    otherAmount: string;
+    no: string;
+  };
+  subscriptions: {
+    title: string;
+    menuLabel: string;
+    monthly: string;
+    perYear: (amount: string) => string;
+    count: (n: number) => string;
+    nextOn: (date: string) => string;
+    dueSoon: (name: string, when: string) => string;
+    tomorrow: string;
+    today: string;
+    add: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    dateLabel: string;
+    save: string;
+    cancel: string;
+    remove: string;
+    removeConfirm: (name: string) => string;
+    empty: string;
+    channelPurr: string;
+    channelPlain: string;
+    reminderTitle: (name: string) => string;
+    reminderBody: (amount: string) => string;
+  };
+  report: {
+    title: string;
+    menuLabel: string;
+    kicker: string;
+    spent: string;
+    vsPrev: (pct: number, more: boolean) => string;
+    noPrev: string;
+    income: string;
+    tasksDone: string;
+    tasksSub: (n: number) => string;
+    where: string;
+    nothing: string;
+    share: string;
+    tagline: string;
+  };
+  mascot: {
+    settingsTitle: string;
+    toggle: string;
+    toggleHint: string;
+    purr: string;
+    purrHint: string;
+    listen: string;
+    soundPurr: string;
+    soundMeow: string;
+    soundMix: string;
+    subReminders: string;
+    subRemindersHint: string;
+    purrNotif: string;
+    purrNotifHint: string;
+    balanceOk: string;
+    balanceLow: string;
+    budgetCalm: string;
+    budgetWorried: (left: string) => string;
+    budgetOver: (over: string) => string;
+    salary: string;
+    loan: string;
+    bank: string;
+    subDue: string;
+    goalDone: string;
+    empty: string;
+    hello: string;
+  };
+  help: {
+    button: string;
+    title: string;
+    hint: string;
+    close: string;
+    next: string;
+    gotIt: string;
+    stepOf: (i: number, n: number) => string;
+    nudge: string;
+    showMe: string;
+    screens: Record<'tasks' | 'calendar' | 'finance' | 'stats' | 'settings', { title: string; text: string }[]>;
+  };
+  quickAdd: { voice: string; voiceLanguage: string; voiceAppLanguage: string };
+  alarm: {
+    chip: string;
+    hint: string;
+    needsTime: string;
+    tapToSet: string;
+    permTitle: string;
+    permMessage: string;
+    permLater: string;
+    permAllow: string;
+  };
+  realTymofii: {
+    header: string;
+    title: string;
+    lead: string;
+    listen: string;
+    listenNote: string;
+    captions: string[];
+    passportTitle: string;
+    pawLabel: string;
+    consent: string;
+    signed: string;
+    signature: string;
+  };
   savings: {
     title: string;
     askTitle: string;
@@ -710,6 +856,20 @@ const ru: Translation = {
         { title: 'Бюджеты 🌊', text: 'Планы стали бюджетами на категорию: та же волна, но деньги заранее не списываются.' },
         { title: 'Валюты и сверка', text: 'Курс берётся из переводов и правится вручную. Раз в неделю спросим, совпадает ли баланс с банком.' },
         { title: 'Можно боком', text: 'Приложение работает и в горизонтальном положении.' },
+      ],
+      '1.6.0': [
+        { title: 'Что нового в 1.6.0', text: 'Новые темы и яркий режим. Полистай.' },
+        { title: 'Яркие цвета ✨', text: 'Настройки → Тема → Цвета: «Яркие» — сочные цвета, стеклянные карточки, свечение и градиент на фоне.' },
+        { title: 'Новые темы', text: 'Красная ночь, Сакура и Тропик. Янтарь в светлой теме теперь фиолетовый, как в тёмной.' },
+        { title: 'Вид карточки', text: '«⋮» на карточке → «Вид карточки»: стекло, тень, без фона или своё фото — для каждой отдельно.' },
+        { title: 'Расположение под себя', text: 'Тема → внизу «Расположение под себя»: меню-пузырь или полоса, названия сбоку, крупная первая задача и свой цвет на цветовом круге.' },
+      ],
+      '1.7.0': [
+        { title: 'Привет! Я Тимофей', text: 'Новый маскот Amber Ledger. Теперь я на иконке и внутри приложения — давай покажу, что нового.' },
+        { title: 'Я реагирую на всё', text: 'Баланс, бюджет, зарплата, цели, пустые списки — у меня на каждую карточку своё настроение.' },
+        { title: 'Мррр', text: 'Закрыл задачу — я мурлычу. Выключить или послушать: Настройки → Уведомления.' },
+        { title: 'Подписки', text: 'Финансы → меню → Подписки. Сумма в месяц и год, а за день до списания я напомню — с мурлыканьем.' },
+        { title: 'Отчёт за месяц', text: 'Финансы → меню → Отчёт за месяц: красивая картинка с итогами, которой можно поделиться.' },
       ],
     },
   },
@@ -988,8 +1148,8 @@ const ru: Translation = {
     addButton: 'Добавить повторяющуюся трату',
   },
   workCalendar: { worked: 'Рабочих', off: 'Выходных' },
-  widgetMenu: { pick: '🖼️ Выбрать картинку', remove: '✕ Удалить картинку', shape: '▢ Форма карточки' },
-  cardShape: { title: 'Форма карточки', theme: 'Как в теме', square: 'Квадратные', rounded: 'Скруглённые', round: 'Круглые', leaf: 'Лист' },
+  widgetMenu: { pick: '🖼️ Выбрать картинку', remove: '✕ Удалить картинку', shape: '🎨 Вид карточки' },
+  cardShape: { title: 'Форма', theme: 'Как в теме', square: 'Квадратные', rounded: 'Скруглённые', round: 'Круглые', leaf: 'Лист', bgTitle: 'Фон', bgGlass: 'Стекло', bgShadow: 'Тень', bgNone: 'Без фона', bgPhoto: 'Своё фото…', bgRemovePhoto: 'Убрать фото', menu: 'Вид карточки', opacityTitle: 'Непрозрачность фона' },
   categoryPicker: { label: 'Категория' },
   expenseEditor: {
     headerNew: 'Новая трата',
@@ -1084,7 +1244,7 @@ const ru: Translation = {
     monthLimit: 'Лимит на месяц',
     notSetPlaceholder: 'Не задан',
   },
-  themeSettings: { title: 'Тема', accentLabel: 'Акцентный цвет' },
+  themeSettings: { title: 'Тема', accentLabel: 'Акцентный цвет', finishLabel: 'Цвета', finishMatte: 'Матовые', finishGlow: 'Яркие ✨', finishHint: 'Яркие — сочные цвета, стеклянные карточки, свечение и градиент на фоне.', backgroundHint: 'Фото за всеми экранами — вместо градиента темы. Стеклянные карточки размывают его.', focusCard: 'Первая задача крупно', focusCardHint: 'Ближайшая задача — большой карточкой с отсчётом и кнопкой «Готово». Её вид меняется через «⋮».' },
   languageSettings: {
     title: 'Язык',
     note: 'Интерфейс переведён полностью — переключение применяется сразу.',
@@ -1183,7 +1343,7 @@ const ru: Translation = {
     empty: 'Привычек пока нет. Включи «Считать серию» у повторяющейся задачи.',
     done: 'Готово — виджет обновится через секунду',
   },
-  defaultCategories: { 'cat-food': 'Еда', 'cat-transport': 'Транспорт', 'cat-housing': 'Жильё', 'cat-fun': 'Развлечения', 'cat-other': 'Прочее' },
+  defaultCategories: { 'cat-food': 'Еда', 'cat-transport': 'Транспорт', 'cat-housing': 'Жильё', 'cat-fun': 'Развлечения', 'cat-other': 'Прочее', 'cat-loans': 'Кредиты', 'cat-subscriptions': 'Подписки' },
   layoutText: {
     noDeadline: 'без срока',
     focus: 'В ФОКУСЕ',
@@ -1198,12 +1358,16 @@ const ru: Translation = {
     v3: 'Вертикаль',
   },
   designs: {
+    crimson: 'Красная ночь',
+    crimsonDescription: 'Тёмное вино и алый: стеклянные карточки на красном свете.',
     amber: 'Янтарь',
-    amberDescription: 'Как было: тёплые цвета, системный шрифт, карточки с рамкой.',
+    amberDescription: 'Фиолетовый на чёрном или на светлой сирени, системный шрифт, карточки с рамкой.',
     neon: 'Неон',
     neonDescription: 'Ночной город: глубокий синий, светящиеся акценты, тонкие крупные заголовки, мягкие карточки на тени.',
-    paper: 'Бумага',
-    paperDescription: 'Блокнот: шрифт с засечками, светлая бумага, чернильные линии вместо коробок, красный и синий акценты.',
+    sakura: 'Сакура',
+    sakuraDescription: 'Розовый на тёмной сливе или на нежно-розовом, лавандовый акцент.',
+    tropic: 'Тропик',
+    tropicDescription: 'Мятная бирюза на глубоком лесном чёрном, акцент цвета летнего неба.',
   },
   salaryPrompt: {
     title: 'Зарплата уже пришла?',
@@ -1365,6 +1529,190 @@ const ru: Translation = {
     checkNotifTitle: 'Сверка баланса',
     checkNotifBody: 'Загляни в Финансы: один тап — и баланс совпадает с банком.',
   },
+  layoutCustom: {
+    title: 'Расположение',
+    presets: 'Готовые наборы',
+    presetStandard: 'Обычный',
+    presetVertical: 'Вертикаль',
+    header: 'Названия экранов', headerTop: 'Сверху', headerSide: 'Сбоку',
+    menu: 'Меню', menuBubble: 'Пузырь', menuPill: 'Капсула', menuClassic: 'Полоса', menuUnderline: 'Линия',
+    plate: 'Подложка под меню', plateOn: 'Есть', plateOff: 'Нет',
+    corners: 'Углы карточек', cornersTheme: 'Как в теме', cornersLeaf: 'Лист',
+    tasks: 'Первая задача', tasksFocus: 'Крупно', tasksRows: 'Как все',
+    expenses: 'Траты', expensesRows: 'Строками', expensesBig: 'Крупно',
+    stats: 'Статистика', statsStandard: 'Обычная', statsBig: 'Крупные цифры',
+    settings: 'Настройки', settingsList: 'Списком', settingsBig: 'Плитками',
+    fab: 'Кнопка «+»', fabRound: 'Круглая', fabBig: 'Большая',
+    balance: 'Баланс', balanceColumns: 'Колонками', balanceHero: 'Крупной суммой',
+    financeMenu: 'Меню финансов', financeMenuClassic: 'Ссылки', financeMenuChips: 'Кнопки',
+    sectionTitle: 'Расположение под себя', sectionHint: 'Где что стоит на экранах. Начни с готового набора, потом меняй отдельные пункты.',
+    headerHint: 'Название экрана обычной строкой сверху или крупными буквами вдоль левого края.',
+    menuHint: 'Нижнее меню: плавающий пузырь, капсула, раздвигающаяся под выбранную вкладку, полоса на всю ширину или тонкая линия.',
+    plateHint: 'Фон под меню. «Нет» — иконки лежат прямо на градиенте, без плашки.',
+    cornersHint: 'Углы карточек: как задумано темой или «лист» — два угла круглые, два острые.',
+    tasksHint: 'Ближайшая задача крупной карточкой с отсчётом и кнопкой «Готово» над списком.',
+    expensesHint: 'Список трат в Финансах: компактные строки или большие карточки.',
+    balanceHint: 'Карточка баланса: две колонки (карта и «должно прийти») или одна крупная сумма.',
+    financeMenuHint: 'Будущие, Категории, Валюты, Ставка в Финансах: строкой ссылок или кнопками с иконками.',
+    statsHint: 'Статистика: обычные карточки или крупные цифры.',
+    settingsHint: 'Этот экран настроек: список строк или большие плитки.',
+    fabHint: 'Кнопка «+» внизу справа: обычная круглая или большая с кольцом.',
+    colorTitle: 'Свой цвет', colorHint: 'Тыкай по кругу — оттенок и насыщенность, ползунок — яркость.', colorApply: 'Применить',
+  },
+  bank: {
+    accessTitle: 'Операции из IKO',
+    accessHint: 'Разреши доступ к уведомлениям — Amber Ledger будет ловить оплаты из IKO и спрашивать, записать ли их.',
+    accessButton: 'Дать доступ',
+    spent: (a) => `Списано ${a}`,
+    received: (a) => `Пришло ${a}`,
+    unknown: (a) => `Операция ${a}`,
+    via: (m, t) => (m ? `${m} · ${t}` : t),
+    nameLabel: 'Название',
+    addExpense: 'Добавить расход',
+    addIncome: 'Записать доход',
+    skip: 'Пропустить',
+    gap: (a) => `⚠️ Баланс ещё изменился на ${a} — возможно, какое-то уведомление потерялось`,
+    balanceTitle: (a) => `Баланс карты по банку: ${a}`,
+    balanceBody: (app) => `В приложении: ${app}. Выровнять?`,
+    align: 'Выровнять',
+    otherAmount: 'Другая сумма',
+    no: 'Нет',
+  },
+  subscriptions: {
+    title: 'Подписки',
+    menuLabel: 'Подписки',
+    monthly: 'В месяц',
+    perYear: (a) => `${a} в год`,
+    count: (n) => `${n} ${n === 1 ? 'подписка' : n < 5 ? 'подписки' : 'подписок'}`,
+    nextOn: (d) => `следующее списание: ${d}`,
+    dueSoon: (name, when) => `${when} спишется ${name}`,
+    tomorrow: 'Завтра',
+    today: 'Сегодня',
+    add: 'Добавить подписку',
+    nameLabel: 'Название',
+    namePlaceholder: 'Spotify, Netflix…',
+    dateLabel: 'Следующее списание',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    remove: 'Удалить',
+    removeConfirm: (n) => `Удалить подписку «${n}»?`,
+    empty: 'Подписок пока нет. Добавь первую — Тимофей напомнит за день до списания.',
+    channelPurr: 'Подписки (мррр)',
+    channelPlain: 'Подписки',
+    reminderTitle: (n) => `Завтра спишется ${n}`,
+    reminderBody: (a) => `${a} — мррр, не забудь`,
+  },
+  report: {
+    title: 'Месячный отчёт',
+    menuLabel: 'Отчёт за месяц',
+    kicker: 'Мой месяц',
+    spent: 'Потрачено',
+    vsPrev: (p, more) => `на ${p}% ${more ? 'больше' : 'меньше'}, чем в прошлом месяце`,
+    noPrev: 'первый месяц в приложении',
+    income: 'Пришло',
+    tasksDone: 'Задач закрыто',
+    tasksSub: (n) => `в среднем ${n} в неделю`,
+    where: 'Куда ушли деньги',
+    nothing: 'В этом месяце расходов ещё нет',
+    share: 'Поделиться картинкой',
+    tagline: 'your tasks, your money, your style',
+  },
+  mascot: {
+    settingsTitle: 'Тимофей и звуки',
+    toggle: 'Тимофей в приложении',
+    toggleHint: 'Котик реагирует на баланс, бюджет, задачи и показывает новое',
+    purr: 'Звук при выполнении задачи',
+    purrHint: 'Вместо обычного «дзинь»',
+    listen: 'Послушать',
+    soundPurr: 'Мррр',
+    soundMeow: 'Мяу',
+    soundMix: 'Микс',
+    subReminders: 'Напоминания о подписках',
+    subRemindersHint: 'За день до списания',
+    purrNotif: 'Мррр-уведомления',
+    purrNotifHint: 'Напоминания приходят со звуком мурлыканья',
+    balanceOk: 'Всё под контролем, мрр',
+    balanceLow: 'Денежек маловато…',
+    budgetCalm: 'Ещё есть запас, мррр',
+    budgetWorried: (l) => `Осторожно: осталось ${l}`,
+    budgetOver: (o) => `Ой… перебор на ${o}`,
+    salary: 'Зарплата! Мрр-мрр!',
+    loan: 'Напоминаю про платёж',
+    bank: 'Новая покупка — глянем?',
+    subDue: 'Скоро спишется подписка',
+    goalDone: 'Цель достигнута!',
+    empty: 'Тут тихо… мрр',
+    hello: 'Привет! Я Тимофей',
+  },
+  help: {
+    button: 'Тимофей объяснит',
+    title: 'Как это работает?',
+    hint: 'Нажми на вопрос — я расскажу',
+    close: 'Закрыть',
+    next: 'Дальше',
+    gotIt: 'Понятно',
+    stepOf: (i, n) => `${i} из ${n}`,
+    nudge: 'Нужна помощь? Мрр',
+    showMe: 'Покажи',
+    screens: {
+      tasks: [
+        { title: 'Как создать задачу', text: 'Нажми «+» внизу справа — откроется редактор: название, срок, приоритет, подзадачи, повтор и фото.' },
+        { title: 'Быстрое добавление', text: 'Зажми «+» — появится строка, где достаточно написать название и сохранить.' },
+        { title: 'Как отметить выполненной', text: 'На большой карточке — кнопка «✓ Готово». Каждая выполненная задача заполняет кольцо уровня, а я мурлычу.' },
+        { title: 'Привычки и серии 🔥', text: 'В повторяющейся задаче включи «Считать серию» — она станет карточкой с огоньком наверху. Тап — сделано сегодня.' },
+        { title: 'Переставить карточки', text: 'Карандаш ✏️ наверху: перетаскивай карточки и меняй их размер. «−» прячет карточку, «⋮» возвращает.' },
+        { title: 'Вид карточки', text: '«⋮» на карточке → «Вид карточки»: стекло, тень, без фона или своё фото — для каждой отдельно.' },
+      ],
+      calendar: [
+        { title: 'Что здесь видно', text: 'Задачи и рабочие смены по дням — и вся история: что сделано и сколько потрачено в любой день.' },
+        { title: 'Где старая история расходов', text: 'В Финансах список расходов только за текущий месяц. Всё, что было раньше, остаётся здесь, в календаре.' },
+      ],
+      finance: [
+        { title: 'Как добавить расход', text: 'Нажми «+» внизу справа. Зажми — быстрое добавление в категорию по умолчанию.' },
+        { title: 'Что показывает баланс', text: 'Сверху — сколько на карте сейчас. Серым под ним — сколько останется до зарплаты; нажми, чтобы увидеть, из чего это. Нажми на баланс, чтобы ввести реальную сумму — разница сохранится корректировкой.' },
+        { title: 'Ждёт ответа', text: 'Зарплата, кредит, подписка: в свой день я спрошу «Оплачено / Другая сумма / Ещё нет». Пока не ответишь, баланс не меняется.' },
+        { title: 'Рабочие смены и зарплата', text: 'В рабочем календаре тапни на день, чтобы отметить рабочий или выходной. По ним считается зарплата — ставку настрой в меню «Заработок».' },
+        { title: 'Карты, наличные, цели', text: 'Карандаш ✏️ → «+»: до 3 карт, наличные, заначки, цели и кредиты. Тапни на наличные → «Перевод», чтобы перенести деньги с карты.' },
+        { title: 'Бюджеты 🌊', text: 'Лимит на категорию заполняется волной. Около 80% я волнуюсь, больше 100% — грущу.' },
+        { title: 'Подписки и отчёт', text: 'Меню → «Подписки»: сумма в месяц и год, напоминание за день до списания. Меню → «Отчёт за месяц»: картинка с итогами.' },
+      ],
+      stats: [
+        { title: 'Что здесь', text: 'Неделя в графиках: выполненные задачи и расходы по категориям.' },
+        { title: 'Расставить под себя', text: 'Карандаш ✏️ наверху: перетаскивай и меняй размер карточек, лишние прячь «−».' },
+      ],
+      settings: [
+        { title: 'Темы и цвета', text: 'Тема → выбери стиль. «Цвета: Яркие» — стеклянные карточки и свечение. Внизу «Расположение под себя».' },
+        { title: 'Замок финансов', text: 'Безопасность и память → «Защитить финансы»: суммы скрыты, пока не откроешь отпечатком или паролем.' },
+        { title: 'Перенести на новый телефон', text: 'Перенос по QR-коду через Wi-Fi, без интернета: задачи, финансы и профиль.' },
+        { title: 'Звуки и Тимофей', text: 'Уведомления → «Тимофей и звуки»: мррр, напоминания о подписках или выключить меня совсем.' },
+        { title: 'Поддержка', text: 'Поддержка → напиши нашему боту об ошибке или идее, можно со скриншотами.' },
+      ],
+    },
+  },
+  quickAdd: { voice: 'Сказать голосом', voiceLanguage: 'Язык голосового ввода', voiceAppLanguage: 'Как в приложении' },
+  alarm: {
+    chip: '⏰ Будильник',
+    hint: 'Будильник появится в приложении «Часы» на время задачи: сегодня — сразу, позже — в полночь того дня. Мелодия и «Отложить» — как у обычного будильника.',
+    needsTime: 'Выбери дату и время — на них и поставится будильник.',
+    tapToSet: 'Нажми, чтобы поставить будильник',
+    permTitle: 'Разрешить работу в фоне',
+    permMessage: 'Чтобы будильник ставился сам, даже когда приложение закрыто и включена экономия батареи, разреши Amber Ledger «Поверх других приложений» и работу без ограничений батареи.',
+    permLater: 'Позже',
+    permAllow: 'Разрешить',
+  },
+  realTymofii: {
+    header: 'Настоящий Тимофей',
+    title: 'Знакомьтесь: настоящий Тимофей',
+    lead: 'Маскот Amber Ledger — не выдумка. Это мой кот Тимофей, и вот он, без фильтров.',
+    listen: 'Послушать настоящее мурлыканье',
+    listenNote: 'Это же «мррр» звучит, когда ты закрываешь задачу.',
+    captions: ['Голову — на массаж', 'Охранник коробок', 'Инспектор корзин', 'Официальное фото на паспорт', 'Альпинист выходного дня', 'Режим энергосбережения', 'Маленький шпендик', 'Прячется от понедельника', 'Обнимашки по расписанию', 'Буханочка'],
+    passportTitle: 'Паспорт животного · согласие',
+    pawLabel: 'Отпечаток лапки Тимофея',
+    consent: 'Я, Тимофей, согласен быть маскотом Amber Ledger и очень рад помогать с задачами и денежками.',
+    signed: 'Подпись лапкой заверена',
+    signature: 'Тимофей',
+  },
   savings: {
     title: 'Подушка безопасности',
     askTitle: 'Добавить карточку для подушки?',
@@ -1457,6 +1805,20 @@ const uk: Translation = {
         { title: 'Бюджети 🌊', text: 'Плани стали бюджетами на категорію: та сама хвиля, але гроші наперед не списуються.' },
         { title: 'Валюти і звірка', text: 'Курс береться з переказів і правиться вручну. Раз на тиждень спитаємо, чи збігається баланс із банком.' },
         { title: 'Можна боком', text: 'Застосунок працює і в горизонтальному положенні.' },
+      ],
+      '1.6.0': [
+        { title: 'Що нового в 1.6.0', text: 'Нові теми і яскравий режим. Погортай.' },
+        { title: 'Яскраві кольори ✨', text: 'Налаштування → Тема → Кольори: «Яскраві» — соковиті кольори, скляні картки, світіння й градієнт на фоні.' },
+        { title: 'Нові теми', text: 'Червона ніч, Сакура і Тропік. Бурштин у світлій темі тепер фіолетовий, як у темній.' },
+        { title: 'Вигляд картки', text: '«⋮» на картці → «Вигляд картки»: скло, тінь, без фону або своє фото — для кожної окремо.' },
+        { title: 'Розташування під себе', text: 'Тема → унизу «Розташування під себе»: меню-бульбашка чи смуга, назви збоку, велика перша задача і свій колір на колі кольорів.' },
+      ],
+      '1.7.0': [
+        { title: 'Привіт! Я Тимофій', text: 'Новий маскот Amber Ledger. Тепер я на іконці й усередині застосунку — давай покажу, що нового.' },
+        { title: 'Я реагую на все', text: 'Баланс, бюджет, зарплата, цілі, порожні списки — у мене на кожну картку свій настрій.' },
+        { title: 'Мррр', text: 'Закрив задачу — я муркочу. Вимкнути чи прослухати: Налаштування → Сповіщення.' },
+        { title: 'Підписки', text: 'Фінанси → меню → Підписки. Сума на місяць і рік, а за день до списання я нагадаю — з муркотінням.' },
+        { title: 'Звіт за місяць', text: 'Фінанси → меню → Звіт за місяць: гарна картинка з підсумками, якою можна поділитися.' },
       ],
     },
   },
@@ -1735,8 +2097,8 @@ const uk: Translation = {
     addButton: 'Додати повторювану витрату',
   },
   workCalendar: { worked: 'Робочих', off: 'Вихідних' },
-  widgetMenu: { pick: '🖼️ Вибрати картинку', remove: '✕ Видалити картинку', shape: '▢ Форма картки' },
-  cardShape: { title: 'Форма картки', theme: 'Як у темі', square: 'Квадратні', rounded: 'Заокруглені', round: 'Круглі', leaf: 'Листок' },
+  widgetMenu: { pick: '🖼️ Вибрати картинку', remove: '✕ Видалити картинку', shape: '🎨 Вигляд картки' },
+  cardShape: { title: 'Форма', theme: 'Як у темі', square: 'Квадратні', rounded: 'Заокруглені', round: 'Круглі', leaf: 'Листок', bgTitle: 'Фон', bgGlass: 'Скло', bgShadow: 'Тінь', bgNone: 'Без фону', bgPhoto: 'Своє фото…', bgRemovePhoto: 'Прибрати фото', menu: 'Вигляд картки', opacityTitle: 'Непрозорість фону' },
   categoryPicker: { label: 'Категорія' },
   expenseEditor: {
     headerNew: 'Нова витрата',
@@ -1829,7 +2191,7 @@ const uk: Translation = {
     monthLimit: 'Ліміт на місяць',
     notSetPlaceholder: 'Не задано',
   },
-  themeSettings: { title: 'Тема', accentLabel: 'Акцентний колір' },
+  themeSettings: { title: 'Тема', accentLabel: 'Акцентний колір', finishLabel: 'Кольори', finishMatte: 'Матові', finishGlow: 'Яскраві ✨', finishHint: 'Яскраві — соковиті кольори, скляні картки, світіння й градієнт на фоні.', backgroundHint: 'Фото за всіма екранами — замість градієнта теми. Скляні картки його розмивають.', focusCard: 'Перша задача великою', focusCardHint: 'Найближча задача — великою карткою з відліком і кнопкою «Готово». Її вигляд міняється через «⋮».' },
   languageSettings: {
     title: 'Мова',
     note: 'Інтерфейс перекладено повністю — перемикання застосовується одразу.',
@@ -1928,7 +2290,7 @@ const uk: Translation = {
     empty: 'Звичок поки немає. Увімкни «Рахувати серію» у задачі, що повторюється.',
     done: 'Готово — віджет оновиться за секунду',
   },
-  defaultCategories: { 'cat-food': 'Їжа', 'cat-transport': 'Транспорт', 'cat-housing': 'Житло', 'cat-fun': 'Розваги', 'cat-other': 'Інше' },
+  defaultCategories: { 'cat-food': 'Їжа', 'cat-transport': 'Транспорт', 'cat-housing': 'Житло', 'cat-fun': 'Розваги', 'cat-other': 'Інше', 'cat-loans': 'Кредити', 'cat-subscriptions': 'Підписки' },
   layoutText: {
     noDeadline: 'без терміну',
     focus: 'У ФОКУСІ',
@@ -1943,12 +2305,16 @@ const uk: Translation = {
     v3: 'Вертикаль',
   },
   designs: {
+    crimson: 'Червона ніч',
+    crimsonDescription: 'Темне вино й багряний: скляні картки на червоному світлі.',
     amber: 'Бурштин',
-    amberDescription: 'Як було: теплі кольори, системний шрифт, картки з рамкою.',
+    amberDescription: 'Фіолетовий на чорному або на світлому бузку, системний шрифт, картки з рамкою.',
     neon: 'Неон',
     neonDescription: 'Нічне місто: глибокий синій, світні акценти, тонкі великі заголовки, м’які картки на тіні.',
-    paper: 'Папір',
-    paperDescription: 'Блокнот: шрифт із засічками, світлий папір, чорнильні лінії замість коробок, червоний і синій акценти.',
+    sakura: 'Сакура',
+    sakuraDescription: 'Рожевий на темній сливі або на ніжно-рожевому, лавандовий акцент.',
+    tropic: 'Тропік',
+    tropicDescription: 'М’ятна бірюза на глибокому лісовому чорному, акцент кольору літнього неба.',
   },
   salaryPrompt: {
     title: 'Зарплата вже прийшла?',
@@ -2110,6 +2476,190 @@ const uk: Translation = {
     checkNotifTitle: 'Звірка балансу',
     checkNotifBody: 'Зазирни у Фінанси: один тап — і баланс збігається з банком.',
   },
+  layoutCustom: {
+    title: 'Розташування',
+    presets: 'Готові набори',
+    presetStandard: 'Звичайний',
+    presetVertical: 'Вертикаль',
+    header: 'Назви екранів', headerTop: 'Зверху', headerSide: 'Збоку',
+    menu: 'Меню', menuBubble: 'Бульбашка', menuPill: 'Капсула', menuClassic: 'Смуга', menuUnderline: 'Лінія',
+    plate: 'Підкладка під меню', plateOn: 'Є', plateOff: 'Немає',
+    corners: 'Кути карток', cornersTheme: 'Як у темі', cornersLeaf: 'Листок',
+    tasks: 'Перша задача', tasksFocus: 'Великою', tasksRows: 'Як усі',
+    expenses: 'Витрати', expensesRows: 'Рядками', expensesBig: 'Великі',
+    stats: 'Статистика', statsStandard: 'Звичайна', statsBig: 'Великі цифри',
+    settings: 'Налаштування', settingsList: 'Списком', settingsBig: 'Плитками',
+    fab: 'Кнопка «+»', fabRound: 'Кругла', fabBig: 'Велика',
+    balance: 'Баланс', balanceColumns: 'Колонками', balanceHero: 'Великою сумою',
+    financeMenu: 'Меню фінансів', financeMenuClassic: 'Посилання', financeMenuChips: 'Кнопки',
+    sectionTitle: 'Розташування під себе', sectionHint: 'Де що стоїть на екранах. Почни з готового набору, потім змінюй окремі пункти.',
+    headerHint: 'Назва екрана звичайним рядком зверху або великими літерами вздовж лівого краю.',
+    menuHint: 'Нижнє меню: плаваюча бульбашка, капсула, що розсувається під вибрану вкладку, смуга на всю ширину або тонка лінія.',
+    plateHint: 'Фон під меню. «Немає» — іконки лежать просто на градієнті, без плашки.',
+    cornersHint: 'Кути карток: як задумано темою або «листок» — два кути круглі, два гострі.',
+    tasksHint: 'Найближча задача великою карткою з відліком і кнопкою «Готово» над списком.',
+    expensesHint: 'Список витрат у Фінансах: компактні рядки або великі картки.',
+    balanceHint: 'Картка балансу: дві колонки (картка і «має прийти») або одна велика сума.',
+    financeMenuHint: 'Майбутні, Категорії, Валюти, Ставка в Фінансах: рядком посилань або кнопками з іконками.',
+    statsHint: 'Статистика: звичайні картки або великі цифри.',
+    settingsHint: 'Цей екран налаштувань: список рядків або великі плитки.',
+    fabHint: 'Кнопка «+» внизу справа: звичайна кругла або велика з кільцем.',
+    colorTitle: 'Свій колір', colorHint: 'Тицяй по колу — відтінок і насиченість, повзунок — яскравість.', colorApply: 'Застосувати',
+  },
+  bank: {
+    accessTitle: 'Операції з IKO',
+    accessHint: 'Дозволь доступ до сповіщень — Amber Ledger ловитиме оплати з IKO й питатиме, чи їх записати.',
+    accessButton: 'Дати доступ',
+    spent: (a) => `Списано ${a}`,
+    received: (a) => `Надійшло ${a}`,
+    unknown: (a) => `Операція ${a}`,
+    via: (m, t) => (m ? `${m} · ${t}` : t),
+    nameLabel: 'Назва',
+    addExpense: 'Додати витрату',
+    addIncome: 'Записати дохід',
+    skip: 'Пропустити',
+    gap: (a) => `⚠️ Баланс змінився ще на ${a} — можливо, якесь сповіщення загубилось`,
+    balanceTitle: (a) => `Баланс картки за банком: ${a}`,
+    balanceBody: (app) => `У застосунку: ${app}. Вирівняти?`,
+    align: 'Вирівняти',
+    otherAmount: 'Інша сума',
+    no: 'Ні',
+  },
+  subscriptions: {
+    title: 'Підписки',
+    menuLabel: 'Підписки',
+    monthly: 'Щомісяця',
+    perYear: (a) => `${a} на рік`,
+    count: (n) => `${n} ${n === 1 ? 'підписка' : n < 5 ? 'підписки' : 'підписок'}`,
+    nextOn: (d) => `наступне списання: ${d}`,
+    dueSoon: (name, when) => `${when} спишеться ${name}`,
+    tomorrow: 'Завтра',
+    today: 'Сьогодні',
+    add: 'Додати підписку',
+    nameLabel: 'Назва',
+    namePlaceholder: 'Spotify, Netflix…',
+    dateLabel: 'Наступне списання',
+    save: 'Зберегти',
+    cancel: 'Скасувати',
+    remove: 'Видалити',
+    removeConfirm: (n) => `Видалити підписку «${n}»?`,
+    empty: 'Підписок поки нема. Додай першу — Тимофій нагадає за день до списання.',
+    channelPurr: 'Підписки (мррр)',
+    channelPlain: 'Підписки',
+    reminderTitle: (n) => `Завтра спишеться ${n}`,
+    reminderBody: (a) => `${a} — мррр, не забудь`,
+  },
+  report: {
+    title: 'Місячний звіт',
+    menuLabel: 'Звіт за місяць',
+    kicker: 'Мій місяць',
+    spent: 'Витрачено',
+    vsPrev: (p, more) => `на ${p}% ${more ? 'більше' : 'менше'}, ніж минулого місяця`,
+    noPrev: 'перший місяць у застосунку',
+    income: 'Надійшло',
+    tasksDone: 'Задач закрито',
+    tasksSub: (n) => `у середньому ${n} на тиждень`,
+    where: 'Куди пішли гроші',
+    nothing: 'Цього місяця витрат ще нема',
+    share: 'Поділитися картинкою',
+    tagline: 'your tasks, your money, your style',
+  },
+  mascot: {
+    settingsTitle: 'Тимофій і звуки',
+    toggle: 'Тимофій у застосунку',
+    toggleHint: 'Котик реагує на баланс, бюджет, задачі й показує нове',
+    purr: 'Звук при виконанні задачі',
+    purrHint: 'Замість звичайного «дзинь»',
+    listen: 'Прослухати',
+    soundPurr: 'Мррр',
+    soundMeow: 'Мяу',
+    soundMix: 'Мікс',
+    subReminders: 'Нагадування про підписки',
+    subRemindersHint: 'За день до списання',
+    purrNotif: 'Муррр-сповіщення',
+    purrNotifHint: 'Нагадування приходять зі звуком муркотіння',
+    balanceOk: 'Все під контролем, мрр',
+    balanceLow: 'Грошенят маловато…',
+    budgetCalm: 'Ще є запас, муррр',
+    budgetWorried: (l) => `Обережно: лишилось ${l}`,
+    budgetOver: (o) => `Ой… перевищили на ${o}`,
+    salary: 'Зарплата! Мрр-мрр!',
+    loan: 'Нагадую про платіж',
+    bank: 'Нова покупка — глянемо?',
+    subDue: 'Скоро спишеться підписка',
+    goalDone: 'Ціль досягнута!',
+    empty: 'Тут тихо… мрр',
+    hello: 'Привіт! Я Тимофій',
+  },
+  help: {
+    button: 'Тимофій пояснить',
+    title: 'Як це працює?',
+    hint: 'Тицяй на питання — я розповім',
+    close: 'Закрити',
+    next: 'Далі',
+    gotIt: 'Зрозумів',
+    stepOf: (i, n) => `${i} з ${n}`,
+    nudge: 'Потрібна допомога? Мрр',
+    showMe: 'Покажи',
+    screens: {
+      tasks: [
+        { title: 'Як створити задачу', text: 'Натисни «+» унизу праворуч — відкриється редактор: назва, термін, пріоритет, підзадачі, повтор і фото.' },
+        { title: 'Швидке додавання', text: 'Затисни «+» — з’явиться рядок, де достатньо написати назву й зберегти.' },
+        { title: 'Як позначити виконаною', text: 'На великій картці — кнопка «✓ Готово». Кожна виконана задача заповнює кільце рівня, а я муркочу.' },
+        { title: 'Звички й серії 🔥', text: 'У задачі, що повторюється, увімкни «Рахувати серію» — вона стане карткою з вогником угорі. Тап — зроблено сьогодні.' },
+        { title: 'Переставити картки', text: 'Олівець ✏️ угорі: перетягуй картки й змінюй їхній розмір. «−» ховає картку, «⋮» повертає.' },
+        { title: 'Вигляд картки', text: '«⋮» на картці → «Вигляд картки»: скло, тінь, без фону або своє фото — для кожної окремо.' },
+      ],
+      calendar: [
+        { title: 'Що тут видно', text: 'Задачі та робочі зміни по днях — і вся історія: що зроблено й скільки витрачено будь-якого дня.' },
+        { title: 'Де стара історія витрат', text: 'У Фінансах список витрат лише за поточний місяць. Усе, що було раніше, лишається тут, у календарі.' },
+      ],
+      finance: [
+        { title: 'Як додати витрату', text: 'Натисни «+» унизу праворуч. Затисни — швидке додавання в категорію за замовчуванням.' },
+        { title: 'Що показує баланс', text: 'Зверху — скільки на картці зараз. Сірим під ним — скільки лишиться до зарплати; натисни, щоб побачити, з чого це. Натисни на баланс, щоб ввести реальну суму — різниця збережеться корекцією.' },
+        { title: 'Чекає відповіді', text: 'Зарплата, кредит, підписка: у свій день я спитаю «Сплачено / Інша сума / Ще ні». Поки не відповіси, баланс не змінюється.' },
+        { title: 'Робочі зміни й зарплата', text: 'У робочому календарі тапни на день, щоб позначити робочий чи вихідний. З них рахується зарплата — ставку налаштуй у меню «Заробіток».' },
+        { title: 'Картки, готівка, цілі', text: 'Олівець ✏️ → «+»: до 3 карток, готівка, заначки, цілі й кредити. Тапни на готівку → «Переказ», щоб перенести гроші з картки.' },
+        { title: 'Бюджети 🌊', text: 'Ліміт на категорію заповнюється хвилею. Біля 80% я хвилююся, понад 100% — сумую.' },
+        { title: 'Підписки й звіт', text: 'Меню → «Підписки»: сума на місяць і рік, нагадування за день до списання. Меню → «Звіт за місяць»: картинка з підсумками.' },
+      ],
+      stats: [
+        { title: 'Що тут', text: 'Тиждень у графіках: виконані задачі та витрати за категоріями.' },
+        { title: 'Розставити під себе', text: 'Олівець ✏️ угорі: перетягуй і змінюй розмір карток, зайві ховай «−».' },
+      ],
+      settings: [
+        { title: 'Теми й кольори', text: 'Тема → вибери стиль. «Кольори: Яскраві» — скляні картки й світіння. Унизу «Розташування під себе».' },
+        { title: 'Замок фінансів', text: "Безпека й пам’ять → «Захистити фінанси»: суми ховаються, доки не відкриєш відбитком або паролем." },
+        { title: 'Перенести на новий телефон', text: 'Перенесення за QR-кодом через Wi-Fi, без інтернету: задачі, фінанси й профіль.' },
+        { title: 'Звуки й Тимофій', text: 'Сповіщення → «Тимофій і звуки»: мррр, нагадування про підписки або вимкнути мене зовсім.' },
+        { title: 'Підтримка', text: 'Підтримка → напиши нашому боту про помилку чи ідею, можна зі скріншотами.' },
+      ],
+    },
+  },
+  quickAdd: { voice: 'Сказати голосом', voiceLanguage: 'Мова голосового вводу', voiceAppLanguage: 'Як у застосунку' },
+  alarm: {
+    chip: '⏰ Будильник',
+    hint: 'Будильник з’явиться в застосунку «Годинник» на час таску: сьогодні — одразу, пізніше — опівночі того дня. Мелодія і «Відкласти» — як у звичайного будильника.',
+    needsTime: 'Вибери дату й час — на них і поставиться будильник.',
+    tapToSet: 'Натисни, щоб поставити будильник',
+    permTitle: 'Дозволити роботу у фоні',
+    permMessage: 'Щоб будильник ставився сам, навіть коли застосунок закритий і ввімкнене збереження батареї, дозволь Amber Ledger «Поверх інших застосунків» і роботу без обмежень батареї.',
+    permLater: 'Пізніше',
+    permAllow: 'Дозволити',
+  },
+  realTymofii: {
+    header: 'Справжній Тимофій',
+    title: 'Знайомтесь: справжній Тимофій',
+    lead: 'Маскот Amber Ledger — не вигадка. Це мій кіт Тимофій, і ось він, без фільтрів.',
+    listen: 'Послухати справжнє муркотіння',
+    listenNote: 'Те саме «мррр» звучить, коли ти закриваєш задачу.',
+    captions: ['Голову — на масаж', 'Охоронець коробок', 'Інспектор кошиків', 'Офіційне фото на паспорт', 'Альпініст вихідного дня', 'Режим енергозбереження', 'Маленький шпендик', 'Ховається від понеділка', 'Обійми за розкладом', 'Буханочка'],
+    passportTitle: 'Паспорт тварини · згода',
+    pawLabel: 'Відбиток лапки Тимофія',
+    consent: 'Я, Тимофій, погоджуюсь бути маскотом Amber Ledger і дуже радий допомагати з задачами й грошенятами.',
+    signed: 'Підпис лапкою засвідчено',
+    signature: 'Тимофій',
+  },
   savings: {
     title: 'Подушка безпеки',
     askTitle: 'Додати картку для подушки?',
@@ -2202,6 +2752,20 @@ const en: Translation = {
         { title: 'Budgets 🌊', text: 'Plans became category budgets: the same wave, but no money is taken off in advance.' },
         { title: 'Currencies & checks', text: 'Rates come from your transfers and can be edited. Once a week we ask if the balance matches the bank.' },
         { title: 'Sideways too', text: 'The app now works in landscape.' },
+      ],
+      '1.6.0': [
+        { title: "What's new in 1.6.0", text: 'New themes and a vivid mode. Swipe through.' },
+        { title: 'Vivid colours ✨', text: 'Settings → Theme → Colours: “Vivid” — juicy colours, glass cards, glow and a gradient behind the screens.' },
+        { title: 'New themes', text: 'Red Night, Sakura and Tropic. Amber’s light theme is now purple, like its dark one.' },
+        { title: 'Card look', text: '“⋮” on a card → “Card look”: glass, shadow, no background or your own photo — for each card.' },
+        { title: 'Your own layout', text: 'Theme → at the bottom “Your own layout”: bubble or strip menu, side titles, a big first task and your own colour on a colour wheel.' },
+      ],
+      '1.7.0': [
+        { title: 'Hi! I’m Tymofii', text: 'Amber Ledger’s new mascot. I’m on the icon now and inside the app too — let me show you what’s new.' },
+        { title: 'I react to everything', text: 'Balance, budget, payday, goals, empty lists — every card gets its own mood.' },
+        { title: 'Purr', text: 'Finish a task and I purr. Turn it off or listen: Settings → Notifications.' },
+        { title: 'Subscriptions', text: 'Finance → menu → Subscriptions. Monthly and yearly totals, and I’ll remind you the day before a charge — with a purr.' },
+        { title: 'Monthly report', text: 'Finance → menu → Monthly report: a nice image with your month’s results to share.' },
       ],
     },
   },
@@ -2480,8 +3044,8 @@ const en: Translation = {
     addButton: 'Add recurring expense',
   },
   workCalendar: { worked: 'Worked', off: 'Off' },
-  widgetMenu: { pick: '🖼️ Choose picture', remove: '✕ Remove picture', shape: '▢ Card shape' },
-  cardShape: { title: 'Card shape', theme: 'Theme default', square: 'Square', rounded: 'Rounded', round: 'Round', leaf: 'Leaf' },
+  widgetMenu: { pick: '🖼️ Choose picture', remove: '✕ Remove picture', shape: '🎨 Card look' },
+  cardShape: { title: 'Shape', theme: 'Theme default', square: 'Square', rounded: 'Rounded', round: 'Round', leaf: 'Leaf', bgTitle: 'Background', bgGlass: 'Glass', bgShadow: 'Shadow', bgNone: 'None', bgPhoto: 'Own photo…', bgRemovePhoto: 'Remove photo', menu: 'Card look', opacityTitle: 'Background opacity' },
   categoryPicker: { label: 'Category' },
   expenseEditor: {
     headerNew: 'New Expense',
@@ -2574,7 +3138,7 @@ const en: Translation = {
     monthLimit: 'Monthly limit',
     notSetPlaceholder: 'Not set',
   },
-  themeSettings: { title: 'Theme', accentLabel: 'Accent color' },
+  themeSettings: { title: 'Theme', accentLabel: 'Accent color', finishLabel: 'Colours', finishMatte: 'Matte', finishGlow: 'Vivid ✨', finishHint: 'Vivid — juicy colours, glass cards, glow and a gradient behind the screens.', backgroundHint: 'A photo behind every screen — instead of the theme gradient. Glass cards blur it.', focusCard: 'First task big', focusCardHint: 'The nearest task as a big card with a countdown and a Done button. Change its look with “⋮”.' },
   languageSettings: {
     title: 'Language',
     note: 'The interface is fully translated — switching applies immediately.',
@@ -2673,7 +3237,7 @@ const en: Translation = {
     empty: 'No habits yet. Turn on “Count streak” for a repeating task.',
     done: 'Done — the widget updates in a second',
   },
-  defaultCategories: { 'cat-food': 'Food', 'cat-transport': 'Transport', 'cat-housing': 'Housing', 'cat-fun': 'Fun', 'cat-other': 'Other' },
+  defaultCategories: { 'cat-food': 'Food', 'cat-transport': 'Transport', 'cat-housing': 'Housing', 'cat-fun': 'Fun', 'cat-other': 'Other', 'cat-loans': 'Loans', 'cat-subscriptions': 'Subscriptions' },
   layoutText: {
     noDeadline: 'no deadline',
     focus: 'IN FOCUS',
@@ -2688,12 +3252,16 @@ const en: Translation = {
     v3: 'Vertical',
   },
   designs: {
+    crimson: 'Red Night',
+    crimsonDescription: 'Dark wine and crimson: glass cards on red light.',
     amber: 'Amber',
-    amberDescription: 'As before: warm colours, system font, outlined cards.',
+    amberDescription: 'Purple on black or on soft lilac, system font, outlined cards.',
     neon: 'Neon',
     neonDescription: 'Night city: deep blue, glowing accents, thin big headings, soft cards on shadows.',
-    paper: 'Paper',
-    paperDescription: 'Notebook: serif type, bright paper, ink lines instead of boxes, red and blue accents.',
+    sakura: 'Sakura',
+    sakuraDescription: 'Pink on dark plum or on blush white, lavender accent.',
+    tropic: 'Tropic',
+    tropicDescription: 'Mint turquoise on deep forest black, a summer-sky accent.',
   },
   salaryPrompt: {
     title: 'Did you get your salary yet?',
@@ -2854,6 +3422,190 @@ const en: Translation = {
     savingsOpened: 'Opened on',
     checkNotifTitle: 'Balance check',
     checkNotifBody: 'Open Finance: one tap keeps your balance in step with the bank.',
+  },
+  layoutCustom: {
+    title: 'Layout',
+    presets: 'Presets',
+    presetStandard: 'Standard',
+    presetVertical: 'Vertical',
+    header: 'Screen titles', headerTop: 'On top', headerSide: 'On the side',
+    menu: 'Menu', menuBubble: 'Bubble', menuPill: 'Pill', menuClassic: 'Strip', menuUnderline: 'Line',
+    plate: 'Plate under the menu', plateOn: 'On', plateOff: 'Off',
+    corners: 'Card corners', cornersTheme: 'Theme', cornersLeaf: 'Leaf',
+    tasks: 'First task', tasksFocus: 'Big', tasksRows: 'Like the rest',
+    expenses: 'Expenses', expensesRows: 'Rows', expensesBig: 'Big',
+    stats: 'Stats', statsStandard: 'Standard', statsBig: 'Big numbers',
+    settings: 'Settings', settingsList: 'List', settingsBig: 'Tiles',
+    fab: '“+” button', fabRound: 'Round', fabBig: 'Big',
+    balance: 'Balance', balanceColumns: 'Columns', balanceHero: 'Big total',
+    financeMenu: 'Finance menu', financeMenuClassic: 'Links', financeMenuChips: 'Buttons',
+    sectionTitle: 'Your own layout', sectionHint: 'Where things sit on the screens. Start from a preset, then change single items.',
+    headerHint: 'The screen title as a plain line on top, or big letters down the left edge.',
+    menuHint: 'Bottom menu: a floating bubble, a pill that stretches under the chosen tab, a full-width strip or a thin line.',
+    plateHint: 'A background under the menu. “Off” — the icons sit right on the gradient, no plate.',
+    cornersHint: 'Card corners: as the theme has them, or “leaf” — two corners round, two sharp.',
+    tasksHint: 'The nearest task as a big card with a countdown and a Done button above the list.',
+    expensesHint: 'The expense list in Finance: compact rows or big cards.',
+    balanceHint: 'The balance card: two columns (card and “to come”) or one big total.',
+    financeMenuHint: 'Upcoming, Categories, Currencies, Rate in Finance: a line of links or buttons with icons.',
+    statsHint: 'Stats: ordinary cards or big numbers.',
+    settingsHint: 'This settings screen: a list of rows or big tiles.',
+    fabHint: 'The “+” button bottom right: a plain circle or a big one with a ring.',
+    colorTitle: 'Own colour', colorHint: 'Tap the wheel for hue and saturation, the slider for brightness.', colorApply: 'Apply',
+  },
+  bank: {
+    accessTitle: 'IKO transactions',
+    accessHint: 'Allow notification access — Amber Ledger will catch payments from IKO and ask whether to record them.',
+    accessButton: 'Allow access',
+    spent: (a) => `Spent ${a}`,
+    received: (a) => `Received ${a}`,
+    unknown: (a) => `Transaction ${a}`,
+    via: (m, t) => (m ? `${m} · ${t}` : t),
+    nameLabel: 'Name',
+    addExpense: 'Add expense',
+    addIncome: 'Record income',
+    skip: 'Skip',
+    gap: (a) => `⚠️ The balance also moved by ${a} — a notification may have been lost`,
+    balanceTitle: (a) => `Card balance per bank: ${a}`,
+    balanceBody: (app) => `In the app: ${app}. Align?`,
+    align: 'Align',
+    otherAmount: 'Other amount',
+    no: 'No',
+  },
+  subscriptions: {
+    title: 'Subscriptions',
+    menuLabel: 'Subscriptions',
+    monthly: 'Per month',
+    perYear: (a) => `${a} a year`,
+    count: (n) => `${n} ${n === 1 ? 'subscription' : 'subscriptions'}`,
+    nextOn: (d) => `next charge: ${d}`,
+    dueSoon: (name, when) => `${name} is charged ${when.toLowerCase()}`,
+    tomorrow: 'Tomorrow',
+    today: 'Today',
+    add: 'Add subscription',
+    nameLabel: 'Name',
+    namePlaceholder: 'Spotify, Netflix…',
+    dateLabel: 'Next charge',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: 'Remove',
+    removeConfirm: (n) => `Remove the “${n}” subscription?`,
+    empty: 'No subscriptions yet. Add one — Tymofii will remind you the day before it’s charged.',
+    channelPurr: 'Subscriptions (purr)',
+    channelPlain: 'Subscriptions',
+    reminderTitle: (n) => `${n} is charged tomorrow`,
+    reminderBody: (a) => `${a} — purr, don’t forget`,
+  },
+  report: {
+    title: 'Monthly report',
+    menuLabel: 'Monthly report',
+    kicker: 'My month',
+    spent: 'Spent',
+    vsPrev: (p, more) => `${p}% ${more ? 'more' : 'less'} than last month`,
+    noPrev: 'your first month in the app',
+    income: 'Came in',
+    tasksDone: 'Tasks done',
+    tasksSub: (n) => `about ${n} a week`,
+    where: 'Where the money went',
+    nothing: 'No expenses this month yet',
+    share: 'Share as image',
+    tagline: 'your tasks, your money, your style',
+  },
+  mascot: {
+    settingsTitle: 'Tymofii & sounds',
+    toggle: 'Tymofii in the app',
+    toggleHint: 'The cat reacts to your balance, budget and tasks and shows what’s new',
+    purr: 'Sound when a task is done',
+    purrHint: 'Instead of the usual chime',
+    listen: 'Listen',
+    soundPurr: 'Purr',
+    soundMeow: 'Meow',
+    soundMix: 'Mix',
+    subReminders: 'Subscription reminders',
+    subRemindersHint: 'The day before the charge',
+    purrNotif: 'Purr notifications',
+    purrNotifHint: 'Reminders come with a purring sound',
+    balanceOk: 'All under control, purr',
+    balanceLow: 'Running a bit low…',
+    budgetCalm: 'Still room to spare, purr',
+    budgetWorried: (l) => `Careful: ${l} left`,
+    budgetOver: (o) => `Oops… ${o} over`,
+    salary: 'Payday! Purr-purr!',
+    loan: 'Payment reminder',
+    bank: 'New purchase — take a look?',
+    subDue: 'A subscription is due soon',
+    goalDone: 'Goal reached!',
+    empty: 'Quiet here… purr',
+    hello: 'Hi! I’m Tymofii',
+  },
+  help: {
+    button: 'Tymofii explains',
+    title: 'How does it work?',
+    hint: 'Tap a question — I’ll explain',
+    close: 'Close',
+    next: 'Next',
+    gotIt: 'Got it',
+    stepOf: (i, n) => `${i} of ${n}`,
+    nudge: 'Need a hand? Purr',
+    showMe: 'Show me',
+    screens: {
+      tasks: [
+        { title: 'How to create a task', text: 'Tap “+” at the bottom right — the editor opens: title, due date, priority, subtasks, repeat and a photo.' },
+        { title: 'Quick add', text: 'Hold “+” — a line appears where you just type the title and save.' },
+        { title: 'How to mark it done', text: 'The big card has a “✓ Done” button. Every finished task fills the level ring — and I purr.' },
+        { title: 'Habits & streaks 🔥', text: 'In a repeating task turn on “Count streak” — it becomes a card with a flame at the top. Tap — done today.' },
+        { title: 'Rearrange cards', text: 'The pencil ✏️ at the top: drag cards and change their size. “−” hides a card, “⋮” brings it back.' },
+        { title: 'Card look', text: '“⋮” on a card → “Card look”: glass, shadow, no background or your own photo — for each one separately.' },
+      ],
+      calendar: [
+        { title: 'What’s here', text: 'Tasks and work shifts by day — and the whole history: what was done and how much was spent on any day.' },
+        { title: 'Where older expenses are', text: 'Finance lists only this month’s expenses. Everything before stays here, in the calendar.' },
+      ],
+      finance: [
+        { title: 'How to add an expense', text: 'Tap “+” at the bottom right. Hold it — quick add into the default category.' },
+        { title: 'What the balance shows', text: 'On top — what’s on the card now. Grey below — what’s left until payday; tap to see what it’s made of. Tap the balance to type the real amount — the difference is kept as a correction.' },
+        { title: 'Awaiting answer', text: 'Salary, loan, subscription: on its day I’ll ask “Paid / Other amount / Not yet”. Until you answer, the balance doesn’t change.' },
+        { title: 'Work shifts & salary', text: 'In the work calendar tap a day to mark it worked or off. Your salary is counted from them — set the rate in the “Earnings” menu.' },
+        { title: 'Cards, cash, goals', text: 'Pencil ✏️ → “+”: up to 3 cards, cash, stashes, goals and loans. Tap cash → “Transfer” to move money from a card.' },
+        { title: 'Budgets 🌊', text: 'A category limit fills up with a wave. Near 80% I get worried, past 100% I’m sad.' },
+        { title: 'Subscriptions & report', text: 'Menu → “Subscriptions”: monthly and yearly totals, a reminder the day before a charge. Menu → “Monthly report”: an image with your results.' },
+      ],
+      stats: [
+        { title: 'What’s here', text: 'Your week in charts: finished tasks and spending by category.' },
+        { title: 'Arrange it your way', text: 'The pencil ✏️ at the top: drag and resize cards, hide extra ones with “−”.' },
+      ],
+      settings: [
+        { title: 'Themes & colours', text: 'Theme → pick a style. “Colours: Vivid” — glass cards and glow. At the bottom: “Your own layout”.' },
+        { title: 'Finance lock', text: 'Security & storage → “Lock finances”: amounts stay hidden until you unlock with your fingerprint or password.' },
+        { title: 'Move to a new phone', text: 'Transfer by QR code over Wi-Fi, no internet: tasks, finance and profile.' },
+        { title: 'Sounds & Tymofii', text: 'Notifications → “Tymofii & sounds”: purr, subscription reminders, or switch me off entirely.' },
+        { title: 'Support', text: 'Support → write to our bot about a bug or an idea, screenshots welcome.' },
+      ],
+    },
+  },
+  quickAdd: { voice: 'Say it', voiceLanguage: 'Voice input language', voiceAppLanguage: 'Same as the app' },
+  alarm: {
+    chip: '⏰ Alarm',
+    hint: 'An alarm appears in the Clock app at the task time: today — right away, later — at midnight of that day. Ringtone and snooze work like any alarm.',
+    needsTime: 'Pick a date and time — the alarm goes off then.',
+    tapToSet: 'Tap to set the alarm',
+    permTitle: 'Allow background work',
+    permMessage: 'To set alarms on its own, even when the app is closed or battery saver is on, allow Amber Ledger to display over other apps and to run without battery restrictions.',
+    permLater: 'Later',
+    permAllow: 'Allow',
+  },
+  realTymofii: {
+    header: 'The real Tymofii',
+    title: 'Meet the real Tymofii',
+    lead: 'Amber Ledger’s mascot isn’t made up. He’s my cat Tymofii — here he is, no filters.',
+    listen: 'Hear the real purr',
+    listenNote: 'The same purr plays when you finish a task.',
+    captions: ['Head massage, please', 'Box security', 'Basket inspector', 'Official passport photo', 'Weekend climber', 'Power-saving mode', 'Little rascal', 'Hiding from Monday', 'Scheduled cuddles', 'Little loaf'],
+    passportTitle: 'Pet passport · consent',
+    pawLabel: 'Tymofii’s paw print',
+    consent: 'I, Tymofii, agree to be Amber Ledger’s mascot and am very happy to help with tasks and money.',
+    signed: 'Signed with a paw',
+    signature: 'Tymofii',
   },
   savings: {
     title: 'Savings cushion',

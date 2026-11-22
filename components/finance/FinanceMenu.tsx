@@ -1,4 +1,5 @@
 import React from 'react';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +26,18 @@ function useMenuItems(): MenuItem[] {
       icon: 'calendar-outline',
       title: tr.money.upcomingLink,
       route: '/expense/upcoming',
+    },
+    {
+      key: 'subscriptions',
+      icon: 'repeat-outline',
+      title: tr.subscriptions.menuLabel,
+      route: '/finance/subscriptions',
+    },
+    {
+      key: 'report',
+      icon: 'stats-chart-outline',
+      title: tr.report.menuLabel,
+      route: '/finance/report',
     },
     {
       key: 'categories',
@@ -81,10 +94,11 @@ export function FinanceMenuBody() {
   const menuStyle = theme.layout.financeMenu;
   const router = useRouter();
   const items = useMenuItems();
+  const helpRef = useHelpTarget('finance.menu');
 
   if (!HEADER_LINKS || menuStyle === 'chips') {
     return (
-      <View style={styles.chipsRow}>
+      <View ref={helpRef} collapsable={false} style={styles.chipsRow}>
         {items.map((item) => (
           <Pressable
             key={item.key}
@@ -112,9 +126,10 @@ export function FinanceMenuBody() {
 const styles = StyleSheet.create({
   classicLinks: { flexDirection: 'row', gap: 14 },
 
-  chipsRow: { flexDirection: 'row', gap: 8 },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: '30%',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,

@@ -5,6 +5,7 @@ import { categoryLabel } from '@/lib/categoryLabel';
 import { useTheme } from '@/theme/ThemeProvider';
 import { CategoryBreakdownEntry } from '@/types';
 import { useTranslation } from '@/i18n';
+import { fmtAmount } from '@/lib/money';
 
 export function CategoryBreakdownBars({ entries, currency }: { entries: CategoryBreakdownEntry[]; currency: string }) {
   const theme = useTheme();
@@ -21,7 +22,7 @@ export function CategoryBreakdownBars({ entries, currency }: { entries: Category
           <View style={styles.labelRow}>
             <Text style={[styles.name, { color: theme.colors.text }]}>{categoryLabel({ id: entry.categoryId, name: entry.categoryName }, tr)}</Text>
             <Text style={[styles.amount, { color: theme.colors.textMuted }]}>
-              {entry.total.toFixed(0)} {currency} · {entry.percentage.toFixed(0)}%
+              {fmtAmount(entry.total)} {currency} · {entry.percentage.toFixed(0)}%
             </Text>
           </View>
           <View style={[styles.track, { backgroundColor: theme.colors.surfaceAlt }]}>

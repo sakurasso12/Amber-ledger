@@ -4,12 +4,14 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
-import { cardSurface } from '@/theme/surfaces';
+import { CustomizableCard } from '@/components/ui/CustomizableCard';
 import { priorityColor } from '@/theme/theme';
 import { Task } from '@/types';
 import { useTranslation } from '@/i18n';
 import { haptics } from '@/lib/haptics';
 import { formatDuration } from '@/widget/widgetShared';
+import { TymofiiFace, useMascotOn } from '@/components/mascot/Tymofii';
+import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 
 interface FocusTaskCardProps {
   task: Task;
@@ -18,11 +20,13 @@ interface FocusTaskCardProps {
   kicker?: string;
   /** While the layout is being edited: no opening, no ticking off. */
   editing?: boolean;
+  /** Id for its look (background, opacity, shape — "⋮"); defaults to one per task series. */
+  cardId?: string;
 }
 
 /** One task as a big card with a countdown and a big Done button — the Vertical layout's "In
  * focus" card, and size L in the task list. */
-export function FocusTaskCard({ task, onDone, kicker, editing = false }: FocusTaskCardProps) {
+export function FocusTaskCard({ task, onDone, kicker, editing = false, cardId }: FocusTaskCardProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const router = useRouter();
@@ -35,15 +39,18 @@ export function FocusTaskCard({ task, onDone, kicker, editing = false }: FocusTa
         : tr.homeWidgets.dueIn(formatDuration(ms, tr.homeWidgets));
   // With a photo the card's text sits on the image, so it switches to light text over a dark fade.
   const photo = task.imageUri;
+  const mascot = useMascotOn();
+  const helpRef = useHelpTarget('tasks.focus');
   const textColor = photo ? '#FFFFFF' : theme.colors.text;
   const mutedColor = photo ? 'rgba(255,255,255,0.8)' : theme.colors.textMuted;
 
   return (
+    // A customizable card: its own background (glass / shadow / none / photo), opacity and shape via "⋮".
+    <CustomizableCard widgetId={cardId ?? `task-big-${task.seriesId ?? task.id}`} padding={0} style={styles.clip}>
     <PressableScale
       disabled={editing}
       onPress={() => router.push(`/task/${task.id}`)}
-      // overflow: hidden clips the photo to the card's exact (leaf-shaped) corners.
-      style={[styles.card, cardSurface(theme), photo && styles.photoCard]}
+      style={[styles.card, photo && styles.photoCard]}
     >
       {photo ? (
         <>
@@ -67,22 +74,28 @@ export function FocusTaskCard({ task, onDone, kicker, editing = false }: FocusTa
       >
         {countdown}
       </Text>
-      <Pressable
-        disabled={editing}
-        onPress={() => {
-          haptics.success();
-          onDone();
-        }}
-        style={[styles.doneButton, { backgroundColor: theme.colors.primary }]}
-      >
-        <Text style={[styles.doneText, { color: theme.colors.primaryText }]}>✓ {tr.layoutText.done}</Text>
-      </Pressable>
+      <View ref={helpRef} collapsable={false} style={styles.bottomRow}>
+        <Pressable
+          disabled={editing}
+          onPress={() => {
+            haptics.success();
+            onDone();
+          }}
+          style={[styles.doneButton, { backgroundColor: theme.colors.primary }]}
+        >
+          <Text style={[styles.doneText, { color: theme.colors.primaryText }]}>✓ {tr.layoutText.done}</Text>
+        </Pressable>
+        {/* Тимофій keeps you company on the focus task — worried once it's overdue. */}
+        {mascot ? <TymofiiFace mood={ms !== null && ms < 0 ? 'worried' : 'calm'} prop={ms !== null && ms < 0 ? 'sweat' : null} size={76} /> : null}
+      </View>
     </PressableScale>
+    </CustomizableCard>
   );
 }
 
 const styles = StyleSheet.create({
   card: { padding: 22, gap: 10 },
+  clip: { overflow: 'hidden' },
   photoCard: { overflow: 'hidden', minHeight: 220, justifyContent: 'flex-end' },
   // Darker towards the bottom, where the title and button sit.
   photoFade: { experimental_backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.7))' },
@@ -92,6 +105,7 @@ const styles = StyleSheet.create({
   kicker: { fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   title: { fontSize: 30, fontWeight: '800', lineHeight: 34 },
   countdown: { fontSize: 18, fontWeight: '700' },
-  doneButton: { marginTop: 6, alignSelf: 'flex-start', paddingHorizontal: 22, paddingVertical: 12, borderRadius: 24 },
+  bottomRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 6 },
+  doneButton: { alignSelf: 'flex-start', paddingHorizontal: 22, paddingVertical: 12, borderRadius: 24 },
   doneText: { fontSize: 15, fontWeight: '800' },
 });

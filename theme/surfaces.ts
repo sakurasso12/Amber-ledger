@@ -1,5 +1,6 @@
 import { ViewStyle } from 'react-native';
 import type { AppTheme } from './theme';
+import { withAlpha } from './theme';
 import { cornerStyle, Corners } from './layouts';
 
 /** A card's own corner shape, picked per card in edit mode; absent = whatever the theme does. */
@@ -12,16 +13,55 @@ export const SHAPE_CORNERS: Record<CardShape, Corners> = {
   leaf: { tl: 40, tr: 6, br: 40, bl: 6 },
 };
 
+/** A card's own background, picked from its "⋮" menu; absent = whatever the theme does. */
+export type CardBackground = 'glass' | 'shadow' | 'none';
+
 /** Background, border, corner radius and shadow of a card in the active theme + layout. */
-export function cardSurface(theme: AppTheme, shape?: CardShape | null): ViewStyle {
-  const base = themeCardSurface(theme);
+export function cardSurface(
+  theme: AppTheme,
+  shape?: CardShape | null,
+  background?: CardBackground | null,
+  /** The card's own background opacity 0–1 (null = the theme's). */
+  opacity?: number | null
+): ViewStyle {
+  let base = background ? ownBackground(theme, background) : themeCardSurface(theme);
+  if (opacity != null && typeof base.backgroundColor === 'string' && base.backgroundColor.startsWith('#')) {
+    base = { ...base, backgroundColor: withAlpha(base.backgroundColor, opacity) };
+  }
   const corners = shape ? SHAPE_CORNERS[shape] : theme.layout.corners;
   return corners ? { ...base, ...cornerStyle(corners) } : base;
+}
+
+/** Glass: the surface colour see-through, a light edge; the blur itself is a BlurView inside the card
+ * (CustomizableCard) — it blurs the screen's gradient or photo behind. */
+export function glassSurface(theme: AppTheme): ViewStyle {
+  const { colors, glass, design } = theme;
+  return {
+    backgroundColor: withAlpha(colors.surface, glass.opacity),
+    borderRadius: design.radius.card,
+    borderWidth: 1,
+    borderColor: theme.dark ? `rgba(255,255,255,${glass.highlight})` : `rgba(255,255,255,${Math.min(0.9, glass.highlight * 4)})`,
+    overflow: 'hidden',
+  };
+}
+
+function ownBackground(theme: AppTheme, background: CardBackground): ViewStyle {
+  const { design, colors } = theme;
+  if (background === 'glass') return glassSurface(theme);
+  if (background === 'none') return { backgroundColor: 'transparent', borderRadius: design.radius.card, borderWidth: 0 };
+  return {
+    backgroundColor: colors.surface,
+    borderRadius: design.radius.card,
+    borderWidth: 0,
+    boxShadow: theme.dark ? `0 8px 24px rgba(0,0,0,0.55)` : `0 6px 18px rgba(20,20,40,0.12)`,
+  };
 }
 
 function themeCardSurface(theme: AppTheme): ViewStyle {
   const { design, colors } = theme;
   switch (design.cardStyle) {
+    case 'glass':
+      return glassSurface(theme);
     case 'elevated':
       return {
         backgroundColor: colors.surface,

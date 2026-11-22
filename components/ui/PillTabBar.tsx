@@ -4,6 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring, type SharedValu
 import { initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
+import { glowShadow } from '@/theme/theme';
 import { haptics } from '@/lib/haptics';
 import { Text } from './Text';
 
@@ -80,15 +81,15 @@ export function PillTabBar({ state, descriptors, navigation }: TabBarProps) {
     <View
       style={[
         styles.wrap,
-        { paddingBottom: bottomInset + 8, paddingLeft: 12 + insets.left, paddingRight: 12 + insets.right, backgroundColor: colors.background },
+        { paddingBottom: bottomInset + 8, paddingLeft: 12 + insets.left, paddingRight: 12 + insets.right, backgroundColor: 'transparent' },
       ]}
     >
-      <View style={[styles.bar, styles.barWidth, cardSurface(theme)]} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}>
+      <View style={[styles.bar, styles.barWidth, theme.layout.menuPlate ? cardSurface(theme) : styles.noPlate]} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}>
         {unit > 0 ? (
           <>
             <Animated.View
               pointerEvents="none"
-              style={[styles.pill, { backgroundColor: colors.primary, width: unit * ACTIVE_GROW }, pillStyle]}
+              style={[styles.pill, { backgroundColor: colors.primary, width: unit * ACTIVE_GROW }, glowShadow(theme), pillStyle]}
             />
             {state.routes.map((route, index) => (
               <TabFace
@@ -195,6 +196,7 @@ const styles = StyleSheet.create({
   wrap: { paddingHorizontal: 12, paddingTop: 6 },
   // A phone on its side: five tabs don't need 900 points — the bar stays the size it is in portrait-ish.
   barWidth: { width: '100%', maxWidth: 560, alignSelf: 'center' },
+  noPlate: { backgroundColor: 'transparent', borderWidth: 0 },
   bar: { height: ITEM_HEIGHT + PAD * 2, padding: PAD },
   pill: { position: 'absolute', left: 0, top: PAD, height: ITEM_HEIGHT, borderRadius: ITEM_HEIGHT / 2 },
   face: { position: 'absolute', left: 0, top: PAD, height: ITEM_HEIGHT, alignItems: 'center', justifyContent: 'center' },

@@ -4,6 +4,7 @@ import { nextOccurrence } from '@/lib/recurrence';
 import { isHabit, isOnOrBeforeToday } from '@/lib/streaks';
 import { refreshHomeWidget } from '@/lib/widgetRefresh';
 import { playDoneSound } from '@/lib/sounds';
+import { syncAlarms } from '@/lib/alarms';
 import { cancelTaskReminder, clearStickyNotification, syncStickyNotification, syncTaskReminder } from '@/notifications';
 import { useSettingsStore } from './useSettingsStore';
 import { useFinanceStore } from './useFinanceStore';
@@ -138,6 +139,11 @@ export const useTaskStore = create<TaskState>()((set, get) => ({
     for (const task of get().tasks) syncNotificationsFor(task);
   },
 }));
+
+// System Clock alarms follow the task list (added / moved / done / deleted).
+useTaskStore.subscribe((state, prev) => {
+  if (state.isLoaded && state.tasks !== prev.tasks) syncAlarms(state.tasks);
+});
 
 /** Deletes the expenses a task's completion logged (through the finance store, so the bank follows). */
 async function removeTaskExpenses(taskId: string): Promise<void> {

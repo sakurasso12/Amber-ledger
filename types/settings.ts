@@ -1,5 +1,6 @@
+import type { BankTx } from '@/lib/bank/iko';
 import type { DesignId } from '@/theme/designs';
-import type { LayoutId } from '@/theme/layouts';
+import type { LayoutId, LayoutOverrides } from '@/theme/layouts';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -97,6 +98,15 @@ export interface AppSettings {
   savingsOpenedAt: string | null;
   /** The welcome cards were shown (first launch). */
   onboardingDone: boolean;
+  /** Settings → Тема → Кольори: 'matte' or 'glow' (vivid, glass cards, neon glow). */
+  colorFinish: 'matte' | 'glow';
+  /** Per-card background chosen from its "⋮" menu (absent = as the theme does; a photo is in
+   * widgetBackgrounds and wins over these). */
+  cardBackgrounds: Record<string, 'glass' | 'shadow' | 'none'>;
+  /** Per-card background opacity 0–1 from its "⋮" menu (absent = the theme's). */
+  cardOpacity: Record<string, number>;
+  /** Settings → Тема → Розташування: the user's own changes on top of the layout preset. */
+  layoutOverrides: LayoutOverrides;
   /** 2 once the finance v2 migration (lib/financeMigration.ts) ran on this device's data. */
   financeModel: 1 | 2;
   /** Exchange rates: currency → how much one unit is in the app currency ("€" → 4.3). Set from
@@ -108,6 +118,14 @@ export interface AppSettings {
   reconciledWeeks: Record<string, string>;
   /** "Awaiting answer" items put off with "not yet": item key → ISO time until which it's hidden. */
   pendingSnoozed: Record<string, string>;
+  /** Personal build: IKO bank transactions waiting for "add / skip" (lib/bank). */
+  bankPending: BankTx[];
+  /** Balance from the last IKO notification (null = none yet). */
+  bankLastBalance: number | null;
+  /** Bank balance value the user said "no" to aligning with (so it isn't asked again). */
+  bankBalanceDismissed: number | null;
+  /** Merchant (upper-case) → category id picked last time, to suggest it next time. */
+  bankCategoryByMerchant: Record<string, string>;
   /** Category budgets: category id → month (yyyy-MM-01) the "keep or change for next month?"
    * question was answered for. */
   budgetMonthChoice: Record<string, string>;
@@ -115,6 +133,20 @@ export interface AppSettings {
   streakWidgets: Record<string, string>;
   /** Level-up sound when the task ring fills. */
   soundEffects: boolean;
+  /** Тимофій, the mascot, on cards and screens. */
+  mascotEnabled: boolean;
+  /** Completed task plays Тимофій's purr instead of the chime. */
+  purrOnTask: boolean;
+  /** Which sound Тимофій makes for a finished task. */
+  mascotSound: 'purr' | 'meow' | 'mix';
+  /** Language for voice input ('app' = the app's language). Long-press the mic to change. */
+  voiceLanguage: 'app' | 'uk-UA' | 'ru-RU' | 'pl-PL' | 'en-US';
+  /** Reminder the day before a subscription is charged. */
+  subscriptionReminders: boolean;
+  /** Those reminders come with the purr sound. */
+  purrNotifications: boolean;
+  /** Upcoming (repeat) items that are subscriptions — shown on the Subscriptions screen. */
+  subscriptionIds: string[];
   /** Tasks screen squares (level ring, habits): saved drag-and-drop order of their keys. */
   tasksModuleOrder: string[];
   /** Squares per row on Tasks: 2 (default) or 3. */
@@ -189,10 +221,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
   financeUnlockedUntil: null,
   savingsCard: 'ask',
   financeModel: 1,
+  colorFinish: 'matte',
+  cardBackgrounds: {},
+  cardOpacity: {},
+  layoutOverrides: {},
   currencyRates: {},
   reconcileWeekday: 0,
   reconciledWeeks: {},
   pendingSnoozed: {},
+  bankPending: [],
+  bankLastBalance: null,
+  bankBalanceDismissed: null,
+  bankCategoryByMerchant: {},
   budgetMonthChoice: {},
   savingsBalance: 0,
   savingsRatePercent: 0,
@@ -200,6 +240,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboardingDone: false,
   streakWidgets: {},
   soundEffects: true,
+  mascotEnabled: true,
+  purrOnTask: true,
+  mascotSound: 'mix',
+  voiceLanguage: 'app',
+  subscriptionReminders: true,
+  purrNotifications: true,
+  subscriptionIds: [],
   tasksModuleOrder: [],
   tasksModuleColumns: 2,
   layoutHintsSeen: [],
