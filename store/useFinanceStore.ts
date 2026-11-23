@@ -10,7 +10,8 @@ import { inAppCurrency, primaryId, rateForAccount, rateFromTransfer } from '@/li
 import { absorbInCheck, balanceOf, correctionFor, expenseAccountId, lastCheck, round2 } from '@/lib/ledger';
 import { migrateFinance } from '@/lib/financeMigration';
 import { checkDay, snoozeUntilTomorrow } from '@/lib/pending';
-import { isPaidOff, monthlyPayment } from '@/lib/loans';
+import { isPaidOff, paymentDue } from '@/lib/loans';
+import type { IncomePayment } from '@/lib/incomes';
 import {
   Account,
   AccountKind,
@@ -75,7 +76,9 @@ interface FinanceState {
   /** "The salary came": an income on `accountId`, and the period stops waiting. */
   confirmSalary: (periodKey: string, amount: number, accountId: string) => Promise<void>;
   /** Money that came in outside the salary flow (e.g. a bank transfer seen by the IKO listener). */
-  addIncome: (amount: number, accountId: string, date: string) => Promise<void>;
+  addIncome: (amount: number, accountId: string, date: string, periodKey?: string | null) => Promise<void>;
+  /** A pension / fixed salary arrived (`amount`), or "not yet" (null: asks again tomorrow). */
+  answerIncome: (payment: IncomePayment, amount: number | null) => Promise<void>;
   /** A loan payment's day came: `amount` null = not yet (asks again tomorrow). */
   answerLoan: (loanId: string, amount: number | null, accountId?: string) => Promise<void>;
   /** Weekly check: `real` null = "yes, it's right"; a number = the real balance (a correction). */
@@ -102,7 +105,7 @@ interface FinanceState {
   addTransfer: (draft: { fromId: string; toId: string; amount: number; amountTo: number; date: string }) => Promise<void>;
   removeTransfer: (id: string) => Promise<void>;
 
-  addLoan: (draft: Omit<Loan, 'id' | 'createdAt'>) => Promise<void>;
+  addLoan: (draft: Omit<Loan, 'id' | 'createdAt' | 'extraPaid'> & { extraPaid?: number }) => Promise<void>;
   updateLoan: (loan: Loan) => Promise<void>;
   removeLoan: (id: string) => Promise<void>;
   /** "Paid": the monthly payment (or `amount`) is logged as an expense of `accountId`. */
@@ -263,10 +266,20 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     });
   },
 
-  addIncome: async (amount, accountId, date) => {
-    const income: Income = { id: generateId(), accountId, amount, date, periodKey: null, createdAt: nowIso() };
+  addIncome: async (amount, accountId, date, periodKey = null) => {
+    const income: Income = { id: generateId(), accountId, amount, date, periodKey, createdAt: nowIso() };
     await financeRepo.saveIncome(income);
     set((state) => ({ incomes: [income, ...state.incomes] }));
+  },
+
+  answerIncome: async (payment, amount) => {
+    if (amount === null) {
+      get().snoozePending(payment.key);
+      return;
+    }
+    const accounts = get().accounts;
+    const accountId = accounts.some((a) => a.id === payment.source.accountId) ? payment.source.accountId : primaryId(accounts);
+    await get().addIncome(round2(amount), accountId, payment.date, payment.key);
   },
 
   answerLoan: async (loanId, amount, accountId) => {
@@ -367,7 +380,7 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
   },
 
   addLoan: async (draft) => {
-    const loan: Loan = { ...draft, id: generateId(), createdAt: nowIso() };
+    const loan: Loan = { extraPaid: 0, ...draft, id: generateId(), createdAt: nowIso() };
     await financeRepo.saveLoan(loan);
     set((state) => ({ loans: [...state.loans, loan] }));
   },
@@ -387,16 +400,19 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
     if (!loan || isPaidOff(loan)) return;
     const { categories } = get();
     const categoryId = (categories.find((c) => c.id === 'cat-loans') ?? categories.find((c) => c.id === 'cat-other') ?? categories[0])?.id;
+    const due = paymentDue(loan);
+    const paid = round2(amount ?? due);
     if (categoryId) {
       await get().addExpense({
-        amount: round2(amount ?? monthlyPayment(loan)),
+        amount: paid,
         categoryId,
         date: todayKey(),
         comment: loan.name,
         accountId,
       });
     }
-    await get().updateLoan({ ...loan, paidCount: loan.paidCount + 1 });
+    // One payment = one month of the schedule; anything above/below the due amount goes to extraPaid.
+    await get().updateLoan({ ...loan, paidCount: loan.paidCount + 1, extraPaid: round2((loan.extraPaid ?? 0) + paid - due) });
   },
 }));
 

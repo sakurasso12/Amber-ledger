@@ -3,7 +3,7 @@ import { Image, StyleProp, StyleSheet, useWindowDimensions, View, ViewStyle } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurTargetView } from 'expo-blur';
 import { useTheme } from '@/theme/ThemeProvider';
-import { backdropImage, withAlpha } from '@/theme/theme';
+import { backdropImage, gradientStyle, withAlpha } from '@/theme/theme';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useKeyboardHeight } from './useKeyboardHeight';
 
@@ -32,7 +32,7 @@ function useBackdropLayer(backdropRef: React.RefObject<View | null>): React.Reac
         </>
       ) : (
         <>
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.colors.background, experimental_backgroundImage: gradient ?? undefined }]} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.colors.background }, gradientStyle(gradient)]} />
           {theme.backdrop.dim > 0 ? (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(theme.colors.background, theme.backdrop.dim) }]} />
           ) : null}

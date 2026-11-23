@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { useTranslation } from '@/i18n';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -17,9 +18,13 @@ interface MenuItem {
   route: string;
 }
 
+/** Simple mode keeps only the everyday entries. */
+const SIMPLE_KEYS = ['upcoming', 'categories', 'rate'];
+
 function useMenuItems(): MenuItem[] {
   const tr = useTranslation();
-  return [
+  const simple = useSettingsStore((s) => s.settings.uiMode === 'simple');
+  const all: MenuItem[] = [
     {
       // Finance v2: planned + recurring + dated payments in one list.
       key: 'upcoming',
@@ -59,6 +64,7 @@ function useMenuItems(): MenuItem[] {
       route: '/settings/earnings',
     },
   ];
+  return simple ? all.filter((item) => SIMPLE_KEYS.includes(item.key)) : all;
 }
 
 /**

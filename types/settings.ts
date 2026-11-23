@@ -163,8 +163,22 @@ export interface AppSettings {
   taskManualOrder: string[];
   /** Editable card boards (Finance, Stats tabs): saved order and half/full sizes per board. */
   moduleLayouts: Record<string, { order: string[]; sizes: Record<string, 'half' | 'full'> }>;
+  /** Widget grid (2.0): per board, per column count (4 on a phone, more on a PC), each widget's
+   * cell position — x/w in columns, y/h in thin rows (see lib/grid.ts). h only for widgets the user
+   * sized by hand; the rest follow their content and their row. */
+  gridLayouts: Record<string, Record<string, Record<string, { x: number; y: number; w: number; h?: number }>>>;
   /** Widgets removed from a screen with the "−" in edit mode, per board; ⋮ brings them back. */
   hiddenModules: Record<string, string[]>;
+  /** 1.8: 'simple' = calm default look, bigger text, no mascot chatter, no layout editing, fewer
+   * menus (for people who just want to note tasks and money); 'advanced' = everything. */
+  uiMode: 'simple' | 'advanced';
+  /** Larger text everywhere (on top of the simple mode's own slight increase). */
+  bigText: boolean;
+  /** Incomes besides hourly work (1.8): pensions, a fixed salary, anything regular. The hourly
+   * salary still lives in hourlyRate / paydayDay / work days. */
+  incomeSources: IncomeSource[];
+  /** Calendar tab look: the widget grid (month + selected day) or a week of columns. */
+  calendarView: 'grid' | 'week';
   /** Calendar: the user's order of each day's expenses (date key → expense ids). */
   expenseDayOrder: Record<string, string[]>;
   /** App version whose "What's new" was already shown (null = never). */
@@ -255,7 +269,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   taskOrderMode: 'deadline',
   taskManualOrder: [],
   moduleLayouts: {},
+  gridLayouts: {},
   hiddenModules: {},
+  uiMode: 'simple',
+  bigText: false,
+  incomeSources: [],
+  calendarView: 'grid',
   expenseDayOrder: {},
   lastSeenVersion: null,
   autoCleanupMonths: 0,
@@ -263,3 +282,21 @@ export const DEFAULT_SETTINGS: AppSettings = {
   purgedDoneCount: 0,
   planNextLimits: {},
 };
+
+/** A regular income that isn't hourly work: the same amount every month on one day. */
+export interface IncomeSource {
+  id: string;
+  /** "Моя пенсія", "Пенсія чоловіка", "Зарплата"… */
+  name: string;
+  kind: 'pension' | 'fixed' | 'other';
+  /** Expected amount a month (the whole of it when there's an advance). */
+  amount: number;
+  /** Day of the month it arrives (1–31; a shorter month uses its last day). */
+  payDay: number;
+  /** Fixed salary paid in two parts: this much arrives on `day`, the rest on payDay. */
+  advance: { day: number; amount: number } | null;
+  /** Card or cash it goes to. */
+  accountId: string;
+  /** yyyy-MM-dd it was added: earlier payments are already in the balance, so they aren't asked about. */
+  since: string;
+}

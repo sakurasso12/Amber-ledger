@@ -50,11 +50,46 @@ function alarmTimes(task: Task, now: number): number[] {
   return times;
 }
 
+/**
+ * Days for a repeating Clock alarm (java.util.Calendar: 1 = Sunday … 7 = Saturday), or null when
+ * the rule can't be one (every 2 days, monthly…) — those get a one-off alarm per occurrence.
+ */
+export function repeatDays(task: Task): number[] | null {
+  const rule = task.recurrenceRule;
+  if (!rule || (rule.interval ?? 1) !== 1 || rule.until) return null;
+  if (rule.freq === 'daily') return [1, 2, 3, 4, 5, 6, 7];
+  if (rule.freq === 'weekly') {
+    const js = rule.weekdays && rule.weekdays.length ? rule.weekdays : task.deadlineAt ? [new Date(task.deadlineAt).getDay()] : [];
+    return js.length ? [...new Set(js)].sort().map((d) => d + 1) : null;
+  }
+  return null;
+}
+
 export function alarmItems(tasks: Task[], now = Date.now()): SystemAlarmItem[] {
   const hint = getTranslation().alarm.tapToSet;
   const byKey = new Map<string, SystemAlarmItem>();
   for (const task of tasks) {
     if (!task.alarm || task.status === 'done') continue;
+    // Every day / every week on set days: ONE repeating alarm in the Clock, which then repeats it
+    // by itself — no nightly hand-off that a sleeping phone can miss (it rang only once).
+    const repeat = repeatDays(task);
+    if (repeat && task.deadlineAt) {
+      const at = new Date(task.deadlineAt);
+      const hour = at.getHours();
+      const minute = at.getMinutes();
+      const key = `${task.seriesId ?? task.id}@repeat@${hour}:${minute}@${repeat.join('')}`;
+      byKey.set(key, {
+        key,
+        triggerAt: now - 1,
+        alarmAt: alarmTimes(task, now)[0] ?? now + 24 * 60 * 60_000,
+        hour,
+        minute,
+        label: task.title.slice(0, 80),
+        hint,
+        days: repeat,
+      });
+      continue;
+    }
     for (const alarmAt of alarmTimes(task, now)) {
       if (alarmAt <= now + 30_000 || alarmAt > now + HORIZON_MS) continue;
       const at = new Date(alarmAt);

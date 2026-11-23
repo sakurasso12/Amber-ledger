@@ -7,6 +7,7 @@ import { controlSurface } from '@/theme/surfaces';
 import { useTranslation } from '@/i18n';
 import { toDateKey } from '@/lib/dateRanges';
 import { Text } from './Text';
+import { WebDateInput } from './WebDateInput';
 
 interface DateFieldProps {
   label: string;
@@ -30,7 +31,9 @@ export function DateField({ label, value, onChange, maximumDate }: DateFieldProp
   return (
     <View style={styles.wrapper}>
       <Text style={[styles.label, { color: theme.colors.textMuted }]}>{label}</Text>
-      {Platform.OS === 'android' ? (
+      {Platform.OS === 'web' ? (
+        <WebDateInput type="date" value={value} max={maximumDate ? toDateKey(maximumDate) : undefined} onChange={onChange} />
+      ) : Platform.OS === 'android' ? (
         <>
           <Pressable
             onPress={() => setOpen(true)}

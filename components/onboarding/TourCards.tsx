@@ -1,13 +1,20 @@
 import React, { useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { TymofiiFace, TymofiiMood, TymofiiProp } from '@/components/mascot/Tymofii';
 import { useTheme } from '@/theme/ThemeProvider';
 import { cardSurface } from '@/theme/surfaces';
 import { haptics } from '@/lib/haptics';
 import { Button, Text } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 
-export type TourSlide = { title: string; text: string; icon?: keyof typeof Ionicons.glyphMap };
+export type TourSlide = {
+  title: string;
+  text: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  /** Тимофій on the card (the welcome tour); without it only the icon is shown. */
+  mascot?: { mood: TymofiiMood; prop: TymofiiProp };
+};
 
 /** One icon per welcome slide, in the same order as tr.welcome.slides. */
 const ICONS: (keyof typeof Ionicons.glyphMap)[] = [
@@ -18,6 +25,17 @@ const ICONS: (keyof typeof Ionicons.glyphMap)[] = [
   'wallet-outline',
   'stats-chart',
   'color-palette-outline',
+];
+
+/** Тимофій leads the welcome tour: his face (mood + prop) on every card, the old icon as a badge. */
+const MASCOT: { mood: TymofiiMood; prop: TymofiiProp }[] = [
+  { mood: 'happy', prop: 'party' },
+  { mood: 'calm', prop: 'note' },
+  { mood: 'stars', prop: null },
+  { mood: 'open', prop: 'bell' },
+  { mood: 'happy', prop: 'coin' },
+  { mood: 'stars', prop: 'coins' },
+  { mood: 'wink', prop: null },
 ];
 
 const CARD_MARGIN = 24;
@@ -43,7 +61,7 @@ export function TourCards({ onFinish, backRef, slides: customSlides, finishLabel
   const list = useRef<Animated.FlatList<TourSlide>>(null);
   const [index, setIndex] = useState(0);
 
-  const slides: TourSlide[] = customSlides ?? tr.welcome.slides.map((slide, i) => ({ ...slide, icon: ICONS[i] }));
+  const slides: TourSlide[] = customSlides ?? tr.welcome.slides.map((slide, i) => ({ ...slide, icon: ICONS[i], mascot: MASCOT[i] }));
   const isLast = index === slides.length - 1;
 
   function finish() {
@@ -55,6 +73,7 @@ export function TourCards({ onFinish, backRef, slides: customSlides, finishLabel
   backRef.current = () => {
     if (index === 0) return false;
     list.current?.scrollToOffset({ offset: (index - 1) * width, animated: true });
+    setIndex(index - 1); // web has no onMomentumScrollEnd — keep the index in step ourselves
     return true;
   };
 
@@ -62,6 +81,7 @@ export function TourCards({ onFinish, backRef, slides: customSlides, finishLabel
     if (isLast) return finish();
     haptics.tap();
     list.current?.scrollToOffset({ offset: (index + 1) * width, animated: true });
+    setIndex(index + 1); // web has no onMomentumScrollEnd — keep the index in step ourselves
   }
 
   return (
@@ -86,9 +106,18 @@ export function TourCards({ onFinish, backRef, slides: customSlides, finishLabel
               <Animated.View
                 style={[styles.card, cardSurface(theme), { width: width - CARD_MARGIN * 2, opacity, transform: [{ scale }] }]}
               >
-                <View style={[styles.iconCircle, { backgroundColor: `${theme.colors.primary}22` }]}>
-                  <Ionicons name={item.icon ?? 'sparkles'} size={40} color={theme.colors.primary} />
-                </View>
+                {item.mascot ? (
+                  <View style={styles.mascotWrap}>
+                    <TymofiiFace mood={item.mascot.mood} prop={item.mascot.prop} size={128} />
+                    <View style={[styles.badge, { backgroundColor: theme.colors.primary, borderColor: theme.colors.surface }]}>
+                      <Ionicons name={item.icon ?? 'sparkles'} size={18} color={theme.colors.primaryText} />
+                    </View>
+                  </View>
+                ) : (
+                  <View style={[styles.iconCircle, { backgroundColor: `${theme.colors.primary}22` }]}>
+                    <Ionicons name={item.icon ?? 'sparkles'} size={40} color={theme.colors.primary} />
+                  </View>
+                )}
                 <Text style={[styles.title, { color: theme.colors.text }]}>{item.title}</Text>
                 <Text style={[styles.text, { color: theme.colors.textMuted }]}>{item.text}</Text>
               </Animated.View>
@@ -131,6 +160,8 @@ const styles = StyleSheet.create({
   page: { alignItems: 'center', justifyContent: 'center' },
   // maxWidth: a phone on its side shouldn't stretch the card across the whole screen.
   card: { paddingHorizontal: 26, paddingVertical: 34, gap: 14, alignItems: 'center', maxWidth: 520 },
+  mascotWrap: { marginBottom: 6 },
+  badge: { position: 'absolute', right: -2, bottom: 4, width: 36, height: 36, borderRadius: 18, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   iconCircle: { width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   title: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
   text: { fontSize: 15, lineHeight: 22, textAlign: 'center' },

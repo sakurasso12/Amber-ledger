@@ -7,6 +7,7 @@ import { parseDateKey, toDateKey, todayKey } from './dateRanges';
 import { isSpendable } from './accounts';
 import { isPaidOff, monthlyPayment } from './loans';
 import { loanPaymentDate, round2 } from './ledger';
+import type { IncomePayment } from './incomes';
 
 /**
  * "Awaiting answer": everything that was supposed to happen by now and needs a yes / other amount /
@@ -15,6 +16,7 @@ import { loanPaymentDate, round2 } from './ledger';
  */
 export type PendingItem =
   | { key: string; type: 'salary'; date: string; due: PeriodEarnings }
+  | { key: string; type: 'income'; date: string; payment: IncomePayment }
   | { key: string; type: 'upcoming'; date: string; upcoming: Upcoming }
   | { key: string; type: 'loan'; date: string; loan: Loan; amount: number }
   | { key: string; type: 'check'; date: string; account: Account }
@@ -23,6 +25,8 @@ export type PendingItem =
 
 export interface PendingInput {
   salaryDue: PeriodEarnings | null;
+  /** Pensions / fixed salaries whose day came (lib/incomes dueIncomes). */
+  incomeDue?: IncomePayment[];
   upcoming: Upcoming[];
   loans: Loan[];
   accounts: Account[];
@@ -54,6 +58,8 @@ export function pendingItems(input: PendingInput): PendingItem[] {
   if (input.salaryDue) {
     items.push({ key: `salary-${input.salaryDue.key}`, type: 'salary', date: toDateKey(input.salaryDue.payday), due: input.salaryDue });
   }
+
+  for (const payment of input.incomeDue ?? []) items.push({ key: payment.key, type: 'income', date: payment.date, payment });
 
   for (const u of input.upcoming) {
     const date = dueDateOf(u);

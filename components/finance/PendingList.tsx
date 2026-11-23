@@ -153,6 +153,27 @@ export function PendingList({ items }: { items: PendingItem[] }) {
               />
             );
           }
+          case 'income': {
+            const { payment } = item;
+            const cur = state.accounts.find((acc) => acc.id === payment.source.accountId)?.currency ?? app;
+            const name = payment.advance ? tr.incomes.advanceOf(payment.source.name) : payment.source.name;
+            return (
+              <AskCard
+                key={item.key}
+                emoji="💰"
+                mascot={{ mood: 'stars', prop: 'coins' }}
+                title={tr.incomes.arrived(name)}
+                subtitle={tr.incomes.expected(fmt(payment.amount, cur), day(payment.date))}
+                amount={payment.amount}
+                currency={cur}
+                yesLabel={tr.incomes.yes}
+                onYes={() => state.answerIncome(payment, payment.amount)}
+                otherLabel={tr.money.otherAmount}
+                onOther={(n) => state.answerIncome(payment, n)}
+                extra={[{ label: tr.money.notYet, onPress: () => state.answerIncome(payment, null) }]}
+              />
+            );
+          }
           case 'upcoming': {
             const u = item.upcoming;
             const cur = state.accounts.find((a) => a.id === (u.accountId ?? pid))?.currency ?? app;

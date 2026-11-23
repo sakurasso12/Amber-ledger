@@ -20,8 +20,8 @@ export function monthlyPayment(loan: Loan): number {
   return (loan.principal * r) / (1 - Math.pow(1 + r, -loan.months));
 }
 
-/** What's still owed after the payments made so far. */
-export function remainingDebt(loan: Loan): number {
+/** What the schedule says is still owed after `paidCount` regular payments. */
+function scheduledDebt(loan: Loan): number {
   const k = Math.min(loan.paidCount, loan.months);
   if (k >= loan.months) return 0;
   const r = monthlyRate(loan);
@@ -31,13 +31,24 @@ export function remainingDebt(loan: Loan): number {
   return Math.max(0, loan.principal * grown - (pay * (grown - 1)) / r);
 }
 
+/** What's still owed: the schedule, minus whatever was paid above it (plus what was paid below). */
+export function remainingDebt(loan: Loan): number {
+  const left = scheduledDebt(loan) - (loan.extraPaid ?? 0);
+  return left < 0.005 ? 0 : left;
+}
+
+/** The payment due now: the monthly amount, or less if that's all that's left. */
+export function paymentDue(loan: Loan): number {
+  return Math.min(monthlyPayment(loan), remainingDebt(loan));
+}
+
 /** Everything paid over the whole term minus the amount borrowed. */
 export function totalInterest(loan: Loan): number {
   return Math.max(0, monthlyPayment(loan) * loan.months - loan.principal);
 }
 
 export function isPaidOff(loan: Loan): boolean {
-  return loan.paidCount >= loan.months;
+  return remainingDebt(loan) <= 0;
 }
 
 /** yyyy-MM-dd of the next payment due (null once it's paid off). A short month moves it to its last day. */

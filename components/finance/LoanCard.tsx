@@ -11,8 +11,8 @@ import { parseDateKey, todayKey } from '@/lib/dateRanges';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
 import { Loan } from '@/types';
-import { AccountPicker } from './AccountPicker';
 import { MoneyDialog } from './MoneyDialog';
+import { TransferDialog, loanTarget } from './TransferDialog';
 import { fmtAmount } from '@/lib/money';
 
 const parseNumber = (text: string) => parseFloat(text.replace(',', '.'));
@@ -24,11 +24,9 @@ const parseNumber = (text: string) => parseFloat(text.replace(',', '.'));
 export function LoanCard({ loan, disabled }: { loan: Loan; disabled: boolean }) {
   const theme = useTheme();
   const tr = useTranslation();
-  const payLoan = useFinanceStore((s) => s.payLoan);
   const removeLoan = useFinanceStore((s) => s.removeLoan);
   const [step, setStep] = useState<null | 'menu' | 'pay' | 'edit'>(null);
   const pid = useFinanceStore((s) => primaryId(s.accounts));
-  const [payFrom, setPayFrom] = useState(pid);
 
   const pay = monthlyPayment(loan);
   const money = (n: number) => `${fmtAmount(n)} ${loan.currency}`;
@@ -103,21 +101,7 @@ export function LoanCard({ loan, disabled }: { loan: Loan; disabled: boolean }) 
         <Button title={tr.loans.remove} variant="danger" onPress={confirmRemove} />
       </MoneyDialog>
 
-      <MoneyDialog visible={step === 'pay'} onClose={close} title={tr.loans.payTitle(money(pay))}>
-        <AccountPicker label={tr.loans.payFrom} value={payFrom} onChange={setPayFrom} />
-        <View style={styles.buttons}>
-          <Button title={tr.loans.cancel} variant="secondary" onPress={close} style={styles.flex} />
-          <Button
-            title={tr.loans.pay}
-            onPress={async () => {
-              await payLoan(loan.id, payFrom);
-              haptics.success();
-              close();
-            }}
-            style={styles.flex}
-          />
-        </View>
-      </MoneyDialog>
+      <TransferDialog visible={step === 'pay'} onClose={close} initialFrom={pid} initialTo={loanTarget(loan.id)} />
 
       <LoanFormDialog visible={step === 'edit'} loan={loan} onClose={close} />
     </>

@@ -74,7 +74,16 @@ export interface Translation {
     streakHint: string;
   };
   habits: { doneToday: string; markDone: string; next: (day: string) => string };
-  calendarScreen: { header: string; emptyDay: string; doneSection: string; addedSection: string };
+  calendarScreen: {
+    header: string;
+    emptyDay: string;
+    doneSection: string;
+    addedSection: string;
+    viewGrid: string;
+    viewWeek: string;
+    dayBlock: string;
+    monthBlock: string;
+  };
   auth: {
     title: string;
     passwordLabel: string;
@@ -146,6 +155,11 @@ export interface Translation {
     welcomeText: string;
     welcomeYes: string;
     welcomeNo: string;
+    desktopWelcomeTitle: string;
+    desktopWelcomeText: string;
+    desktopSoonTitle: string;
+    desktopSoonText: string;
+    desktopSoonBack: string;
   };
   financeScreen: {
     header: string;
@@ -443,6 +457,7 @@ export interface Translation {
     focus: string;
     done: string;
     next: string;
+    onlyFocus: string;
     expenses: string;
     styleLabel: string;
   };
@@ -644,6 +659,8 @@ export interface Translation {
     expensesHint: string; balanceHint: string; financeMenuHint: string; statsHint: string; settingsHint: string; fabHint: string;
   };
   bank: {
+    notifyTitle: string;
+    channelName: string;
     accessTitle: string;
     accessHint: string;
     accessButton: string;
@@ -741,6 +758,83 @@ export interface Translation {
     screens: Record<'tasks' | 'calendar' | 'finance' | 'stats' | 'settings', { title: string; text: string }[]>;
   };
   quickAdd: { voice: string; voiceLanguage: string; voiceAppLanguage: string };
+  uiMode: {
+    question: string;
+    hint: string;
+    simple: string;
+    simpleDesc: string;
+    advanced: string;
+    advancedDesc: string;
+    recommended: string;
+    settingsTitle: string;
+    bigText: string;
+    on: string;
+    off: string;
+    removeTitle: string;
+    removeText: string;
+    remove: string;
+    cancel: string;
+    expense: string;
+    income: string;
+    addTask: string;
+    incomeTitle: string;
+    incomeSave: string;
+    today: string;
+    tomorrow: string;
+    later: string;
+    noDate: string;
+    done: string;
+    overdue: (when: string) => string;
+    emptyTasks: string;
+    tabTasks: string;
+    tabMoney: string;
+    onCard: string;
+    spentMonth: (amount: string) => string;
+    settingsHint: string;
+  };
+  incomes: {
+    title: string;
+    hint: string;
+    empty: string;
+    add: string;
+    which: string;
+    kinds: Record<'pension' | 'fixed' | 'hourly' | 'other', { title: string; desc: string }>;
+    name: string;
+    namePlaceholder: Record<'pension' | 'fixed' | 'other', string>;
+    amount: (currency: string) => string;
+    payDay: string;
+    advance: string;
+    advanceDay: string;
+    advanceAmount: (currency: string) => string;
+    account: string;
+    save: string;
+    cancel: string;
+    remove: string;
+    removeTitle: string;
+    removeText: string;
+    monthly: (day: number) => string;
+    arrived: (name: string) => string;
+    expected: (amount: string, date: string) => string;
+    advanceOf: (name: string) => string;
+    yes: string;
+    soon: (name: string, date: string, amount: string) => string;
+    hourlyHint: string;
+    settingsValue: (n: number) => string;
+  };
+  transferUi: {
+    from: string;
+    to: string;
+    swap: string;
+    half: string;
+    all: string;
+    payment: (amount: string) => string;
+    wholeDebt: string;
+    arrives: string;
+    debtOf: (name: string) => string;
+    moreThanDebt: string;
+    payLoanTitle: string;
+    pay: string;
+  };
   alarm: {
     chip: string;
     hint: string;
@@ -871,11 +965,18 @@ const ru: Translation = {
         { title: 'Подписки', text: 'Финансы → меню → Подписки. Сумма в месяц и год, а за день до списания я напомню — с мурлыканьем.' },
         { title: 'Отчёт за месяц', text: 'Финансы → меню → Отчёт за месяц: красивая картинка с итогами, которой можно поделиться.' },
       ],
+      '1.8.0': [
+        { title: 'Простой режим', text: 'Крупный текст, большие кнопки и только главное: дела, календарь, деньги. Настройки → Режим.' },
+        { title: 'Мои доходы', text: 'Пенсия, зарплата с авансом или другое — в день выплаты я спрошу, пришли ли деньги. Настройки → Мои доходы.' },
+        { title: 'Новый перевод', text: 'Карты с балансом, кнопка «поменять местами» и видно, как изменится баланс. Кредит можно гасить любой суммой.' },
+        { title: 'Своя раскладка', text: 'Ненужный виджет можно убрать, а «Неделя» и «Месяц» теперь компактные.' },
+        { title: 'Пс-с… 🐾', text: 'Где-то в Настройках прячется настоящий Тимофей. Найдёшь?' },
+      ],
     },
   },
   welcome: {
     slides: [
-      { title: 'Добро пожаловать в Amber Ledger', text: 'Задачи и деньги в одном месте. Пролистай — покажем, что тут есть.' },
+      { title: 'Привет, я Тимофей 🐾', text: 'Задачи и деньги в одном месте — а я покажу, что тут есть. Листай!' },
       { title: 'Задачи', text: 'Сроки, приоритеты, подзадачи и повторы. Долгое нажатие на «+» — быстрое добавление.' },
       { title: 'Привычки 🔥', text: 'Включи «Считать серию» у повторяющейся задачи — она станет карточкой со стриком наверху.' },
       { title: 'Календарь', text: 'Задачи и рабочие смены по дням — и вся история: что сделал и сколько потратил в любой день.' },
@@ -944,7 +1045,7 @@ const ru: Translation = {
     streakHint: 'Задача станет привычкой с огоньком 🔥 наверху экрана задач',
   },
   habits: { doneToday: 'Сделано', markDone: 'Отметить', next: (day) => `Далее: ${day}` },
-  calendarScreen: { header: 'Календарь', emptyDay: 'В этот день ничего нет', doneSection: 'Выполнено', addedSection: 'Добавлено' },
+  calendarScreen: { header: 'Календарь', emptyDay: 'В этот день ничего нет', doneSection: 'Выполнено', addedSection: 'Добавлено', viewGrid: 'Виджеты', viewWeek: 'Неделя', dayBlock: 'Выбранный день', monthBlock: 'Месяц' },
   auth: {
     title: 'Подтверди, что это ты',
     passwordLabel: 'Пароль профиля',
@@ -1016,6 +1117,11 @@ const ru: Translation = {
     welcomeText: 'Если Amber Ledger уже стоит на другом телефоне — перенеси задачи, финансы и профиль по QR-коду. Оба телефона должны быть в одной Wi-Fi сети.',
     welcomeYes: 'Да, перенести',
     welcomeNo: 'Нет, начать с нуля',
+    desktopWelcomeTitle: 'Уже пользуешься Amber Ledger на телефоне?',
+    desktopWelcomeText: 'Можно перенести задачи, финансы и профиль с телефона — или начать с нуля.',
+    desktopSoonTitle: 'Синхронизация с телефоном — скоро',
+    desktopSoonText: 'В версии для ПК можно будет перенести и синхронизировать данные с телефоном по QR-коду: по Wi‑Fi или кабелю. В браузере это пока невозможно — начни с нового профиля.',
+    desktopSoonBack: 'Назад',
   },
   financeScreen: {
     header: 'Финансы',
@@ -1349,6 +1455,7 @@ const ru: Translation = {
     focus: 'В ФОКУСЕ',
     done: 'Готово',
     next: 'Дальше',
+    onlyFocus: 'Остальное сделано — осталась только задача в фокусе.',
     expenses: 'Траты',
     styleLabel: 'Стиль темы',
   },
@@ -1560,6 +1667,8 @@ const ru: Translation = {
     colorTitle: 'Свой цвет', colorHint: 'Тыкай по кругу — оттенок и насыщенность, ползунок — яркость.', colorApply: 'Применить',
   },
   bank: {
+    notifyTitle: 'Новая операция — добавить?',
+    channelName: 'Операции банка',
     accessTitle: 'Операции из IKO',
     accessHint: 'Разреши доступ к уведомлениям — Amber Ledger будет ловить оплаты из IKO и спрашивать, записать ли их.',
     accessButton: 'Дать доступ',
@@ -1690,6 +1799,88 @@ const ru: Translation = {
     },
   },
   quickAdd: { voice: 'Сказать голосом', voiceLanguage: 'Язык голосового ввода', voiceAppLanguage: 'Как в приложении' },
+  uiMode: {
+    question: 'Как тебе удобнее?',
+    hint: 'Это можно поменять в любой момент в Настройках.',
+    simple: 'Простой',
+    simpleDesc: 'Дела, деньги и календарь — без лишнего. Крупнее текст, понятные кнопки.',
+    advanced: 'Расширенный',
+    advancedDesc: 'Всё: виджеты, темы, привычки, лимиты, отчёты, валюты, Тимофей-помощник.',
+    recommended: 'Советуем',
+    settingsTitle: 'Режим',
+    bigText: 'Крупный текст',
+    on: 'Включено',
+    off: 'Выключено',
+    removeTitle: 'Убрать с экрана?',
+    removeText: 'Вернуть можно кнопкой ⋮ вверху экрана.',
+    remove: 'Убрать',
+    cancel: 'Отмена',
+    expense: 'Расход',
+    income: 'Доход',
+    addTask: 'Добавить дело',
+    incomeTitle: 'Получили деньги',
+    incomeSave: 'Записать',
+    today: 'Сегодня',
+    tomorrow: 'Завтра',
+    later: 'Позже',
+    noDate: 'Без даты',
+    done: 'сделано',
+    overdue: (w) => `просрочено · ${w}`,
+    emptyTasks: 'Нажми «Добавить дело» внизу.',
+    tabTasks: 'Дела',
+    tabMoney: 'Деньги',
+    onCard: 'На карте',
+    spentMonth: (a) => `Потрачено в этом месяце: ${a}`,
+    settingsHint: 'Нужны привычки, лимиты, валюты или свой вид? Включи «Расширенный» режим — ничего из записей не потеряется.',
+  },
+  incomes: {
+    title: 'Мои доходы',
+    hint: 'В день выплаты приложение спросит, пришли ли деньги, и запишет их на выбранную карту или в наличные.',
+    empty: 'Пока нет доходов. Добавь пенсию, зарплату или другое.',
+    add: 'Добавить доход',
+    which: 'Какой доход?',
+    kinds: {
+      pension: { title: 'Пенсия', desc: 'одинаковая сумма каждый месяц' },
+      fixed: { title: 'Зарплата', desc: 'фиксированная, можно с авансом' },
+      hourly: { title: 'По часам', desc: 'считает по календарю смен' },
+      other: { title: 'Другое', desc: 'стипендия, аренда, пособие' },
+    },
+    name: 'Название',
+    namePlaceholder: { pension: 'Моя пенсия', fixed: 'Зарплата', other: 'Стипендия' },
+    amount: (c) => `Сколько в месяц (${c})`,
+    payDay: 'Какого числа приходит',
+    advance: 'Часть платят авансом',
+    advanceDay: 'Какого числа аванс',
+    advanceAmount: (c) => `Сумма аванса (${c})`,
+    account: 'Куда приходит',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    remove: 'Удалить',
+    removeTitle: 'Удалить доход?',
+    removeText: 'Уже записанные поступления останутся в истории.',
+    monthly: (d) => `каждый месяц, ${d}-го`,
+    arrived: (n) => `${n} — пришла?`,
+    expected: (a, d) => `Ожидается ${a} · ${d}`,
+    advanceOf: (n) => `${n} (аванс)`,
+    yes: 'Да, пришла',
+    soon: (n, d, a) => `${n} придёт ${d} · ≈ ${a}`,
+    hourlyHint: 'Почасовая оплата настраивается в «Заработок» на экране Финансы — по календарю смен.',
+    settingsValue: (n) => (n === 0 ? 'Не добавлено' : `${n}`),
+  },
+  transferUi: {
+    from: 'Откуда',
+    to: 'Куда',
+    swap: 'Поменять местами',
+    half: 'Половину',
+    all: 'Всё',
+    payment: (a) => `Платёж ${a}`,
+    wholeDebt: 'Весь долг',
+    arrives: 'Придёт',
+    debtOf: (n) => `Долг · ${n}`,
+    moreThanDebt: 'Это больше, чем осталось по кредиту.',
+    payLoanTitle: 'Платёж по кредиту',
+    pay: 'Оплатить',
+  },
   alarm: {
     chip: '⏰ Будильник',
     hint: 'Будильник появится в приложении «Часы» на время задачи: сегодня — сразу, позже — в полночь того дня. Мелодия и «Отложить» — как у обычного будильника.',
@@ -1820,11 +2011,18 @@ const uk: Translation = {
         { title: 'Підписки', text: 'Фінанси → меню → Підписки. Сума на місяць і рік, а за день до списання я нагадаю — з муркотінням.' },
         { title: 'Звіт за місяць', text: 'Фінанси → меню → Звіт за місяць: гарна картинка з підсумками, якою можна поділитися.' },
       ],
+      '1.8.0': [
+        { title: 'Простий режим', text: 'Великий текст, великі кнопки й лише головне: справи, календар, гроші. Налаштування → Режим.' },
+        { title: 'Мої доходи', text: 'Пенсія, зарплата з авансом чи інше — у день виплати я спитаю, чи гроші прийшли. Налаштування → Мої доходи.' },
+        { title: 'Новий переказ', text: 'Картки з балансом, кнопка «поміняти місцями» і видно, як зміниться баланс. Кредит можна гасити будь-якою сумою.' },
+        { title: 'Своя розкладка', text: 'Непотрібний віджет можна прибрати, а «Тиждень» і «Місяць» тепер компактні.' },
+        { title: 'Пс-с… 🐾', text: 'Десь у Налаштуваннях ховається справжній Тимофій. Знайдеш?' },
+      ],
     },
   },
   welcome: {
     slides: [
-      { title: 'Ласкаво просимо до Amber Ledger', text: 'Задачі й гроші в одному місці. Погортай — покажемо, що тут є.' },
+      { title: 'Привіт, я Тимофій 🐾', text: 'Задачі й гроші в одному місці — а я покажу, що тут є. Гортай!' },
       { title: 'Задачі', text: 'Терміни, пріоритети, підзадачі та повтори. Довге натискання на «+» — швидке додавання.' },
       { title: 'Звички 🔥', text: 'Увімкни «Рахувати серію» у задачі, що повторюється, — вона стане карткою зі стріком угорі.' },
       { title: 'Календар', text: 'Задачі та робочі зміни по днях — і вся історія: що зробив і скільки витратив будь-якого дня.' },
@@ -1893,7 +2091,7 @@ const uk: Translation = {
     streakHint: 'Задача стане звичкою з вогником 🔥 угорі екрана задач',
   },
   habits: { doneToday: 'Зроблено', markDone: 'Позначити', next: (day) => `Далі: ${day}` },
-  calendarScreen: { header: 'Календар', emptyDay: 'Цього дня нічого немає', doneSection: 'Виконано', addedSection: 'Додано' },
+  calendarScreen: { header: 'Календар', emptyDay: 'Цього дня нічого немає', doneSection: 'Виконано', addedSection: 'Додано', viewGrid: 'Віджети', viewWeek: 'Тиждень', dayBlock: 'Обраний день', monthBlock: 'Місяць' },
   auth: {
     title: 'Підтверди, що це ти',
     passwordLabel: 'Пароль профілю',
@@ -1965,6 +2163,11 @@ const uk: Translation = {
     welcomeText: 'Якщо Amber Ledger уже стоїть на іншому телефоні — перенеси задачі, фінанси й профіль за QR-кодом. Обидва телефони мають бути в одній Wi-Fi мережі.',
     welcomeYes: 'Так, перенести',
     welcomeNo: 'Ні, почати з нуля',
+    desktopWelcomeTitle: 'Вже користуєшся Amber Ledger на телефоні?',
+    desktopWelcomeText: 'Можна перенести таски, фінанси й профіль з телефона — або почати з нуля.',
+    desktopSoonTitle: 'Синхронізація з телефоном — скоро',
+    desktopSoonText: 'У версії для ПК можна буде перенести й синхронізувати дані з телефоном за QR-кодом: через Wi‑Fi або кабель. У браузері це поки неможливо — почни з нового профілю.',
+    desktopSoonBack: 'Назад',
   },
   financeScreen: {
     header: 'Фінанси',
@@ -2296,6 +2499,7 @@ const uk: Translation = {
     focus: 'У ФОКУСІ',
     done: 'Готово',
     next: 'Далі',
+    onlyFocus: 'Решту зроблено — лишилась тільки задача у фокусі.',
     expenses: 'Витрати',
     styleLabel: 'Стиль теми',
   },
@@ -2507,6 +2711,8 @@ const uk: Translation = {
     colorTitle: 'Свій колір', colorHint: 'Тицяй по колу — відтінок і насиченість, повзунок — яскравість.', colorApply: 'Застосувати',
   },
   bank: {
+    notifyTitle: 'Нова операція — додати?',
+    channelName: 'Операції банку',
     accessTitle: 'Операції з IKO',
     accessHint: 'Дозволь доступ до сповіщень — Amber Ledger ловитиме оплати з IKO й питатиме, чи їх записати.',
     accessButton: 'Дати доступ',
@@ -2637,6 +2843,88 @@ const uk: Translation = {
     },
   },
   quickAdd: { voice: 'Сказати голосом', voiceLanguage: 'Мова голосового вводу', voiceAppLanguage: 'Як у застосунку' },
+  uiMode: {
+    question: 'Як тобі зручніше?',
+    hint: 'Це можна змінити будь-коли в Налаштуваннях.',
+    simple: 'Простий',
+    simpleDesc: 'Справи, гроші й календар — без зайвого. Більший текст, зрозумілі кнопки.',
+    advanced: 'Розширений',
+    advancedDesc: 'Усе: віджети, теми, звички, ліміти, звіти, валюти, Тимофій-помічник.',
+    recommended: 'Радимо',
+    settingsTitle: 'Режим',
+    bigText: 'Великий текст',
+    on: 'Увімкнено',
+    off: 'Вимкнено',
+    removeTitle: 'Прибрати з екрана?',
+    removeText: 'Повернути можна кнопкою ⋮ угорі екрана.',
+    remove: 'Прибрати',
+    cancel: 'Скасувати',
+    expense: 'Витрата',
+    income: 'Дохід',
+    addTask: 'Додати справу',
+    incomeTitle: 'Отримали гроші',
+    incomeSave: 'Записати',
+    today: 'Сьогодні',
+    tomorrow: 'Завтра',
+    later: 'Пізніше',
+    noDate: 'Без дати',
+    done: 'зроблено',
+    overdue: (w) => `прострочено · ${w}`,
+    emptyTasks: 'Натисни «Додати справу» внизу.',
+    tabTasks: 'Справи',
+    tabMoney: 'Гроші',
+    onCard: 'На картці',
+    spentMonth: (a) => `Витрачено цього місяця: ${a}`,
+    settingsHint: 'Потрібні звички, ліміти, валюти чи свій вигляд? Увімкни «Розширений» режим — нічого з твоїх записів не загубиться.',
+  },
+  incomes: {
+    title: 'Мої доходи',
+    hint: 'У день виплати застосунок спитає, чи гроші прийшли, і запише їх на вибрану картку чи в готівку.',
+    empty: 'Поки немає доходів. Додай пенсію, зарплату чи інше.',
+    add: 'Додати дохід',
+    which: 'Який дохід?',
+    kinds: {
+      pension: { title: 'Пенсія', desc: 'однакова сума щомісяця' },
+      fixed: { title: 'Зарплата', desc: 'фіксована, можна з авансом' },
+      hourly: { title: 'По годинах', desc: 'рахує за календарем змін' },
+      other: { title: 'Інше', desc: 'стипендія, оренда, допомога' },
+    },
+    name: 'Назва',
+    namePlaceholder: { pension: 'Моя пенсія', fixed: 'Зарплата', other: 'Стипендія' },
+    amount: (c) => `Скільки на місяць (${c})`,
+    payDay: 'Котрого числа приходить',
+    advance: 'Частину платять авансом',
+    advanceDay: 'Котрого числа аванс',
+    advanceAmount: (c) => `Сума авансу (${c})`,
+    account: 'Куди приходить',
+    save: 'Зберегти',
+    cancel: 'Скасувати',
+    remove: 'Видалити',
+    removeTitle: 'Видалити дохід?',
+    removeText: 'Вже записані надходження лишаться в історії.',
+    monthly: (d) => `щомісяця, ${d}-го`,
+    arrived: (n) => `${n} — прийшла?`,
+    expected: (a, d) => `Очікується ${a} · ${d}`,
+    advanceOf: (n) => `${n} (аванс)`,
+    yes: 'Так, прийшла',
+    soon: (n, d, a) => `${n} прийде ${d} · ≈ ${a}`,
+    hourlyHint: 'Погодинна оплата налаштовується в «Заробіток» на екрані Гроші — за календарем змін.',
+    settingsValue: (n) => (n === 0 ? 'Не додано' : `${n}`),
+  },
+  transferUi: {
+    from: 'Звідки',
+    to: 'Куди',
+    swap: 'Поміняти місцями',
+    half: 'Половину',
+    all: 'Все',
+    payment: (a) => `Платіж ${a}`,
+    wholeDebt: 'Весь борг',
+    arrives: 'Прийде',
+    debtOf: (n) => `Борг · ${n}`,
+    moreThanDebt: 'Це більше, ніж лишилось за кредитом.',
+    payLoanTitle: 'Платіж за кредитом',
+    pay: 'Сплатити',
+  },
   alarm: {
     chip: '⏰ Будильник',
     hint: 'Будильник з’явиться в застосунку «Годинник» на час таску: сьогодні — одразу, пізніше — опівночі того дня. Мелодія і «Відкласти» — як у звичайного будильника.',
@@ -2767,11 +3055,18 @@ const en: Translation = {
         { title: 'Subscriptions', text: 'Finance → menu → Subscriptions. Monthly and yearly totals, and I’ll remind you the day before a charge — with a purr.' },
         { title: 'Monthly report', text: 'Finance → menu → Monthly report: a nice image with your month’s results to share.' },
       ],
+      '1.8.0': [
+        { title: 'Simple mode', text: 'Big text, big buttons and just the essentials: tasks, calendar, money. Settings → Mode.' },
+        { title: 'My incomes', text: 'A pension, a salary with an advance or anything else — on payday I ask whether the money came. Settings → My incomes.' },
+        { title: 'New transfer', text: 'Cards with balances, a swap button, and you see how the balances change. Pay a loan off with any amount.' },
+        { title: 'Your layout', text: 'Remove a widget you don\'t need; Week and Month are compact now.' },
+        { title: 'Psst… 🐾', text: 'The real Tymofii is hiding somewhere in Settings. Can you find him?' },
+      ],
     },
   },
   welcome: {
     slides: [
-      { title: 'Welcome to Amber Ledger', text: 'Your tasks and your money in one place. Swipe through for a quick tour.' },
+      { title: "Hi, I'm Tymofii 🐾", text: 'Tasks and money in one place — and I will show you around. Swipe!' },
       { title: 'Tasks', text: 'Deadlines, priorities, subtasks and repeats. Long-press + to add one in a second.' },
       { title: 'Habits 🔥', text: 'Turn on “Count streak” for a repeating task and it becomes a streak card at the top.' },
       { title: 'Calendar', text: 'Tasks and work shifts day by day — and your whole history: what you did and spent on any day.' },
@@ -2840,7 +3135,7 @@ const en: Translation = {
     streakHint: 'The task becomes a habit with a 🔥 at the top of Tasks',
   },
   habits: { doneToday: 'Done', markDone: 'Mark done', next: (day) => `Next: ${day}` },
-  calendarScreen: { header: 'Calendar', emptyDay: 'Nothing on this day', doneSection: 'Done', addedSection: 'Added' },
+  calendarScreen: { header: 'Calendar', emptyDay: 'Nothing on this day', doneSection: 'Done', addedSection: 'Added', viewGrid: 'Widgets', viewWeek: 'Week', dayBlock: 'Selected day', monthBlock: 'Month' },
   auth: {
     title: 'Confirm it’s you',
     passwordLabel: 'Profile password',
@@ -2912,6 +3207,11 @@ const en: Translation = {
     welcomeText: 'If Amber Ledger is already on another phone, bring your tasks, finances and profile over by QR code. Both phones need to be on the same Wi-Fi.',
     welcomeYes: 'Yes, move my data',
     welcomeNo: 'No, start fresh',
+    desktopWelcomeTitle: 'Already using Amber Ledger on your phone?',
+    desktopWelcomeText: 'Bring your tasks, finances and profile over from the phone — or start fresh.',
+    desktopSoonTitle: 'Phone sync — coming soon',
+    desktopSoonText: 'The PC version will move and sync your data with the phone by QR code, over Wi‑Fi or a cable. In the browser this isn\'t possible yet — start with a new profile.',
+    desktopSoonBack: 'Back',
   },
   financeScreen: {
     header: 'Finance',
@@ -3243,6 +3543,7 @@ const en: Translation = {
     focus: 'IN FOCUS',
     done: 'Done',
     next: 'Up next',
+    onlyFocus: 'Everything else is done — only the task in focus is left.',
     expenses: 'Expenses',
     styleLabel: 'Theme style',
   },
@@ -3454,6 +3755,8 @@ const en: Translation = {
     colorTitle: 'Own colour', colorHint: 'Tap the wheel for hue and saturation, the slider for brightness.', colorApply: 'Apply',
   },
   bank: {
+    notifyTitle: 'New transaction — add it?',
+    channelName: 'Bank transactions',
     accessTitle: 'IKO transactions',
     accessHint: 'Allow notification access — Amber Ledger will catch payments from IKO and ask whether to record them.',
     accessButton: 'Allow access',
@@ -3584,6 +3887,88 @@ const en: Translation = {
     },
   },
   quickAdd: { voice: 'Say it', voiceLanguage: 'Voice input language', voiceAppLanguage: 'Same as the app' },
+  uiMode: {
+    question: 'How do you like it?',
+    hint: 'You can change this any time in Settings.',
+    simple: 'Simple',
+    simpleDesc: 'Tasks, money and a calendar — nothing extra. Bigger text, clear buttons.',
+    advanced: 'Advanced',
+    advancedDesc: 'Everything: widgets, themes, habits, limits, reports, currencies, Tymofii the helper.',
+    recommended: 'Recommended',
+    settingsTitle: 'Mode',
+    bigText: 'Big text',
+    on: 'On',
+    off: 'Off',
+    removeTitle: 'Remove from the screen?',
+    removeText: 'Bring it back with the ⋮ button at the top of the screen.',
+    remove: 'Remove',
+    cancel: 'Cancel',
+    expense: 'Expense',
+    income: 'Income',
+    addTask: 'Add a task',
+    incomeTitle: 'Money received',
+    incomeSave: 'Save',
+    today: 'Today',
+    tomorrow: 'Tomorrow',
+    later: 'Later',
+    noDate: 'No date',
+    done: 'done',
+    overdue: (w) => `overdue · ${w}`,
+    emptyTasks: 'Tap "Add a task" below.',
+    tabTasks: 'Tasks',
+    tabMoney: 'Money',
+    onCard: 'On the card',
+    spentMonth: (a) => `Spent this month: ${a}`,
+    settingsHint: 'Need habits, limits, currencies or your own look? Switch to Advanced — nothing you noted gets lost.',
+  },
+  incomes: {
+    title: 'My incomes',
+    hint: 'On payday the app asks whether the money came and records it on the card or cash you pick.',
+    empty: 'No incomes yet. Add a pension, a salary or something else.',
+    add: 'Add income',
+    which: 'What kind?',
+    kinds: {
+      pension: { title: 'Pension', desc: 'the same amount every month' },
+      fixed: { title: 'Salary', desc: 'fixed, optionally with an advance' },
+      hourly: { title: 'Hourly', desc: 'counted from your work shifts' },
+      other: { title: 'Other', desc: 'stipend, rent, benefits' },
+    },
+    name: 'Name',
+    namePlaceholder: { pension: 'My pension', fixed: 'Salary', other: 'Stipend' },
+    amount: (c) => `Amount a month (${c})`,
+    payDay: 'Day of the month it comes',
+    advance: 'Part is paid in advance',
+    advanceDay: 'Advance day',
+    advanceAmount: (c) => `Advance amount (${c})`,
+    account: 'Goes to',
+    save: 'Save',
+    cancel: 'Cancel',
+    remove: 'Delete',
+    removeTitle: 'Delete this income?',
+    removeText: 'Payments already recorded stay in the history.',
+    monthly: (d) => `monthly, on the ${d}`,
+    arrived: (n) => `${n} — did it come?`,
+    expected: (a, d) => `Expected ${a} · ${d}`,
+    advanceOf: (n) => `${n} (advance)`,
+    yes: 'Yes, it came',
+    soon: (n, d, a) => `${n} comes ${d} · ≈ ${a}`,
+    hourlyHint: 'Hourly pay is set up in "Earnings" on Finance — from the work-shift calendar.',
+    settingsValue: (n) => (n === 0 ? 'None yet' : `${n}`),
+  },
+  transferUi: {
+    from: 'From',
+    to: 'To',
+    swap: 'Swap',
+    half: 'Half',
+    all: 'All',
+    payment: (a) => `Payment ${a}`,
+    wholeDebt: 'Whole debt',
+    arrives: 'Arrives',
+    debtOf: (n) => `Debt · ${n}`,
+    moreThanDebt: 'That is more than is left on the loan.',
+    payLoanTitle: 'Loan payment',
+    pay: 'Pay',
+  },
   alarm: {
     chip: '⏰ Alarm',
     hint: 'An alarm appears in the Clock app at the task time: today — right away, later — at midnight of that day. Ringtone and snooze work like any alarm.',

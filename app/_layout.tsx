@@ -24,6 +24,10 @@ import { Onboarding } from '@/components/onboarding/Onboarding';
 import { WhatsNew } from '@/components/onboarding/WhatsNew';
 import { preloadSounds } from '@/lib/sounds';
 import { runAutoCleanup } from '@/lib/dataWipe';
+import { AlertHost } from '@/components/ui/AlertHost';
+import { installWebFixes } from '@/lib/webFixes';
+
+installWebFixes();
 
 /**
  * JS stack (not the native one) because Android's native stack has no swipe-back: here every
@@ -49,7 +53,8 @@ function RootStack() {
       <Stack
         screenOptions={{
           headerShown: false,
-          cardStyle: { backgroundColor: theme.colors.background },
+          // flex: 1 — on web the card otherwise grows with its content and the page can't scroll.
+          cardStyle: { backgroundColor: theme.colors.background, flex: 1 },
           ...TransitionPresets.SlideFromRightIOS,
           gestureEnabled: true,
           gestureDirection: 'horizontal',
@@ -72,6 +77,7 @@ function RootStack() {
       <Onboarding />
       <WhatsNew />
       <TourOverlay />
+      <AlertHost />
     </>
   );
 }

@@ -24,12 +24,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const layoutId = useSettingsStore((s) => s.settings.layoutId);
   const colorFinish = useSettingsStore((s) => s.settings.colorFinish);
   const layoutOverrides = useSettingsStore((s) => s.settings.layoutOverrides);
+  const simple = useSettingsStore((s) => s.settings.uiMode === 'simple');
+  const bigText = useSettingsStore((s) => s.settings.bigText);
   const systemScheme = useColorScheme();
 
   const theme = useMemo<AppTheme>(() => {
-    const baseDesign = DESIGNS[designId] ?? DESIGNS.amber;
+    // Simple mode: the plain default look (no gradients, glass or custom layouts), slightly larger
+    // text; "Big text" enlarges it further in either mode.
+    const chosen = DESIGNS[simple ? 'amber' : designId] ?? DESIGNS.amber;
+    const textScale = (simple ? 1.15 : 1) * (bigText ? 1.2 : 1);
+    const baseDesign = textScale === 1 ? chosen : { ...chosen, fontScale: chosen.fontScale * textScale };
     const dark = themeMode === 'dark' || (themeMode === 'system' && systemScheme === 'dark');
-    const glow = colorFinish === 'glow';
+    const glow = !simple && colorFinish === 'glow';
     // The glow finish: the design's own vivid palettes (or the matte ones made more saturated), its
     // card style (usually glass), a coloured glow and colour blobs behind the screens.
     const g = baseDesign.glow;
@@ -43,14 +49,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       dark,
       colors,
       design,
-      layout: resolveLayout(layoutId, layoutOverrides),
+      layout: simple ? resolveLayout('standard', {}) : resolveLayout(layoutId, layoutOverrides),
       finish: glow ? 'glow' : 'matte',
       glow: look.strength,
       glass: look.glass,
       backdrop: dark ? look.backdrop.dark : look.backdrop.light,
     };
-    return applyAccent(base, accentColor);
-  }, [themeMode, systemScheme, accentColor, designId, layoutId, colorFinish, layoutOverrides]);
+    return applyAccent(base, simple ? null : accentColor);
+  }, [themeMode, systemScheme, accentColor, designId, layoutId, colorFinish, layoutOverrides, simple, bigText]);
 
   const value = useMemo(() => ({ theme, availableThemes: builtInThemes }), [theme]);
 

@@ -53,8 +53,14 @@ export function TymofiiFace({ mood = 'happy', prop = null, size = 84 }: { mood?:
 }
 
 /** Is the mascot switched on (Settings → Sounds & Тимофій)? */
+/** Тимофій on cards, bubbles and sounds — off in the simple mode (it's noise there). */
 export function useMascotOn(): boolean {
-  return useSettingsStore((s) => s.settings.mascotEnabled);
+  return useSettingsStore((s) => s.settings.mascotEnabled && s.settings.uiMode !== 'simple');
+}
+
+/** The simple mode (1.8): fewer menus, no layout editing, no extras. */
+export function useSimpleMode(): boolean {
+  return useSettingsStore((s) => s.settings.uiMode === 'simple');
 }
 
 /** Тимофій with an optional speech bubble, for cards. Renders nothing when the mascot is off. */

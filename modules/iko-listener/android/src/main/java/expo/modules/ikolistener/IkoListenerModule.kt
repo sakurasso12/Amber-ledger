@@ -36,6 +36,12 @@ class IkoListenerModule : Module() {
       context.startActivity(intent)
     }
 
+    /** The app's language for our own "new transaction" notification (the service has no JS). */
+    Function("setTexts") { title: String, channel: String ->
+      context.getSharedPreferences(IkoNotificationService.TEXTS, android.content.Context.MODE_PRIVATE)
+        .edit().putString("title", title).putString("channel", channel).apply()
+    }
+
     /** Takes the queued notifications (JSON array string) and empties the queue. */
     Function("takePending") {
       IkoQueue.takeAll(context)
