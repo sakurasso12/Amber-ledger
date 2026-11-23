@@ -588,6 +588,7 @@ interface LoanRow {
   months: number;
   first_payment: string;
   paid_count: number;
+  extra_paid: number | null;
   currency: string;
   created_at: string;
 }
@@ -601,6 +602,7 @@ function rowToLoan(row: LoanRow): Loan {
     months: row.months,
     firstPayment: row.first_payment,
     paidCount: row.paid_count,
+    extraPaid: row.extra_paid ?? 0,
     currency: row.currency,
     createdAt: row.created_at,
   };
@@ -617,9 +619,9 @@ export async function saveLoan(loan: Loan): Promise<void> {
   const db = await getDb();
   await db.runAsync(
     `INSERT OR REPLACE INTO loans
-      (id, name, principal, rate_percent, months, first_payment, paid_count, currency, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [loan.id, loan.name, loan.principal, loan.ratePercent, loan.months, loan.firstPayment, loan.paidCount, loan.currency, loan.createdAt]
+      (id, name, principal, rate_percent, months, first_payment, paid_count, extra_paid, currency, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [loan.id, loan.name, loan.principal, loan.ratePercent, loan.months, loan.firstPayment, loan.paidCount, loan.extraPaid ?? 0, loan.currency, loan.createdAt]
   );
 }
 

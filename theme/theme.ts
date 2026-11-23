@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import type { Backdrop, CardStyle, ColorFinish, ColorRef, Design } from './designs';
 import type { AppLayout } from './layouts';
 import { LAYOUTS } from './layouts';
@@ -240,3 +241,13 @@ export function backdropImage(theme: AppTheme): string | null {
 }
 
 export { rgbaOf };
+
+/**
+ * A CSS gradient as a style: React Native's experimental_backgroundImage on the phone, plain
+ * background-image on web / desktop (react-native-web doesn't know the experimental name and the
+ * gradient silently vanished — no theme backgrounds on the PC).
+ */
+export function gradientStyle(css: string | null | undefined): Record<string, string> {
+  if (!css) return {};
+  return Platform.OS === 'web' ? { backgroundImage: css } : { experimental_backgroundImage: css };
+}

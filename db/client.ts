@@ -140,6 +140,14 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     }
   }
 
+  if (currentVersion < 15) {
+    // Loan payments of any amount: what was paid above/below the schedule.
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(loans)');
+    if (!columns.some((c) => c.name === 'extra_paid')) {
+      await db.execAsync('ALTER TABLE loans ADD COLUMN extra_paid REAL NOT NULL DEFAULT 0');
+    }
+  }
+
   if (currentVersion < SCHEMA_VERSION) {
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }

@@ -1,11 +1,13 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Platform, StyleSheet, Text } from 'react-native';
+import { useLayoutEditStore } from '@/store/useLayoutEditStore';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TopTabs } from 'expo-router/js-top-tabs';
 import { useTheme } from '@/theme/ThemeProvider';
 import { designTextStyle } from '@/components/ui/Text';
 import { useTaskStore } from '@/store/useTaskStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { useTranslation } from '@/i18n';
 import { Badge } from '@/components/ui';
 import { PillTabBar } from '@/components/ui/PillTabBar';
@@ -25,6 +27,8 @@ function TabIcon({ focused, color, name, outlineName }: { focused: boolean; colo
 }
 
 export default function TabsLayout() {
+  const arranging = useLayoutEditStore((s) => s.count > 0);
+  const simple = useSettingsStore((s) => s.settings.uiMode === 'simple');
   const theme = useTheme();
   const t = useTranslation();
   const insets = useSafeAreaInsets();
@@ -107,9 +111,12 @@ export default function TabsLayout() {
       style={{ backgroundColor: 'transparent' }}
       tabBar={layoutBar === 'pill' ? (props: object) => <PillTabBar {...(props as React.ComponentProps<typeof PillTabBar>)} /> : undefined}
       screenOptions={{
-        swipeEnabled: true,
+        // Swiping between tabs: fingers only (a mouse drag on the PC is for widgets and text), and
+        // never while widgets are being arranged.
+        swipeEnabled: Platform.OS !== 'web' && !arranging,
         tabBarShowIcon: barStyle !== 'underline',
-        tabBarShowLabel: barStyle !== 'floating',
+        // Simple mode: always words under the icons.
+        tabBarShowLabel: simple || barStyle !== 'floating',
         tabBarActiveTintColor: barStyle === 'underline' ? colors.text : colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarIndicatorStyle: indicatorByStyle[barStyle],
@@ -122,13 +129,13 @@ export default function TabsLayout() {
         ),
         tabBarItemStyle: barStyle === 'floating' ? styles.floatingItem : styles.item,
         tabBarStyle: barByStyle[barStyle],
-        sceneStyle: { backgroundColor: 'transparent' },
+        sceneStyle: { backgroundColor: 'transparent', flex: 1 },
       }}
     >
       <TopTabs.Screen
         name="index"
         options={{
-          title: t.tabs.tasks,
+          title: simple ? t.uiMode.tabTasks : t.tabs.tasks,
           tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
             <TabIcon focused={focused} color={color} name="list" outlineName="list-outline" />
           ),
@@ -147,21 +154,25 @@ export default function TabsLayout() {
       <TopTabs.Screen
         name="finance"
         options={{
-          title: t.tabs.finance,
+          title: simple ? t.uiMode.tabMoney : t.tabs.finance,
           tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
             <TabIcon focused={focused} color={color} name="wallet" outlineName="wallet-outline" />
           ),
         }}
       />
-      <TopTabs.Screen
-        name="stats"
-        options={{
-          title: t.tabs.stats,
-          tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
-            <TabIcon focused={focused} color={color} name="stats-chart" outlineName="stats-chart-outline" />
-          ),
-        }}
-      />
+      {/* Simple mode: four tabs — Tasks, Calendar, Money, Settings (as in the mock-up). Protected
+          takes Stats out of the pager too, so swiping never lands on it. */}
+      <TopTabs.Protected guard={!simple}>
+        <TopTabs.Screen
+          name="stats"
+          options={{
+            title: t.tabs.stats,
+            tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
+              <TabIcon focused={focused} color={color} name="stats-chart" outlineName="stats-chart-outline" />
+            ),
+          }}
+        />
+      </TopTabs.Protected>
       <TopTabs.Screen
         name="settings"
         options={{

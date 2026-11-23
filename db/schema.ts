@@ -1,7 +1,7 @@
 export const DB_NAME = 'amber-ledger.db';
 
 /** Current schema version. Bump this and append a migration when the schema changes. */
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 
 export const CREATE_TABLES_SQL = `
 PRAGMA journal_mode = WAL;
@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS loans (
   months INTEGER NOT NULL,
   first_payment TEXT NOT NULL,
   paid_count INTEGER NOT NULL DEFAULT 0,
+  extra_paid REAL NOT NULL DEFAULT 0,
   currency TEXT NOT NULL,
   created_at TEXT NOT NULL
 );

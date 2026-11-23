@@ -20,6 +20,9 @@ import { useTranslation } from '@/i18n';
 import { Account, AccountKind } from '@/types';
 import { AccountPicker, NO_ACCOUNT_ID, useAccountOptions } from './AccountPicker';
 import { MoneyDialog } from './MoneyDialog';
+import { TransferDialog } from './TransferDialog';
+
+export { TransferDialog };
 import { BAR_HEIGHT, FILL, Wave } from './Wave';
 import { fmtAmount, amountDraft } from '@/lib/money';
 
@@ -384,80 +387,6 @@ export function AccountFormDialog({
       <View style={styles.buttons}>
         <Button title={tr.accounts.cancel} variant="secondary" onPress={onClose} style={styles.flex} />
         <Button title={account ? tr.accounts.save : tr.accounts.create} onPress={save} style={styles.flex} />
-      </View>
-    </MoneyDialog>
-  );
-}
-
-/**
- * Money from one card or wallet to another; asks what arrived when the currencies differ. With
- * `fixedTo` (a goal) only the source is picked — or "just count it", taking nothing off a card.
- */
-export function TransferDialog({
-  visible,
-  onClose,
-  initialFrom,
-  initialTo,
-  fixedTo,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  initialFrom: string;
-  initialTo: string;
-  fixedTo?: Account;
-}) {
-  const tr = useTranslation();
-  const addTransfer = useFinanceStore((s) => s.addTransfer);
-  const options = useAccountOptions();
-  const [fromId, setFromId] = useState(initialFrom);
-  const [toId, setToId] = useState(initialTo);
-  const [amount, setAmount] = useState('');
-  const [received, setReceived] = useState('');
-
-  const [wasVisible, setWasVisible] = useState(visible);
-  if (visible !== wasVisible) {
-    setWasVisible(visible);
-    if (visible) {
-      setFromId(initialFrom);
-      setToId(initialTo);
-      setAmount('');
-      setReceived('');
-    }
-  }
-
-  const to = fixedTo ? { id: fixedTo.id, currency: fixedTo.currency } : options.find((o) => o.id === toId);
-  const counterOnly = fromId === NO_ACCOUNT_ID;
-  const from = counterOnly ? to : options.find((o) => o.id === fromId);
-  const sameCurrency = !from || !to || from.currency === to.currency;
-  const noneOption = fixedTo ? [{ id: NO_ACCOUNT_ID, label: tr.accounts.noSource, currency: fixedTo.currency }] : [];
-
-  async function save() {
-    const sent = parseAmount(amount);
-    const got = sameCurrency ? sent : parseAmount(received);
-    const target = to?.id ?? toId;
-    if (!(sent > 0) || !(got > 0) || fromId === target) return;
-    await addTransfer({ fromId, toId: target, amount: sent, amountTo: got, date: todayKey() });
-    haptics.success();
-    onClose();
-  }
-
-  return (
-    <MoneyDialog visible={visible} onClose={onClose} title={fixedTo ? tr.accounts.putAside : tr.accounts.transfer}>
-      <AccountPicker label={tr.accounts.transferFrom} value={fromId} onChange={setFromId} extra={noneOption} />
-      {fixedTo ? null : <AccountPicker label={tr.accounts.transferTo} value={toId} onChange={setToId} exclude={[fromId]} />}
-      <TextField label={tr.accounts.amountSent(from?.currency ?? '')} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0" />
-      {sameCurrency ? null : (
-        <TextField
-          label={tr.accounts.amountReceived(to?.currency ?? '')}
-          value={received}
-          onChangeText={setReceived}
-          keyboardType="decimal-pad"
-          placeholder="0"
-        />
-      )}
-      <View style={styles.buttons}>
-        <Button title={tr.accounts.cancel} variant="secondary" onPress={onClose} style={styles.flex} />
-        <Button title={fixedTo ? tr.accounts.putAside : tr.accounts.transfer} onPress={save} style={styles.flex} />
       </View>
     </MoneyDialog>
   );

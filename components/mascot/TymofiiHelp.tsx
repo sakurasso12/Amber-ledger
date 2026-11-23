@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/Text';
@@ -114,7 +115,7 @@ export function TymofiiHelpButton({ screen }: { screen: HelpScreen }) {
                   key={t.title}
                   onPress={() => setExpanded(isOpen ? null : i)}
                   style={[styles.item, { backgroundColor: theme.colors.surfaceAlt, borderColor: isOpen ? theme.colors.primary : theme.colors.border }]}
-                  accessibilityRole="button"
+                  accessibilityRole={Platform.OS === 'web' ? undefined : 'button'}
                   accessibilityState={{ expanded: isOpen }}
                 >
                   <View style={styles.itemHead}>
@@ -142,7 +143,8 @@ export function TymofiiHelpButton({ screen }: { screen: HelpScreen }) {
 const styles = StyleSheet.create({
   button: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet: { maxHeight: '78%', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, paddingHorizontal: 16, paddingTop: 14, gap: 10 },
+  // On a PC the sheet stays a readable width instead of spanning the whole screen.
+  sheet: { width: '100%', maxWidth: Platform.OS === 'web' ? 620 : undefined, alignSelf: 'center', maxHeight: '78%', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, paddingHorizontal: 16, paddingTop: 14, gap: 10 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   headText: { flex: 1, gap: 2 },
   title: { fontSize: 18, fontWeight: '800' },

@@ -175,7 +175,7 @@ describe('until payday', () => {
   });
 
   it('counts future-dated expenses, upcoming payments, loan payments and the rest of budgets', () => {
-    const loan: Loan = { id: 'l1', name: 'Phone', principal: 1200, ratePercent: 0, months: 12, firstPayment: '2026-09-15', paidCount: 1, currency: 'zł', createdAt: '' };
+    const loan: Loan = { id: 'l1', name: 'Phone', principal: 1200, ratePercent: 0, months: 12, firstPayment: '2026-09-15', paidCount: 1, extraPaid: 0, currency: 'zł', createdAt: '' };
     const food: Category = { id: 'cat-food', name: 'Food', color: '#000', isDefault: true, sortOrder: 0, limitMonth: 800 };
     const items = committedUntil({
       accountId: P,
@@ -240,7 +240,7 @@ describe('awaiting answer', () => {
   const now = new Date('2026-10-20T12:00:00');
 
   it('lists payments whose day came, loans due, and hides snoozed ones', () => {
-    const loan: Loan = { id: 'l1', name: 'Phone', principal: 1200, ratePercent: 0, months: 12, firstPayment: '2026-10-15', paidCount: 0, currency: 'zł', createdAt: '' };
+    const loan: Loan = { id: 'l1', name: 'Phone', principal: 1200, ratePercent: 0, months: 12, firstPayment: '2026-10-15', paidCount: 0, extraPaid: 0, currency: 'zł', createdAt: '' };
     const items = pendingItems({
       salaryDue: null,
       upcoming: [upcoming({ date: '2026-10-19' }), upcoming({ id: 'later', date: '2026-10-25' }), upcoming({ id: 'm', mode: 'month', date: '2026-09-01' })],

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,10 +19,13 @@ import { ReceivePanel } from '@/screens/settings/TransferScreen';
 import { transferAvailable } from '@/lib/transfer';
 import { APP_VERSION } from './WhatsNew';
 
-type Step = 'transfer' | 'receive' | 'language' | 'profile' | 'tour';
+type Step = 'transfer' | 'receive' | 'language' | 'mode' | 'profile' | 'tour';
 /** The steps with dots; 'transfer' (and its scanner) comes before them when moving is possible. */
-const STEPS: Step[] = ['language', 'profile', 'tour'];
-const FIRST: Step = transferAvailable ? 'transfer' : 'language';
+const STEPS: Step[] = ['language', 'mode', 'profile', 'tour'];
+// Web / desktop (2.0) asks too: sync with the phone is coming there, so the choice is shown with a
+// "coming soon" note instead of silently skipping it.
+const SHOW_TRANSFER = transferAvailable || Platform.OS === 'web';
+const FIRST: Step = SHOW_TRANSFER ? 'transfer' : 'language';
 
 /** The phone's own language — the first question comes before a language is picked. */
 function deviceLanguage(): AppLanguage {
@@ -107,6 +111,9 @@ export function Onboarding() {
         <Animated.View
           style={[
             styles.flex,
+            // On a PC screen the steps keep a phone-like column instead of stretching edge to edge
+            // (the tour's cards still slide across the full width).
+            Platform.OS === 'web' && !isTour ? styles.desktopColumn : null,
             {
               opacity: enter,
               transform: [{ translateX: enter.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
@@ -115,9 +122,11 @@ export function Onboarding() {
         >
           {step === 'transfer' ? <TransferStep onYes={() => go('receive')} onNo={() => go('language')} /> : null}
           {/* Moved over: the data came with its language, profile and settings — straight in. */}
-          {step === 'receive' ? <ReceivePanel onDone={() => router.navigate('/')} /> : null}
-          {step === 'language' ? <LanguageStep onNext={() => go('profile')} /> : null}
-          {step === 'profile' ? <ProfileStep onBack={() => go('language')} onNext={() => go('tour')} /> : null}
+          {step === 'receive' && transferAvailable ? <ReceivePanel onDone={() => router.navigate('/')} /> : null}
+          {step === 'receive' && !transferAvailable ? <DesktopSyncSoon onBack={() => go('transfer')} /> : null}
+          {step === 'language' ? <LanguageStep onNext={() => go('mode')} /> : null}
+          {step === 'mode' ? <ModeStep onNext={() => go('profile')} /> : null}
+          {step === 'profile' ? <ProfileStep onBack={() => go('mode')} onNext={() => go('tour')} /> : null}
           {isTour ? <TourCards backRef={tourBack} onFinish={finish} /> : null}
         </Animated.View>
 
@@ -141,17 +150,38 @@ function StepDots({ step }: { step: number }) {
   );
 }
 
-function TransferStep({ onYes, onNo }: { onYes: () => void; onNo: () => void }) {
+/** Web / desktop: phone sync isn't built yet — say so and go back to the choice. */
+function DesktopSyncSoon({ onBack }: { onBack: () => void }) {
   const theme = useTheme();
   const tr = useTranslation();
   return (
     <View style={styles.step}>
       <View style={styles.header}>
         <View style={[styles.iconCircle, { backgroundColor: `${theme.colors.primary}22` }]}>
-          <Ionicons name="phone-portrait-outline" size={38} color={theme.colors.primary} />
+          <Ionicons name="sync-outline" size={38} color={theme.colors.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.colors.text }]}>{tr.transfer.welcomeTitle}</Text>
-        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{tr.transfer.welcomeText}</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>{tr.transfer.desktopSoonTitle}</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{tr.transfer.desktopSoonText}</Text>
+      </View>
+      <View style={styles.transferButtons}>
+        <Button title={tr.transfer.desktopSoonBack} variant="secondary" onPress={onBack} />
+      </View>
+    </View>
+  );
+}
+
+function TransferStep({ onYes, onNo }: { onYes: () => void; onNo: () => void }) {
+  const theme = useTheme();
+  const tr = useTranslation();
+  const web = Platform.OS === 'web';
+  return (
+    <View style={styles.step}>
+      <View style={styles.header}>
+        <View style={[styles.iconCircle, { backgroundColor: `${theme.colors.primary}22` }]}>
+          <Ionicons name={web ? 'sync-outline' : 'phone-portrait-outline'} size={38} color={theme.colors.primary} />
+        </View>
+        <Text style={[styles.title, { color: theme.colors.text }]}>{web ? tr.transfer.desktopWelcomeTitle : tr.transfer.welcomeTitle}</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{web ? tr.transfer.desktopWelcomeText : tr.transfer.welcomeText}</Text>
       </View>
       <View style={styles.transferButtons}>
         <Button title={tr.transfer.welcomeYes} onPress={onYes} />
@@ -207,6 +237,59 @@ function LanguageStep({ onNext }: { onNext: () => void }) {
         })}
       </View>
 
+      <View style={styles.flex} />
+      <Button title={tr.onboarding.continue} onPress={onNext} />
+    </View>
+  );
+}
+
+/** 1.8: simple (the default — calm look, bigger text, fewer menus) or advanced (everything). */
+function ModeStep({ onNext }: { onNext: () => void }) {
+  const theme = useTheme();
+  const tr = useTranslation();
+  const t = tr.uiMode;
+  const mode = useSettingsStore((s) => s.settings.uiMode);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const options = [
+    { value: 'simple' as const, title: t.simple, desc: t.simpleDesc, badge: t.recommended },
+    { value: 'advanced' as const, title: t.advanced, desc: t.advancedDesc, badge: null },
+  ];
+  return (
+    <View style={styles.step}>
+      <View style={styles.header}>
+        <View style={[styles.iconCircle, { backgroundColor: `${theme.colors.primary}22` }]}>
+          <Ionicons name="options-outline" size={38} color={theme.colors.primary} />
+        </View>
+        <Text style={[styles.title, { color: theme.colors.text }]}>{t.question}</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{t.hint}</Text>
+      </View>
+      <View style={styles.options}>
+        {options.map((o) => {
+          const selected = mode === o.value;
+          return (
+            <PressableScale
+              key={o.value}
+              scaleTo={0.97}
+              onPress={() => {
+                haptics.tap();
+                updateSettings({ uiMode: o.value });
+              }}
+              style={[styles.option, styles.modeOption, cardSurface(theme), selected && { borderColor: theme.colors.primary, borderWidth: 2 }]}
+            >
+              <Ionicons
+                name={selected ? 'radio-button-on' : 'radio-button-off'}
+                size={24}
+                color={selected ? theme.colors.primary : theme.colors.textMuted}
+              />
+              <View style={styles.flex}>
+                {o.badge ? <Text style={[styles.modeBadge, { color: theme.colors.primary }]}>{o.badge}</Text> : null}
+                <Text style={[styles.optionLabel, { color: theme.colors.text }]}>{o.title}</Text>
+                <Text style={[styles.modeDesc, { color: theme.colors.textMuted }]}>{o.desc}</Text>
+              </View>
+            </PressableScale>
+          );
+        })}
+      </View>
       <View style={styles.flex} />
       <Button title={tr.onboarding.continue} onPress={onNext} />
     </View>
@@ -303,6 +386,10 @@ const styles = StyleSheet.create({
   transferButtons: { gap: 10, marginTop: 'auto' },
   flex: { flex: 1 },
   root: { flex: 1 },
+  modeOption: { alignItems: 'flex-start' },
+  modeBadge: { fontSize: 12, fontWeight: '800', marginBottom: 2 },
+  modeDesc: { fontSize: 14, lineHeight: 20, marginTop: 4 },
+  desktopColumn: { width: '100%', maxWidth: 560, alignSelf: 'center' },
   step: { flex: 1, paddingHorizontal: 24, gap: 24 },
   header: { alignItems: 'center', gap: 10, paddingTop: 24 },
   iconCircle: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },

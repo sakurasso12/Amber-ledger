@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addMonths, endOfMonth, isAfter, startOfMonth } from 'date-fns';
 import { captureRef } from 'react-native-view-shot';
@@ -69,6 +70,15 @@ export function ReportScreen() {
     if (!cardRef.current || busy) return;
     setBusy(true);
     try {
+      if (Platform.OS === 'web') {
+        // Web / desktop: no share sheet — the picture is downloaded as a PNG instead.
+        const dataUrl = await captureRef(cardRef, { format: 'png', quality: 1, result: 'data-uri' });
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `amber-ledger-${title.replace(/[^\p{L}\p{N}]+/gu, '-')}.png`;
+        link.click();
+        return;
+      }
       const uri = await captureRef(cardRef, { format: 'png', quality: 1, result: 'tmpfile' });
       if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: tr.report.title });
     } catch (e) {

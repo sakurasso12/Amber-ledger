@@ -25,3 +25,5 @@ export * from './EditLayoutButton';
 export * from './HiddenModules';
 export * from './AuthPrompt';
 export * from './EraseCountdown';
+export * from './GridBoard';
+export * from './BigActions';

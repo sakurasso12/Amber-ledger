@@ -91,6 +91,9 @@ export interface Loan {
   firstPayment: string;
   /** Payments already made ("Paid" pressed). */
   paidCount: number;
+  /** Paid above (+) or below (−) the schedule in total — when a payment wasn't exactly the monthly
+   * amount. Lowers (or raises) what's still owed; 0 for loans paid only "by the book". */
+  extraPaid: number;
   currency: string;
   createdAt: string;
 }

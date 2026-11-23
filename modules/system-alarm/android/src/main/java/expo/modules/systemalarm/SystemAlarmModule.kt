@@ -57,6 +57,7 @@ class SystemAlarmModule : Module() {
           minute = (m["minute"] as? Number)?.toInt() ?: 0,
           label = m["label"] as? String ?: "",
           hint = m["hint"] as? String ?: "",
+          days = (m["days"] as? List<*>)?.mapNotNull { (it as? Number)?.toInt() } ?: emptyList(),
         )
       }
       AlarmQueue.replace(ctx, parsed, appContext.currentActivity)

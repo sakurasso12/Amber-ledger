@@ -1,5 +1,5 @@
 import * as Crypto from 'expo-crypto';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from './secureStore';
 
 /**
  * The profile password is never stored. What is stored is a salted SHA-256 of it, and that lives in

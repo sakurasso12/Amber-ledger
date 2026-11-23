@@ -1,5 +1,6 @@
 import React from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform } from 'react-native';
 import { TymofiiFace, useMascotOn } from '@/components/mascot/Tymofii';
 import { Text } from '@/components/ui/Text';
 import { useRouter } from 'expo-router';
@@ -18,6 +19,8 @@ interface Row {
   route: string;
   /** Opens outside the app (Telegram) instead of a settings screen. */
   url?: string;
+  /** Does something right here instead of opening a screen (mode, big text). */
+  onPress?: () => void;
 }
 
 const CHANNEL_URL = 'https://t.me/amberledger';
@@ -31,6 +34,7 @@ export function SettingsScreen() {
   const mascot = useMascotOn();
   const insets = useSafeAreaInsets();
   const settings = useSettingsStore((s) => s.settings);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
 
   const languageLabels: Record<string, string> = {
     ru: tr.settingsScreen.languageRu,
@@ -43,7 +47,26 @@ export function SettingsScreen() {
     system: tr.settingsScreen.themeSystem,
   };
 
-  const rows: Row[] = [
+  const allRows: Row[] = [
+    // 1.8: simple / advanced and big text — first, so they're easy to find.
+    {
+      icon: '🧭',
+      title: tr.uiMode.settingsTitle,
+      value: settings.uiMode === 'simple' ? tr.uiMode.simple : tr.uiMode.advanced,
+      route: 'ui-mode',
+      onPress: () =>
+        Alert.alert(tr.uiMode.question, tr.uiMode.hint, [
+          { text: tr.uiMode.simple, onPress: () => updateSettings({ uiMode: 'simple' }) },
+          { text: tr.uiMode.advanced, onPress: () => updateSettings({ uiMode: 'advanced' }) },
+        ]),
+    },
+    {
+      icon: '🔠',
+      title: tr.uiMode.bigText,
+      value: settings.bigText ? tr.uiMode.on : tr.uiMode.off,
+      route: 'big-text',
+      onPress: () => updateSettings({ bigText: !settings.bigText }),
+    },
     {
       icon: '👤',
       title: tr.profileSettings.title,
@@ -68,7 +91,9 @@ export function SettingsScreen() {
     //   value: settings.budgetLimitWeek || settings.budgetLimitMonth ? tr.settingsScreen.limitsSet : tr.settingsScreen.notSet,
     //   route: '/settings/budget',
     // },
-    { icon: '🎨', title: tr.settingsScreen.theme, value: `${tr.designs[settings.designId]} · ${themeLabels[settings.themeMode]}`, route: '/settings/theme' },
+    // 1.8: pensions, fixed salary and other regular incomes.
+    { icon: '💰', title: tr.incomes.title, value: tr.incomes.settingsValue((settings.incomeSources ?? []).length), route: '/settings/incomes' },
+    { icon: '🎨', title: tr.settingsScreen.theme, value: settings.uiMode === 'simple' ? themeLabels[settings.themeMode] : `${tr.designs[settings.designId]} · ${themeLabels[settings.themeMode]}`, route: '/settings/theme' },
     { icon: '🌐', title: tr.settingsScreen.language, value: languageLabels[settings.language], route: '/settings/language' },
     {
       icon: '🔔',
@@ -85,9 +110,15 @@ export function SettingsScreen() {
     { icon: '💬', title: tr.settingsScreen.support, value: tr.settingsScreen.supportValue, route: 'support', url: supportUrl() },
     { icon: '📣', title: tr.settingsScreen.channel, value: '@amberledger', route: 'channel', url: CHANNEL_URL },
   ];
+  // Web / desktop (2.0): no home screen widgets there, and reminders need the desktop app
+  // (notifications come with the Tauri build) — those rows stay phone-only for now.
+  const platformRows = Platform.OS === 'web' ? allRows.filter((r) => r.route !== '/settings/home-widget' && r.route !== '/settings/notifications') : allRows;
+  // Simple mode: just the six from the mock-up.
+  const SIMPLE_ROUTES = ['ui-mode', 'big-text', '/settings/incomes', '/settings/notifications', '/settings/language', '/settings/security'];
+  const rows = settings.uiMode === 'simple' ? platformRows.filter((r) => SIMPLE_ROUTES.includes(r.route)) : platformRows;
 
   const mode = theme.layout.settings;
-  const open = (row: Row) => (row.url ? Linking.openURL(row.url) : router.push(row.route as never));
+  const open = (row: Row) => (row.onPress ? row.onPress() : row.url ? Linking.openURL(row.url) : router.push(row.route as never));
 
   let body: React.ReactNode;
   if (mode === 'big') {
@@ -130,16 +161,22 @@ export function SettingsScreen() {
     <LayoutScreen title={tr.settingsScreen.header} help="settings">
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>
         {body}
+        {settings.uiMode === 'simple' ? (
+          <Text style={[styles.simpleHint, { color: theme.colors.textMuted }]}>{tr.uiMode.settingsHint}</Text>
+        ) : null}
         {/* Easter egg: Тимофій peeks out at the very bottom — tap to meet the real cat. */}
         {mascot ? (
-          <Pressable onPress={() => router.push('/tymofii' as never)} style={styles.peek} accessibilityRole="button" accessibilityLabel={tr.realTymofii.header}>
-            <View style={[styles.psst, { backgroundColor: theme.colors.surfaceAlt, borderColor: theme.colors.border }]}>
-              <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }}>psst… мрр</Text>
-            </View>
-            <View style={styles.peekCat}>
-              <TymofiiFace mood="wink" size={74} />
-            </View>
-          </Pressable>
+          // Only the cat (and his "psst") is tappable — not the empty strip across the screen.
+          <View style={styles.peek}>
+            <Pressable onPress={() => router.push('/tymofii' as never)} style={styles.peekTap} accessibilityRole="button" accessibilityLabel={tr.realTymofii.header}>
+              <View style={[styles.psst, { backgroundColor: theme.colors.surfaceAlt, borderColor: theme.colors.border }]}>
+                <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }}>psst… мрр</Text>
+              </View>
+              <View style={styles.peekCat}>
+                <TymofiiFace mood="wink" size={74} />
+              </View>
+            </Pressable>
+          </View>
         ) : null}
       </ScrollView>
     </LayoutScreen>
@@ -147,7 +184,9 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  peek: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 18, marginRight: -18 },
+  simpleHint: { fontSize: 15, lineHeight: 22, marginTop: 14, paddingHorizontal: 4 },
+  peek: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 18, marginRight: -18 },
+  peekTap: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   psst: { borderWidth: 1, borderRadius: 12, borderBottomRightRadius: 4, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 30 },
   peekCat: { transform: [{ rotate: '-18deg' }] },
   flex: { flex: 1, gap: 2 },

@@ -5,6 +5,7 @@
 import IkoListener from '@/modules/iko-listener/src/IkoListenerModule';
 import type { RawIkoNotification } from '@/modules/iko-listener/src/IkoListener.types';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { getTranslation } from '@/i18n';
 import { BankTx, checkAgainstBalance, parseIko } from './iko';
 
 /** Set by the "personal" EAS profile; false in every public build. */
@@ -35,6 +36,13 @@ export function openBankAccessSettings(): void {
 /** Moves new notifications into the pending queue. Returns how many were added. */
 export function pullBankTransactions(): number {
   if (!bankAvailable()) return 0;
+  // Keep our "new transaction" notification in the app's language.
+  try {
+    const t = getTranslation().bank;
+    IkoListener!.setTexts(t.notifyTitle, t.channelName);
+  } catch {
+    // an older native build without setTexts: the English default stays
+  }
   let raw: RawIkoNotification[] = [];
   try {
     raw = JSON.parse(IkoListener!.takePending());

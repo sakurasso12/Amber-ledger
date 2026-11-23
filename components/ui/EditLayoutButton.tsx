@@ -2,6 +2,7 @@ import React from 'react';
 import { useHelpTarget } from '@/components/mascot/useHelpTarget';
 import { Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { useTheme } from '@/theme/ThemeProvider';
 import { haptics } from '@/lib/haptics';
 import { useTranslation } from '@/i18n';
@@ -11,6 +12,9 @@ export function EditLayoutButton({ editing, onToggle, disabled = false, helpId }
   const theme = useTheme();
   const helpRef = useHelpTarget(helpId);
   const tr = useTranslation();
+  // Simple mode: the layout stays as it is — no pencil.
+  const simple = useSettingsStore((s) => s.settings.uiMode === 'simple');
+  if (simple && !editing) return null;
   return (
     <Pressable
       ref={helpRef}

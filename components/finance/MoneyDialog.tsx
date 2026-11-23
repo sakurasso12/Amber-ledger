@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useKeyboardHeight } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -36,7 +37,8 @@ export function MoneyDialog({ visible, onClose, title, hint, children }: MoneyDi
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  dialog: { width: '100%', maxWidth: 340, maxHeight: '85%', borderRadius: 18, borderWidth: 1 },
+  // A bit roomier on a PC screen (web / desktop) than on a phone.
+  dialog: { width: '100%', maxWidth: Platform.OS === 'web' ? 440 : 340, maxHeight: '85%', borderRadius: 18, borderWidth: 1 },
   content: { padding: 18, gap: 12 },
   title: { fontSize: 16, fontWeight: '700' },
   hint: { fontSize: 12, lineHeight: 17, marginTop: -6 },

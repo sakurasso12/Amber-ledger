@@ -11,6 +11,8 @@ export interface SystemAlarmItem {
   label: string;
   /** Text of the "tap to set" notification used when the Clock can't be opened from background. */
   hint: string;
+  /** Repeating alarm on these days (Calendar: 1 = Sunday … 7 = Saturday); set once, the Clock repeats it. */
+  days?: number[];
 }
 
 declare class SystemAlarmModule extends NativeModule<{}> {

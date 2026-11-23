@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, AppState, Pressable, StyleSheet, View, ScrollView, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { addMonths, endOfMonth, startOfMonth } from 'date-fns';
@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useFinanceStore, usePrimaryAccount, useSpendingExpenses } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { BoardModule, CustomizableCard, EditLayoutButton, EmptyState, Fab, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, ProgressBar, QuickAddBar, useHiddenBoardItems } from '@/components/ui';
+import { CustomizableCard, EditLayoutButton, EmptyState, Fab, GridBoard, GridModule, MIN_HALF, MIN_WIDE, HiddenModulesButton, LayoutScreen, ModuleSize, ProgressBar, QuickAddBar, useHiddenBoardItems } from '@/components/ui';
 import { LayoutScrollContext } from '@/components/ui/LayoutEditing';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { BalanceCard } from '@/components/finance/BalanceCard';
@@ -33,16 +33,22 @@ import { MAX_LOANS } from '@/lib/loans';
 import { MoneyDialog } from '@/components/finance/MoneyDialog';
 import { AccountPicker } from '@/components/finance/AccountPicker';
 import { Button, Chip } from '@/components/ui';
+import { dueIncomes, upcomingIncomes } from '@/lib/incomes';
 import { accountName, expenseCurrency, isSpendable, MAX_CARDS, MAX_GOALS, MAX_STASHES, primaryId as primaryIdOf } from '@/lib/accounts';
 import { AccountKind, Expense } from '@/types';
 import { fmtAmount } from '@/lib/money';
+import { GridCellContext } from '@/components/ui/GridCell';
+import { BigActions } from '@/components/ui/BigActions';
+import { TextField } from '@/components/ui/TextField';
+import { haptics } from '@/lib/haptics';
 
 export function FinanceScreen() {
   const theme = useTheme();
+  const simpleMode = useSettingsStore((st) => st.settings.uiMode === 'simple');
   const tr = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const scrollRef = useAnimatedRef<Animated.FlatList<Expense>>();
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const settings = useSettingsStore((s) => s.settings);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const expenses = useFinanceStore((s) => s.expenses);
@@ -116,8 +122,19 @@ export function FinanceScreen() {
     return { accountId: bankPid, bank, app: appCardBalance };
   }, [settings.bankLastBalance, settings.bankBalanceDismissed, bankPid, appCardBalance]);
   const pending = useMemo(
-    () => pendingItems({ salaryDue, upcoming, loans, accounts, settings, now, bank: settings.bankPending, bankBalance }),
-    [salaryDue, upcoming, loans, accounts, settings, now, bankBalance]
+    () =>
+      pendingItems({
+        salaryDue,
+        incomeDue: dueIncomes(settings.incomeSources ?? [], incomes, now),
+        upcoming,
+        loans,
+        accounts,
+        settings,
+        now,
+        bank: settings.bankPending,
+        bankBalance,
+      }),
+    [salaryDue, incomes, upcoming, loans, accounts, settings, now, bankBalance]
   );
 
   useEffect(() => {
@@ -195,6 +212,7 @@ export function FinanceScreen() {
   );
 
   const [editingLayout, setEditingLayout] = useState(false);
+  const [incomeOpen, setIncomeOpen] = useState(false);
   const locked = useFinanceLocked();
   // Nothing to rearrange behind the lock — and leaving edit mode when it locks.
   useEffect(() => {
@@ -202,7 +220,7 @@ export function FinanceScreen() {
   }, [locked]);
 
   const spendTile = (key: string, label: string, value: number) => (
-    <CustomizableCard widgetId={`finance-${key}`} style={styles.tileCard}>
+    <CustomizableCard widgetId={`finance-${key}`} style={[styles.tileCard, styles.flex]}>
       <Text style={[styles.statLabel, { color: theme.colors.textMuted }]}>{label}</Text>
       <Text style={[styles.statValue, { color: theme.colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
         -{fmtAmount(value)} {settings.currency}
@@ -233,11 +251,12 @@ export function FinanceScreen() {
   };
 
   // The cards above the expenses, in the user's own order and sizes (pencil → edit).
-  const modules: BoardModule[] = [
+  const modules: GridModule[] = [
     {
       key: 'balance',
       title: tr.layoutEdit.modules.balance,
       sizes: ['full'],
+      minWidth: MIN_WIDE + 10,
       render: () => (
         <BalanceCard
           name={primary?.name ?? ''}
@@ -260,42 +279,83 @@ export function FinanceScreen() {
       .filter((account) => !account.isPrimary)
       .map((account) => ({
         key: `account-${account.id}`,
-        title: accountName(account, tr.accounts),
+        // The ⋮ list of removed widgets names the KIND (Card, Cash…), not the user's own label.
+        title: tr.accounts[account.kind],
         sizes: (account.kind === 'goal' ? ['full'] : ['half', 'full']) as ModuleSize[],
+        minWidth: account.kind === 'goal' ? MIN_WIDE : MIN_HALF,
         render: (size: ModuleSize) => <AccountCard account={account} compact={size === 'half'} disabled={editingLayout} />,
       })),
     ...loans.map((loan) => ({
       key: `loan-${loan.id}`,
-      title: loan.name || tr.loans.title,
+      title: tr.loans.title,
       sizes: ['full'] as ModuleSize[],
+      minWidth: MIN_WIDE,
       render: () => <LoanCard loan={loan} disabled={editingLayout} />,
     })),
-    { key: 'spend-week', title: tr.layoutEdit.modules.spendWeek, sizes: ['half'], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
-    { key: 'spend-month', title: tr.layoutEdit.modules.spendMonth, sizes: ['half'], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
+    // Week and month as one small column: two equal tiles, one over the other.
+    {
+      key: 'spend',
+      title: `${tr.layoutEdit.modules.spendWeek} · ${tr.layoutEdit.modules.spendMonth}`,
+      sizes: ['half'],
+      minWidth: MIN_HALF,
+      render: () => (
+        <TileStack>
+          {spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek)}
+          {spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth)}
+        </TileStack>
+      ),
+    },
     // Category budgets (finance v2 — what spending plans became): one bar each, full width.
     ...categories
       .filter((c) => !!c.limitMonth)
       .map((category) => ({
         key: `budget-${category.id}`,
-        title: category.name,
+        title: tr.layoutEdit.modules.budget,
         sizes: ['full'] as ModuleSize[],
+        minWidth: MIN_WIDE,
         render: () => <BudgetBar category={category} disabled={editingLayout} />,
       })),
-    ...(hasBudgetLimits ? [{ key: 'budget', title: tr.layoutEdit.modules.budget, sizes: ['full', 'half'] as ModuleSize[], render: budgetCard }] : []),
+    ...(hasBudgetLimits ? [{ key: 'budget', title: tr.layoutEdit.modules.budget, sizes: ['full', 'half'] as ModuleSize[], minWidth: MIN_HALF, render: budgetCard }] : []),
     {
       key: 'work-calendar',
       title: tr.layoutEdit.modules.workCalendar,
       sizes: ['full'],
+      minWidth: MIN_WIDE,
       render: () => (
         <CustomizableCard widgetId="finance-work-calendar">
           <WorkCalendar />
         </CustomizableCard>
       ),
     },
+    {
+      key: 'expenses',
+      title: tr.financeScreen.recentExpenses,
+      sizes: ['full'],
+      minWidth: MIN_WIDE,
+      resizableHeight: { min: 260, max: 900, initial: 460 },
+      render: () => expensesBlock,
+    },
   ];
 
+  // Phone: the 1.7 arrangement — week and month as two half tiles side by side, and the expenses as a
+  // plain list under the board (the grid's list block and the stacked tiles are for wide screens).
+  const { width: screenWidth } = useWindowDimensions();
+  const narrow = screenWidth < 600;
+  const boardModules: GridModule[] = narrow
+    ? modules.flatMap((m) =>
+        m.key === 'spend'
+          ? [
+              { key: 'spend-week', title: tr.layoutEdit.modules.spendWeek, sizes: ['half'] as ModuleSize[], render: () => spendTile('spend-week', tr.notificationsContent.perWeek, spentThisWeek) },
+              { key: 'spend-month', title: tr.layoutEdit.modules.spendMonth, sizes: ['half'] as ModuleSize[], render: () => spendTile('spend-month', tr.notificationsContent.perMonth, spentThisMonth) },
+            ]
+          : m.key === 'expenses'
+            ? []
+            : [m]
+      )
+    : modules;
+
   // ⋮ while editing: widgets removed from this screen.
-  const removedItems = useHiddenBoardItems('finance', modules);
+  const removedItems = useHiddenBoardItems('finance', boardModules);
 
   // The list shows one month — this one by default; ‹ › go back through the history. Nothing is
   // deleted on the 1st: every expense stays in Calendar and Stats, and balances don't move.
@@ -310,6 +370,98 @@ export function FinanceScreen() {
     Alert.alert(tr.financeScreen.listInfoTitle, tr.financeScreen.listInfo(nextClear));
   }
 
+  // The month's expenses as ONE widget on the grid (2.0): a block whose height is dragged within
+  // limits, the list scrolling inside it — not a card per expense.
+  const expensesHeader = (
+            <View style={styles.sectionRow}>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: theme.colors.text, flex: 1 },
+          expenseMode === 'big' && styles.bigSectionTitle,
+        ]}
+      >
+        {monthOffset === 0
+          ? expenseMode === 'big'
+            ? tr.layoutText.expenses.toUpperCase()
+            : tr.financeScreen.recentExpenses
+          : monthName}
+      </Text>
+      <Pressable onPress={() => setMonthOffset((m) => m - 1)} hitSlop={10} accessibilityLabel="‹">
+        <Ionicons name="chevron-back" size={20} color={theme.colors.textMuted} />
+      </Pressable>
+      <Pressable onPress={() => setMonthOffset((m) => Math.min(0, m + 1))} hitSlop={10} disabled={monthOffset === 0} accessibilityLabel="›">
+        <Ionicons name="chevron-forward" size={20} color={monthOffset === 0 ? theme.colors.border : theme.colors.textMuted} />
+      </Pressable>
+      <Pressable onPress={showListInfo} hitSlop={10} accessibilityLabel={tr.financeScreen.listInfoTitle}>
+        <Ionicons name="information-circle-outline" size={20} color={theme.colors.textMuted} />
+      </Pressable>
+    </View>
+  );
+  const expensesItems = (
+    <>
+        {monthExpenses.length === 0 ? (
+          <EmptyState icon="💰" title={tr.financeScreen.emptyTitle} subtitle={tr.financeScreen.emptySubtitle} />
+        ) : (
+          monthExpenses.map((e) => (
+            <View key={e.id} style={{ marginBottom: expenseMode === 'big' ? 12 : 8 }}>
+              {renderExpense(e, expenseMode === 'big' ? 'big' : 'row')}
+            </View>
+          ))
+        )}
+    </>
+  );
+  const expensesBlock = (
+    <View style={[styles.expensesBlock, { borderColor: theme.colors.border, backgroundColor: `${theme.colors.surface}66` }]}>
+      {expensesHeader}
+      <ScrollView style={styles.flex} contentContainerStyle={styles.expensesList} nestedScrollEnabled>
+        {expensesItems}
+      </ScrollView>
+    </View>
+  );
+
+  // The nearest pension / fixed salary still to come this month.
+  const nextIncome = useMemo(() => upcomingIncomes(settings.incomeSources ?? [], now)[0] ?? null, [settings.incomeSources, now]);
+
+  // Simple mode (1.8), as in the mock-up: what needs an answer, one big card with the money
+  // (main card large, other cards and cash below, the next income), then the latest expenses.
+  const otherAccounts = accounts.filter((a) => a.id !== pid && isSpendable(a));
+  const money = (n: number, cur: string) => `${fmtAmount(n)} ${cur}`;
+  const simpleBody = (
+    <View style={styles.simpleWrap}>
+      <PendingList items={pending} />
+      <View style={[styles.simpleCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+        <Text style={[styles.simpleLabel, { color: theme.colors.textMuted }]}>{tr.uiMode.onCard}{primary?.name ? ` · ${primary.name}` : ''}</Text>
+        <Text style={[styles.simpleBig, { color: theme.colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
+          {money(bank, primary?.currency ?? settings.currency)}
+        </Text>
+        {otherAccounts.map((a) => (
+          <Text key={a.id} style={[styles.simpleLine, { color: theme.colors.textMuted }]}>
+            {accountName(a, tr.accounts)}: {money(balanceOf(a.id, ledger, pid, today), a.currency)}
+          </Text>
+        ))}
+        <Text style={[styles.simpleLine, { color: theme.colors.textMuted }]}>{tr.uiMode.spentMonth(money(spentThisMonth, settings.currency))}</Text>
+        {nextIncome ? (
+          <View style={[styles.soon, { backgroundColor: `${theme.colors.success}1A`, borderColor: `${theme.colors.success}55` }]}>
+            <Ionicons name="heart-outline" size={20} color={theme.colors.success} />
+            <Text style={[styles.soonText, { color: theme.colors.text }]}>
+              {tr.incomes.soon(
+                nextIncome.advance ? tr.incomes.advanceOf(nextIncome.source.name) : nextIncome.source.name,
+                new Date(`${nextIncome.date}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'long' }),
+                money(nextIncome.amount, settings.currency)
+              )}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={[styles.simpleCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+        <Text style={[styles.simpleSection, { color: theme.colors.textMuted }]}>{tr.financeScreen.recentExpenses}</Text>
+        {expensesItems}
+      </View>
+    </View>
+  );
+
+
   const listHeader = (
           <View style={styles.topSection}>
             {BANK_FEATURE && !bankAccess && bankAvailable() ? (
@@ -320,6 +472,18 @@ export function FinanceScreen() {
               </View>
             ) : null}
             <PendingList items={pending} />
+            {nextIncome ? (
+              <View style={[styles.soon, { backgroundColor: `${theme.colors.success}1A`, borderColor: `${theme.colors.success}55` }]}>
+                <Ionicons name="heart-outline" size={20} color={theme.colors.success} />
+                <Text style={[styles.soonText, { color: theme.colors.text }]}>
+                  {tr.incomes.soon(
+                    nextIncome.advance ? tr.incomes.advanceOf(nextIncome.source.name) : nextIncome.source.name,
+                    new Date(`${nextIncome.date}T12:00:00`).toLocaleDateString(tr.localeCode, { day: 'numeric', month: 'long' }),
+                    `${fmtAmount(nextIncome.amount)} ${settings.currency}`
+                  )}
+                </Text>
+              </View>
+            ) : null}
             {askSalaryAccount ? (
               <CustomizableCard widgetId="finance-salary-account" style={styles.askCard}>
                 <Text style={[styles.sectionTitle, styles.askTitle, { color: theme.colors.text }]}>{tr.accounts.salaryQuestion}</Text>
@@ -332,37 +496,19 @@ export function FinanceScreen() {
               </CustomizableCard>
             ) : null}
             <FinanceMenuBody />
-            <ModuleBoard boardId="finance" modules={modules} editing={editingLayout} />
-            <View style={styles.sectionRow}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.colors.text, flex: 1 },
-                  expenseMode === 'big' && styles.bigSectionTitle,
-                ]}
-              >
-                {monthOffset === 0
-                  ? expenseMode === 'big'
-                    ? tr.layoutText.expenses.toUpperCase()
-                    : tr.financeScreen.recentExpenses
-                  : monthName}
-              </Text>
-              <Pressable onPress={() => setMonthOffset((m) => m - 1)} hitSlop={10} accessibilityLabel="‹">
-                <Ionicons name="chevron-back" size={20} color={theme.colors.textMuted} />
-              </Pressable>
-              <Pressable onPress={() => setMonthOffset((m) => Math.min(0, m + 1))} hitSlop={10} disabled={monthOffset === 0} accessibilityLabel="›">
-                <Ionicons name="chevron-forward" size={20} color={monthOffset === 0 ? theme.colors.border : theme.colors.textMuted} />
-              </Pressable>
-              <Pressable onPress={showListInfo} hitSlop={10} accessibilityLabel={tr.financeScreen.listInfoTitle}>
-                <Ionicons name="information-circle-outline" size={20} color={theme.colors.textMuted} />
-              </Pressable>
-            </View>
+            <GridBoard boardId="finance" modules={boardModules} editing={editingLayout} />
+            {narrow ? (
+              <View style={styles.phoneExpenses}>
+                {expensesHeader}
+                {expensesItems}
+              </View>
+            ) : null}
           </View>
   );
 
   return (
     <LayoutScreen
-      title={tr.financeScreen.header}
+      title={simpleMode ? tr.uiMode.tabMoney : tr.financeScreen.header}
       help="finance"
       right={
         <View style={styles.headerRight}>
@@ -372,23 +518,17 @@ export function FinanceScreen() {
               <Ionicons name="add-circle-outline" size={24} color={theme.colors.primary} />
             </Pressable>
           ) : null}
-          {editingLayout ? <HiddenModulesButton items={removedItems} /> : null}
+          {/* Simple mode has no pencil: the removed widgets come back from here. */}
+          {editingLayout || (simpleMode && removedItems.length > 0) ? <HiddenModulesButton items={removedItems} /> : null}
           <EditLayoutButton helpId="finance.edit" editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={locked} />
         </View>
       }
     >
       <FinanceLockGate clearRail>
       <LayoutScrollContext.Provider value={scrollRef}>
-      <Animated.FlatList
-        ref={scrollRef}
-        data={monthExpenses}
-        keyExtractor={(expense) => expense.id}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={listHeader}
-        renderItem={({ item }) => renderExpense(item, expenseMode === 'big' ? 'big' : 'row')}
-        ItemSeparatorComponent={() => <View style={{ height: expenseMode === 'big' ? 12 : 8 }} />}
-        ListEmptyComponent={<EmptyState icon="💰" title={tr.financeScreen.emptyTitle} subtitle={tr.financeScreen.emptySubtitle} />}
-      />
+      <Animated.ScrollView ref={scrollRef} contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
+        {simpleMode ? simpleBody : listHeader}
+      </Animated.ScrollView>
       </LayoutScrollContext.Provider>
 
       {quickAddOpen ? (
@@ -401,7 +541,16 @@ export function FinanceScreen() {
         />
       ) : null}
 
-      {editingLayout ? null : (
+      {editingLayout ? null : simpleMode ? (
+        // Simple mode: two big, labelled buttons instead of a bare "+".
+        <BigActions
+          bottom={insets.bottom + 16}
+          actions={[
+            { label: tr.uiMode.expense, icon: 'remove', color: theme.colors.danger, onPress: () => router.push('/expense/new') },
+            { label: tr.uiMode.income, icon: 'add', color: theme.colors.success, onPress: () => setIncomeOpen(true) },
+          ]}
+        />
+      ) : (
         <Fab
           helpId="finance.fab"
           onPress={() => router.push('/expense/new')}
@@ -409,6 +558,7 @@ export function FinanceScreen() {
           bottom={insets.bottom + 16}
         />
       )}
+      <IncomeDialog visible={incomeOpen} onClose={() => setIncomeOpen(false)} />
       </FinanceLockGate>
 
       <MoneyDialog visible={addOpen} onClose={() => setAddOpen(false)} title={tr.accounts.addTitle}>
@@ -443,6 +593,21 @@ const styles = StyleSheet.create({
   topSection: { gap: 14, marginBottom: 14 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 4 },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  spendStack: { gap: 12 },
+  simpleWrap: { gap: 14, paddingBottom: 100 },
+  simpleCard: { borderWidth: 1, borderRadius: 18, padding: 18, gap: 8 },
+  simpleLabel: { fontSize: 16, fontWeight: '600' },
+  simpleBig: { fontSize: 40, fontWeight: '800' },
+  simpleLine: { fontSize: 15 },
+  simpleSection: { fontSize: 14, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6 },
+  phoneExpenses: { gap: 8, marginTop: 6 },
+  incomeButtons: { flexDirection: 'row', gap: 8 },
+  spendSlot: { flex: 1 },
+  soon: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 14, padding: 12 },
+  soonText: { flex: 1, fontSize: 14, fontWeight: '600' },
+  expensesBlock: { flex: 1, borderWidth: 1, borderRadius: 18, padding: 12, gap: 10, overflow: 'hidden' },
+  expensesList: { paddingBottom: 4 },
+  flex: { flex: 1 },
   budgetTitle: { marginTop: 0, marginBottom: 2 },
   budgetRow: { gap: 6, marginTop: 8 },
   budgetLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -456,3 +621,47 @@ const styles = StyleSheet.create({
   addRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   bigSectionTitle: { fontSize: 34, fontWeight: '800', letterSpacing: 2, marginTop: 12 },
 });
+
+/** Two tiles one over the other that share the widget's grid box (the row's height) equally. */
+function TileStack({ children }: { children: React.ReactNode[] }) {
+  const height = React.useContext(GridCellContext);
+  return (
+    <GridCellContext.Provider value={null}>
+      <View style={[styles.spendStack, height ? { height } : null]}>
+        {children.map((child, i) => (
+          <View key={i} style={styles.spendSlot}>
+            {child}
+          </View>
+        ))}
+      </View>
+    </GridCellContext.Provider>
+  );
+}
+
+/** Simple mode's "+ Income": an amount and where it went — recorded as received today. */
+function IncomeDialog({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const tr = useTranslation();
+  const currency = useSettingsStore((s) => s.settings.currency);
+  const accounts = useFinanceStore((s) => s.accounts);
+  const addIncome = useFinanceStore((s) => s.addIncome);
+  const [amount, setAmount] = useState('');
+  const [accountId, setAccountId] = useState(primaryIdOf(accounts));
+  const n = parseFloat(amount.replace(',', '.').replace(/\s/g, ''));
+  async function save() {
+    if (!(n > 0)) return;
+    await addIncome(Math.round(n * 100) / 100, accountId, todayKey());
+    haptics.success();
+    setAmount('');
+    onClose();
+  }
+  return (
+    <MoneyDialog visible={visible} onClose={onClose} title={tr.uiMode.incomeTitle}>
+      <TextField label={tr.money.amountLabel(currency)} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholder="0" autoFocus />
+      <AccountPicker label={tr.incomes.account} value={accountId} onChange={setAccountId} />
+      <View style={styles.incomeButtons}>
+        <Button title={tr.uiMode.cancel} variant="secondary" onPress={onClose} style={styles.flex} />
+        <Button title={tr.uiMode.incomeSave} onPress={save} disabled={!(n > 0)} style={styles.flex} />
+      </View>
+    </MoneyDialog>
+  );
+}

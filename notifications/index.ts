@@ -7,9 +7,11 @@ import type * as Impl from './impl';
  * imported, which took the whole app down with it. Outside Expo Go this simply forwards to
  * ./impl; inside Expo Go on Android the module is never loaded and every call is a harmless no-op,
  * so the rest of the app can still be tried there (widgets and notifee are skipped the same way).
+ * Web / desktop (2.0) uses the stub too — scheduled local notifications don't exist there.
  */
 const notificationsUnavailable =
-  Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+  Platform.OS === 'web' ||
+  (Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient);
 
 const noop = async () => {};
 

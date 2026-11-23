@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS, Loan } from '@/types';
-import { monthlyPayment, nextPaymentDate, remainingDebt, totalInterest } from '@/lib/loans';
+import { isPaidOff, monthlyPayment, nextPaymentDate, paymentDue, remainingDebt, totalInterest } from '@/lib/loans';
 import { paydayForPayout, payoutRange } from '@/lib/earnings';
 import { parseDateKey, toDateKey } from '@/lib/dateRanges';
 
@@ -11,6 +11,7 @@ const loan = (fields: Partial<Loan> = {}): Loan => ({
   months: 12,
   firstPayment: '2026-01-31',
   paidCount: 0,
+  extraPaid: 0,
   currency: 'zł',
   createdAt: '2026-01-01T00:00:00.000Z',
   ...fields,
@@ -57,5 +58,31 @@ describe('advance + salary', () => {
     const range = payoutRange(parseDateKey('2026-10-20'), once);
     expect(toDateKey(range.start)).toBe('2026-10-01');
     expect(toDateKey(paydayForPayout(range, once))).toBe('2026-11-10');
+  });
+});
+
+describe('loan payments of any amount', () => {
+  it('paying more lowers the debt, paying less raises it', () => {
+    const base = loan({ paidCount: 1 }); // 12 000 / 12 → 1000 a month, 11 000 left
+    expect(remainingDebt(base)).toBeCloseTo(11000);
+    expect(remainingDebt({ ...base, extraPaid: 500 })).toBeCloseTo(10500);
+    expect(remainingDebt({ ...base, extraPaid: -200 })).toBeCloseTo(11200);
+  });
+
+  it('a big enough overpayment pays it off early', () => {
+    const l = loan({ paidCount: 2, extraPaid: 10000 });
+    expect(remainingDebt(l)).toBe(0);
+    expect(isPaidOff(l)).toBe(true);
+    expect(nextPaymentDate(l)).toBeNull();
+  });
+
+  it('the last payment is only what is left', () => {
+    expect(paymentDue(loan({ paidCount: 11, extraPaid: 400 }))).toBeCloseTo(600);
+  });
+
+  it('underpaying the last month keeps the loan open', () => {
+    const l = loan({ paidCount: 12, extraPaid: -300 });
+    expect(isPaidOff(l)).toBe(false);
+    expect(remainingDebt(l)).toBeCloseTo(300);
   });
 });

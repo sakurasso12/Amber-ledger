@@ -42,15 +42,19 @@ object AlarmQueue {
     val label: String,
     /** Translated "tap to set the alarm" (fallback notification text). */
     val hint: String,
+    /** Repeating alarm on these days (Calendar.SUNDAY = 1 …); empty = one-off. */
+    val days: List<Int> = emptyList(),
   ) {
     fun toJson(): JSONObject = JSONObject()
       .put("key", key).put("triggerAt", triggerAt).put("alarmAt", alarmAt)
       .put("hour", hour).put("minute", minute).put("label", label).put("hint", hint)
+      .put("days", JSONArray(days))
 
     companion object {
       fun fromJson(o: JSONObject) = Item(
         o.getString("key"), o.getLong("triggerAt"), o.getLong("alarmAt"),
         o.getInt("hour"), o.getInt("minute"), o.optString("label"), o.optString("hint"),
+        o.optJSONArray("days")?.let { a -> (0 until a.length()).map { a.getInt(it) } } ?: emptyList(),
       )
     }
   }
@@ -92,7 +96,7 @@ object AlarmQueue {
     val now = System.currentTimeMillis()
     val done = fired(ctx)
     for (item in load(ctx)) {
-      if (item.key in done || item.alarmAt <= now) continue
+      if (item.key in done || (item.days.isEmpty() && item.alarmAt <= now)) continue
       if (item.triggerAt <= now) fire(ctx, item, foreground) else arm(ctx, item)
     }
   }
@@ -133,6 +137,7 @@ object AlarmQueue {
     putExtra(AlarmClock.EXTRA_MESSAGE, item.label)
     putExtra(AlarmClock.EXTRA_SKIP_UI, true)
     putExtra(AlarmClock.EXTRA_VIBRATE, true)
+    if (item.days.isNotEmpty()) putExtra(AlarmClock.EXTRA_DAYS, ArrayList(item.days))
     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
   }
 
@@ -144,7 +149,7 @@ object AlarmQueue {
   private fun fire(ctx: Context, item: Item, foreground: Context?) {
     if (item.key in fired(ctx)) return
     // SET_ALARM rings at the NEXT hour:minute — if that time has passed it would be tomorrow.
-    if (item.alarmAt <= System.currentTimeMillis() + 30_000) return
+    if (item.days.isEmpty() && item.alarmAt <= System.currentTimeMillis() + 30_000) return
     val launcher = foreground ?: if (Settings.canDrawOverlays(ctx)) ctx else null
     if (launcher != null) {
       try {

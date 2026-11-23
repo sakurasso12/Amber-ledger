@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -217,11 +218,19 @@ function StorageSection() {
         </Text>
       </View>
 
-      <View style={styles.field}>
-        <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.storage.transferTitle}</Text>
-        <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.storage.transferHint}</Text>
-        <Button title={tr.storage.transferButton} disabled={busy} onPress={() => router.push('/settings/transfer' as never)} />
-      </View>
+      {/* Phone ↔ phone transfer needs the app's own network module; the PC gets QR sync later. */}
+      {Platform.OS === 'web' ? (
+        <View style={styles.field}>
+          <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.transfer.desktopSoonTitle}</Text>
+          <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.transfer.desktopSoonText}</Text>
+        </View>
+      ) : (
+        <View style={styles.field}>
+          <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.storage.transferTitle}</Text>
+          <Text style={[styles.hint, { color: theme.colors.textMuted }]}>{tr.storage.transferHint}</Text>
+          <Button title={tr.storage.transferButton} disabled={busy} onPress={() => router.push('/settings/transfer' as never)} />
+        </View>
+      )}
 
       <View style={styles.field}>
         <Text style={[styles.label, { color: theme.colors.textMuted }]}>{tr.storage.eraseTitle}</Text>

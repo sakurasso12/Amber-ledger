@@ -43,7 +43,9 @@ export function preloadSounds(): void {
 
 /** The "done" sound — every completed task. Off in Settings → Notifications. */
 export function playDoneSound(): void {
-  const { soundEffects, purrOnTask } = useSettingsStore.getState().settings;
+  const { soundEffects, purrOnTask: purrSetting, uiMode } = useSettingsStore.getState().settings;
+  // Simple mode: a plain "done" sound, no cat.
+  const purrOnTask = purrSetting && uiMode !== 'simple';
   if (!soundEffects) return;
   play(purrOnTask ? 'purr' : 'done');
 }

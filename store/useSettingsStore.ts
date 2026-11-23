@@ -58,6 +58,8 @@ export const useSettingsStore = create<SettingsState>()(
         // Updating from a version before the first-launch setup existed: the app is already set up,
         // so skip it — they get "What's new" instead.
         if (persistedSettings && persistedSettings.onboardingDone === undefined) settings.onboardingDone = true;
+        // 1.8 added the simple mode as the default for NEW installs; someone updating keeps everything.
+        if (persistedSettings && persistedSettings.uiMode === undefined) settings.uiMode = 'advanced';
         return { ...current, settings };
       },
       onRehydrateStorage: () => () => {

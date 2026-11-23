@@ -4,6 +4,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { gradientStyle } from '@/theme/theme';
 import { CustomizableCard } from '@/components/ui/CustomizableCard';
 import { priorityColor } from '@/theme/theme';
 import { Task } from '@/types';
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
   photoCard: { overflow: 'hidden', minHeight: 220, justifyContent: 'flex-end' },
   // Darker towards the bottom, where the title and button sit.
-  photoFade: { experimental_backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.7))' },
+  photoFade: gradientStyle('linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.7))'),
   photoText: { textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
   kickerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   dot: { width: 10, height: 10, borderRadius: 5 },

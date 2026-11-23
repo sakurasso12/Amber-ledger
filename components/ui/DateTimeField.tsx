@@ -5,6 +5,11 @@ import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTranslation } from '@/i18n';
 import { Chip } from './Chip';
+import { WebDateInput } from './WebDateInput';
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const localDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const localTime = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
 interface DateTimeFieldProps {
   label: string;
@@ -48,7 +53,32 @@ export function DateTimeField({ label, value, onChange, dateEditable = true }: D
         <Chip label={hasDeadline ? tr.dateTimeField.noDeadline : tr.dateTimeField.setDeadline} onPress={toggleDeadline} />
       </View>
 
-      {hasDeadline ? (
+      {hasDeadline && Platform.OS === 'web' ? (
+        <View style={styles.row}>
+          {dateEditable ? (
+            <WebDateInput
+              type="date"
+              value={localDate(current)}
+              onChange={(v) => {
+                const [y, m, d] = v.split('-').map(Number);
+                const next = new Date(current);
+                next.setFullYear(y, m - 1, d);
+                onChange(next.toISOString());
+              }}
+            />
+          ) : null}
+          <WebDateInput
+            type="time"
+            value={localTime(current)}
+            onChange={(v) => {
+              const [h, min] = v.split(':').map(Number);
+              const next = new Date(current);
+              next.setHours(h, min, 0, 0);
+              onChange(next.toISOString());
+            }}
+          />
+        </View>
+      ) : hasDeadline ? (
         Platform.OS === 'android' ? (
           <View style={styles.row}>
             {dateEditable ? (

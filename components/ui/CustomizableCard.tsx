@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { StyleProp, ImageBackground, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { Alert, StyleProp, ImageBackground, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import { GridCellContext } from './GridCell';
+import { GridItemContext } from './GridItem';
+import { useTranslation } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 import { BlurView } from 'expo-blur';
 import { cardSurface } from '@/theme/surfaces';
@@ -53,15 +56,31 @@ export function CustomizableCard({ widgetId, children, style, padding, photoScri
   }
 
   const surface = cardSurface(theme, shape, ownBackground, ownOpacity);
+  // On the widget grid the card fills its box, so cards in a row end on one line.
+  const gridHeight = useContext(GridCellContext);
+  const fill = gridHeight ? { minHeight: gridHeight } : null;
   // Glass: the card's own pick, or the theme's card style (the vivid finish usually).
   const glass = ownBackground === 'glass' || (!ownBackground && theme.design.cardStyle === 'glass');
   const innerPadding = { padding: padding ?? theme.design.cardPadding };
 
-  const menu = (
-    <View style={styles.menuAnchor}>
-      <WidgetMenu onPress={() => setShapeOpen(true)} tint={imageUri ? 'light' : undefined} />
-    </View>
-  );
+  // Simple mode: no styling options — ⋮ only offers to take the widget off the screen.
+  const simple = useSettingsStore((s) => s.settings.uiMode === 'simple');
+  const gridItem = useContext(GridItemContext);
+  const tr = useTranslation();
+  const openMenu = () => {
+    if (!simple) return setShapeOpen(true);
+    if (!gridItem?.remove) return;
+    Alert.alert(tr.uiMode.removeTitle, tr.uiMode.removeText, [
+      { text: tr.uiMode.cancel, style: 'cancel' },
+      { text: tr.uiMode.remove, style: 'destructive', onPress: gridItem.remove },
+    ]);
+  };
+  const menu =
+    simple && !gridItem?.remove ? null : (
+      <View style={styles.menuAnchor}>
+        <WidgetMenu onPress={openMenu} tint={imageUri ? 'light' : undefined} />
+      </View>
+    );
 
   const extras = (
     <>
@@ -82,10 +101,10 @@ export function CustomizableCard({ widgetId, children, style, padding, photoScri
     return (
       // overflow: hidden clips the photo and its scrim to the card's exact corners — including the
       // per-corner shapes of the Vertical layout — so no square photo edges poke out.
-      <ImageBackground source={{ uri: imageUri }} resizeMode="cover" style={[styles.base, surface, styles.clip, style]}>
+      <ImageBackground source={{ uri: imageUri }} resizeMode="cover" style={[styles.base, surface, styles.clip, fill, style]}>
         <View style={[styles.inner, innerPadding, { backgroundColor: photoScrim ?? `${theme.colors.background}80` }]}>
           {menu}
-          {children}
+          <GridCellContext.Provider value={null}>{children}</GridCellContext.Provider>
         </View>
         {extras}
       </ImageBackground>
@@ -93,7 +112,7 @@ export function CustomizableCard({ widgetId, children, style, padding, photoScri
   }
 
   return (
-    <View style={[styles.base, surface, glass && backdrop ? styles.clearBg : null, style]}>
+    <View style={[styles.base, surface, glass && backdrop ? styles.clearBg : null, fill, style]}>
       {glass ? (
         // Real blur of the screen's gradient/photo behind the card (Android 12+; older phones just get
         // the see-through colour). Without a backdrop there's nothing to blur, so it's skipped.
@@ -115,7 +134,7 @@ export function CustomizableCard({ widgetId, children, style, padding, photoScri
       {glass && backdrop ? <View style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(theme.colors.surface, (ownOpacity ?? theme.glass.opacity) * GLASS_TINT) }]} /> : null}
       <View style={[styles.inner, innerPadding]}>
         {menu}
-        {children}
+        <GridCellContext.Provider value={null}>{children}</GridCellContext.Provider>
       </View>
       {extras}
     </View>

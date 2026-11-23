@@ -7,7 +7,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useFinanceStore, useSpendingExpenses } from '@/store/useFinanceStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { BoardModule, CustomizableCard, EditLayoutButton, HiddenModulesButton, LayoutScreen, ModuleBoard, ModuleSize, SegmentedControl, useHiddenBoardItems } from '@/components/ui';
+import { CustomizableCard, EditLayoutButton, GridBoard, GridModule, HiddenModulesButton, LayoutScreen, MIN_HALF, MIN_WIDE, ModuleSize, SegmentedControl, useHiddenBoardItems } from '@/components/ui';
 import { useFinanceLocked } from '@/store/useFinanceLock';
 import { LayoutScrollContext } from '@/components/ui/LayoutEditing';
 import { BarChart } from '@/components/charts/BarChart';
@@ -25,6 +25,7 @@ type Tab = 'tasks' | 'finance';
 
 export function StatsScreen() {
   const theme = useTheme();
+  const simpleMode = useSettingsStore((st) => st.settings.uiMode === 'simple');
   const tr = useTranslation();
   const insets = useSafeAreaInsets();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -111,16 +112,16 @@ export function StatsScreen() {
         )}
       </CustomizableCard>
     );
-    return { key: id, title, sizes: ['full', 'half'] as ModuleSize[], render: card };
+    return { key: id, title, sizes: ['full', 'half'] as ModuleSize[], minWidth: MIN_HALF, render: card };
   };
 
-  const taskModules: BoardModule[] = [
+  const taskModules: GridModule[] = [
     chartCard('stats-created', tr.stats.createdPerWeek, taskStats.map((w) => ({ label: w.label, value: w.created })), theme.colors.accent),
     chartCard('stats-completed', tr.stats.completedPerWeek, taskStats.map((w) => ({ label: w.label, value: w.completed })), theme.colors.success),
     chartCard('stats-overdue', tr.stats.overduePerWeek, taskStats.map((w) => ({ label: w.label, value: w.overdue })), theme.colors.danger),
   ];
 
-  const financeModules: BoardModule[] = [
+  const financeModules: GridModule[] = [
     chartCard(
       'stats-earnings',
       tr.stats.earningsPerWeek,
@@ -133,6 +134,7 @@ export function StatsScreen() {
       title: tr.stats.expensesByCategory,
       // A list of categories with bars — needs the full width.
       sizes: ['full'],
+      minWidth: MIN_WIDE,
       render: () => (
         <CustomizableCard widgetId="stats-categories" style={styles.card}>
           <View style={styles.rowBetween}>
@@ -159,7 +161,8 @@ export function StatsScreen() {
       right={
         <View style={styles.headerRight}>
           {/* ⋮ lists what was removed from the tab that's open. */}
-          {editingLayout ? <HiddenModulesButton items={tab === 'tasks' ? hiddenTaskItems : hiddenFinanceItems} /> : null}
+          {/* Simple mode has no pencil: the removed widgets come back from here. */}
+          {editingLayout || (simpleMode && (tab === 'tasks' ? hiddenTaskItems : hiddenFinanceItems).length > 0) ? <HiddenModulesButton items={tab === 'tasks' ? hiddenTaskItems : hiddenFinanceItems} /> : null}
           <EditLayoutButton helpId="stats.edit" editing={editingLayout} onToggle={() => setEditingLayout((v) => !v)} disabled={financeLocked} />
         </View>
       }
@@ -178,12 +181,12 @@ export function StatsScreen() {
         {tab === 'tasks' ? (
           <>
             {summary}
-            <ModuleBoard boardId="stats-tasks" modules={taskModules} editing={editingLayout} />
+            <GridBoard boardId="stats-tasks" modules={taskModules} editing={editingLayout} />
           </>
         ) : (
           <FinanceLockGate style={styles.lockedArea}>
             {summary}
-            <ModuleBoard boardId="stats-finance" modules={financeModules} editing={editingLayout} />
+            <GridBoard boardId="stats-finance" modules={financeModules} editing={editingLayout} />
           </FinanceLockGate>
         )}
       </Animated.ScrollView>

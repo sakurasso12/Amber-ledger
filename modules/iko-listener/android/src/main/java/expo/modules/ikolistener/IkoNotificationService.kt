@@ -33,8 +33,12 @@ class IkoNotificationService : NotificationListenerService() {
 
   private fun showConfirm(text: String) {
     val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+    // Texts in the app's language, handed over by JS (IkoListener.setTexts); English until then.
+    val texts = getSharedPreferences(TEXTS, MODE_PRIVATE)
+    val title = texts.getString("title", null) ?: "New transaction — add it?"
+    val channelName = texts.getString("channel", null) ?: "Bank transactions"
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      nm.createNotificationChannel(NotificationChannel(CHANNEL, "Bank transactions", NotificationManager.IMPORTANCE_DEFAULT))
+      nm.createNotificationChannel(NotificationChannel(CHANNEL, channelName, NotificationManager.IMPORTANCE_DEFAULT))
     }
 
     val amount = lineAfter(text, "Kwota:")?.trimEnd('.') ?: ""
@@ -51,7 +55,7 @@ class IkoNotificationService : NotificationListenerService() {
     val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(this, CHANNEL) else Notification.Builder(this)
     val n = builder
       .setSmallIcon(icon)
-      .setContentTitle("Нова операція — підтвердити?")
+      .setContentTitle(title)
       .setContentText(body)
       .setContentIntent(pending)
       .setAutoCancel(true)
@@ -65,6 +69,7 @@ class IkoNotificationService : NotificationListenerService() {
 
   companion object {
     const val IKO_PACKAGE = "pl.pkobp.iko"
+    const val TEXTS = "iko_texts"
     private const val CHANNEL = "bank_transactions"
     private const val NOTIFY_ID = 4711
   }

@@ -37,9 +37,11 @@ interface TaskModulesProps {
   editing: boolean;
   /** Vertical's "In focus" card — full width, moves around among the squares like they do. */
   focus?: React.ReactNode;
+  /** Simple mode: no level ring. */
+  hideLevel?: boolean;
 }
 
-export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
+export function TaskModules({ habits, editing, focus, hideLevel = false }: TaskModulesProps) {
   const theme = useTheme();
   const tr = useTranslation();
   const scrollableRef = useLayoutScroll();
@@ -56,7 +58,7 @@ export function TaskModules({ habits, editing, focus }: TaskModulesProps) {
     () =>
       ordered(
         [
-          { key: LEVEL_KEY, habit: null },
+          ...(hideLevel ? [] : [{ key: LEVEL_KEY, habit: null }]),
           ...habits.map((habit) => ({ key: habit.seriesId, habit })),
           ...(hasFocus ? [{ key: FOCUS_KEY, habit: null }] : []),
         ],

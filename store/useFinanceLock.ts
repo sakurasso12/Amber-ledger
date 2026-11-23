@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { usePathname } from 'expo-router';
@@ -85,11 +86,16 @@ export function lockFinances() {
 
 /** Whether this phone can do a fingerprint/face check and has one enrolled. */
 export async function deviceAuthAvailable(): Promise<boolean> {
-  const [hasHardware, enrolled] = await Promise.all([
-    LocalAuthentication.hasHardwareAsync(),
-    LocalAuthentication.isEnrolledAsync(),
-  ]);
-  return hasHardware && enrolled;
+  if (Platform.OS === 'web') return false; // no fingerprint in a browser / desktop — password only
+  try {
+    const [hasHardware, enrolled] = await Promise.all([
+      LocalAuthentication.hasHardwareAsync(),
+      LocalAuthentication.isEnrolledAsync(),
+    ]);
+    return hasHardware && enrolled;
+  } catch {
+    return false;
+  }
 }
 
 /** Mount once in the root layout: enforces the timer, the 0-minute mode and keeps widgets in step. */
